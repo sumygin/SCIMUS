@@ -1,0 +1,99 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    user-select: none;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 1rem;
+    width: 100%;
+    border-bottom: 3px solid black;
+    box-shadow: 0 1px 5px black;
+    padding: 2rem;
+    background: white;
+    z-index: 1000;
+}
+
+#header-items {
+    position: inherit;
+    right:1rem;
+    top: 2rem;
+}
+
+.header-item { 
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+main {
+    margin-top: 6rem;
+    padding: 1rem;
+}
+
+#timer-popup {
+    z-index: 50;
+    opacity: 0;
+    position: absolute;
+    top: 1rem;
+    right: -1rem;
+    padding: 20px;
+    background: white;
+    border: 2px solid black;
+    min-width: 200px;
+
+    transition-duration: 0.1s;
+    transition-timing-function:ease-in-out;
+    pointer-events:none;
+    box-shadow: 0 1px 5px black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.timer-hover:hover #timer-popup {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#timer-settings {
+    position: absolute;
+    right: 1rem;
+    top: 0.5rem;
+    z-index: 100;
+}
+
+#timer-arc {
+    width: 190px;
+}
+
+#time-text {
+    position: absolute;
+    font-size: 2rem;
+    text-align: center;
+    margin-top: 60px;
+}
+
+button {
+    border: none;
+    scale: 120%;
+}
+
+#control-btns {
+    display: flex;
+    align-items: center;
+    width: 190px
+}
+
+.playback {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0 auto;
+}
+
+#mode-btn {
+    margin-left: auto;
+}
