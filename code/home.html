@@ -15,22 +15,22 @@
       <a class="header-item" href="search.html"><button>SEARCH</button></a>
       <a class="header-item" href="create.html"><button>CREATE</button></a>
       <a class="header-item" href="create.html"><button>LEADERBOARDS</button></a>
-      <span class="header-item timer-hover"> <span id="header-timer-text">30:00</span>
+      <span class="header-item timer-hover"> <span id="timer-text-wrap"><span id="header-timer-text">30:00</span></span>
         <div id="timer-popup" class="timer-hover">
-          <a href="preferences.html" id="timer-settings"><button>⚙️</button></a>
+          <a href="preferences.html" id="timer-settings"><button class="btns" >⚙️</button></a>
           
           <canvas id="timer-arc"></canvas>
           <span id="time-text">
-            <span id="mins" contenteditable="true">30</span>:<span contenteditable="true" id="secs">00</span>
+            <span id="mins" contenteditable="true" class="input-time">30</span>:<span contenteditable="true" id="secs" class="input-time">00</span>
           </span>
           
           <div id="control-btns">
             <div class="playback">
-              <button id="b1">⏪</button>
-              <button id="b2">▶️</button>
-              <button id="b3">⏩</button>
+              <button class="btns" id="b1">⏮</button>
+              <button class="btns" id="b2">▶</button>
+              <button class="btns" id="b3">⏭</button>
             </div>
-            <button id="mode-btn">📖</button>
+            <button class="btns" id="mode-btn">📖</button>
           </div>
         </div>
         
