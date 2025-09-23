@@ -220,10 +220,12 @@ for (el of timeInputs) {
 
 window.addEventListener("visibilitychange", function() {
     if (document.hidden) {
+        updatePlayButton("play")
         timer.pause()
     }
     else {
         timer.play()
+        updatePlayButton("play")
     }
 })
 
