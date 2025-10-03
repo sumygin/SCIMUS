@@ -127,7 +127,7 @@ function updatePlayButton(update) {
             break
         case "replay":
             playBtn.innerText = "⟲"
-            playBtn.style.fontSize = "1.3rem"
+            playBtn.style.fontSize = "1rem"
             break
     }
 }

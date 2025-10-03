@@ -3,7 +3,7 @@ body {
     user-select: none;
 }
 
-.header {
+#header {
     position: fixed;
     top: 0;
     left: 0;
@@ -120,8 +120,6 @@ button:active {
     width: 2rem;
     height: 2rem;
 }
-
-
 
 #profile-popup {
     z-index: 50;
