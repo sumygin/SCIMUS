@@ -167,6 +167,7 @@ main {
 
 .review-item {
     padding: 1rem;
+    width: 15rem;
 }
 
 .review-username {
@@ -184,6 +185,8 @@ main {
     justify-content: center;
 }
 
+
+
 .carousel {
     font-family: Arial, Helvetica, sans-serif;
 }
@@ -194,12 +197,30 @@ main {
 }
 
 .car-question {
-    border: 2px solid black;
-    width: 8rem;
+    width: 15rem;
+    padding: 0.3rem;
+    
+}
+
+.car-title {
+    padding-bottom: 1rem;
 }
 
 .car-content {
-    padding: 1rem;
+    padding: 0.3rem;
+    display: flex;
+    flex-direction: row;
+    border: 1px solid black;
+    border-radius: 15px;
+
+}
+
+.car-q-content {
     border: 2px solid black;
-    width: 100%;
+    border-radius:6.7px;
+    background: rgb(246, 255, 228);
+}
+
+.car-q-header {
+    font-size: 0.7rem;
 }
