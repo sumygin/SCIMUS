@@ -17,6 +17,8 @@ const headerTxt = document.getElementById("header-timer-text")
 
 const timerSound = new Audio("../resources/timersound.wav")
 
+document.getElementsByTagName("main")[0].scroll = true
+
 user = {
     workTime:600,
     restTime:60,
