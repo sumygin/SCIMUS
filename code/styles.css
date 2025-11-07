@@ -1,7 +1,6 @@
 body {
     margin: 0;
     user-select: none;
-    overflow: hidden;
 }
 
 #header {
@@ -187,9 +186,7 @@ main {
 
 
 
-.carousel {
-    font-family: Arial, Helvetica, sans-serif;
-}
+
 
 .car-title {
     text-align: left;
@@ -210,17 +207,34 @@ main {
     padding: 0.3rem;
     display: flex;
     flex-direction: row;
-    border: 1px solid black;
-    border-radius: 15px;
+}
 
+.car-container {
+    padding: 0.3rem;
+    overflow:hidden;
+    position: relative;
+
+    border: 2px solid black;
+    transition: transform 0.5s ease;
+}
+
+.carousel {
+    font-family: Arial, Helvetica, sans-serif;
+    width: 100%;
 }
 
 .car-q-content {
     border: 2px solid black;
-    border-radius:6.7px;
-    background: rgb(246, 255, 228);
+    padding: 0.5rem;
 }
 
 .car-q-header {
     font-size: 0.7rem;
+    padding-bottom: 0.5rem;
+}
+
+.main-container {
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
 }
