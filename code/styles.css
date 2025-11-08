@@ -11,10 +11,15 @@ body {
     width: 100%;
     border-bottom: 3px solid black;
     box-shadow: 0 1px 5px black;
-    padding: 2rem;
     background: white;
     z-index: 1000;
+    padding: 1.5rem;
     font-family: monospace;
+}
+
+#headerIMG {
+    height: 1.5rem;
+    width: auto;
 }
 
 #header-items {
@@ -84,6 +89,7 @@ button {
 button:hover {
     opacity: 0.5;
 }
+
 
 button:active {
     opacity: 0.2;
@@ -237,4 +243,11 @@ main {
     height: 80vh;
     display: flex;
     flex-direction: column;
+}
+
+#bigtitle {
+    font-size: 400%; 
+    padding-top: 3rem;
+    width: 90vw;
+    height: auto;
 }
