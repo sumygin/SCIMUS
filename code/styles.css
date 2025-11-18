@@ -208,7 +208,6 @@ main {
 
 .car-container {
     padding: 0.3rem;
-    overflow-x:scroll;
     position: relative;
 
     border: 2px solid black;
@@ -233,6 +232,7 @@ main {
     overflow-x:scroll;
     -webkit-mask-image: linear-gradient(to left, transparent, black 5%);
     mask-image: linear-gradient(to left, transparent, black 5%);
+    margin-right: 3em;
 }
 
 .carousel {
@@ -242,7 +242,7 @@ main {
 }
 
 .car-q-content {
-    border: 2px solid black;
+    border: 2px solid lightgray;
     width: 9em;
     padding: 0.5rem;
 }
@@ -276,4 +276,25 @@ main {
 a {
     color: inherit;
     text-decoration:none;
+}
+
+.img1 img, .img2 img {
+    height: 8em;
+    width: auto;
+    position: absolute;
+    top: 3.5em;
+    transition: 0.2s ease-in-out;
+}
+
+.img1 img:hover, .img2 img:hover {
+    transform: scale(1.1);
+}
+
+.img1 img {
+    left: 0.5em;
+    transform: scaleX(-1);
+}
+
+.img2 img {
+    right: 0.5em;
 }

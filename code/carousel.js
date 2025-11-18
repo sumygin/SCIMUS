@@ -8,9 +8,21 @@ class Carousel {
         this.source = source
         this.name = name
         this.el = el
+        console.log(this.el)
 
         this.pos = 0
         this.children = []
+
+        this.left = this.el.parentElement.children[0]
+        this.right = this.el.parentElement.children[1]
+        console.log(this.left, this.right)
+        this.right.addEventListener("click", function() {
+            alert("RIGHT")
+            this.el.style.transform = translateX("10px") 
+            this.el.style.color = "red"
+            this.el.innerHTML = ""
+        })
+        this.left.style.display = "hidden"
     }
     
     generateChildren() {
