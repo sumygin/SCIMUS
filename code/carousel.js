@@ -8,21 +8,85 @@ class Carousel {
         this.source = source
         this.name = name
         this.el = el
-        console.log(this.el)
+        this.w = parseFloat(getComputedStyle(this.el).width)
+        this.totalw = this.el.scrollWidth - (this.w)
 
         this.pos = 0
         this.children = []
 
-        this.left = this.el.parentElement.children[0]
-        this.right = this.el.parentElement.children[1]
-        console.log(this.left, this.right)
-        this.right.addEventListener("click", function() {
-            alert("RIGHT")
-            this.el.style.transform = translateX("10px") 
-            this.el.style.color = "red"
-            this.el.innerHTML = ""
+        this.left = this.el.parentElement.parentElement.children[0]
+        this.right = this.el.parentElement.parentElement.children[1]
+        this.mask = this.el.parentElement
+
+        this.animating = false
+
+        this.right.addEventListener("click", () => {
+            if (!this.animating) {
+                this.animating = true
+                this.pos = Math.min(this.pos+(this.w*0.8), this.totalw)
+                this.el.style.transform = `translateX(${-this.pos}px)` //translate width
+
+                //left arrow styles
+                this.mask.style.marginLeft = "3em"
+                setTimeout(() => {
+                    this.mask.style.webkitMaskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
+                    this.mask.style.maskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
+                }, 250)
+                setTimeout(() => { //show left arrow
+                    this.left.style.opacity = 1
+                    
+                }, 500)
+
+                //right arrow styles
+                if (this.pos == this.totalw) {
+                    this.mask.style.marginRight = "0"
+                    this.right.style.opacity = 0
+                    setTimeout(() => {
+                        this.mask.style.webkitMaskImage = "linear-gradient(to right, transparent, black 5%)";
+                        this.mask.style.maskImage = "linear-gradient(to right, transparent, black 5%)";
+                    }, 250)
+                }
+
+                setTimeout(() => {
+                    this.animating = false
+                }, 1000)
+            }
         })
-        this.left.style.display = "hidden"
+
+        this.left.addEventListener("click", () => {
+            if (!this.animating) {
+                this.animating = true
+                this.pos = Math.max(this.pos-(this.w*0.8), 0)
+                this.el.style.transform = `translateX(${-this.pos}px)` //translate width
+
+                //right arrow styles
+                this.mask.style.marginRight = "3em"
+                setTimeout(() => {
+                    this.mask.style.webkitMaskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
+                    this.mask.style.maskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
+                }, 250)
+                setTimeout(() => { //show left arrow
+                    this.right.style.opacity = 1
+                }, 500)
+
+                if (this.pos == this.totalw) {
+                    this.right.style.opacity = 0
+                }
+
+                //left arrow styles
+                if (this.pos == 0) {
+                    this.mask.style.marginLeft = "0"
+                    this.left.style.opacity = 0
+                    setTimeout(() => {
+                        this.mask.style.webkitMaskImage = "linear-gradient(to left, transparent, black 5%)";
+                        this.mask.style.maskImage = "linear-gradient(to left, transparent, black 5%)";
+                    }, 250)
+                }
+                setTimeout(() => {
+                    this.animating = false
+                }, 1000)
+            }
+        })
     }
     
     generateChildren() {

@@ -209,10 +209,21 @@ main {
 .car-container {
     padding: 0.3rem;
     position: relative;
-
+    overflow: hidden;
+    border-radius: 20px;
     border: 2px solid black;
-    transition: transform 0.5s ease;
+    transition: transform 0.2s ease-in-out;
     
+}
+
+.car-mask {
+     -webkit-mask-image: linear-gradient(to left, transparent, black 5%) ;
+    mask-image: linear-gradient(to left, transparent, black 5%);
+    padding: 0.3rem;
+    position: relative;
+    overflow: hidden;
+    margin-right: 3em;
+    transition-duration: 1s;
 }
 
 
@@ -220,19 +231,13 @@ main {
     display:none;
 }
 
-.car-content {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
 
 .car-content {
     padding: 0.3rem;
     display: flex;
     flex-direction: row;
-    overflow-x:scroll;
-    -webkit-mask-image: linear-gradient(to left, transparent, black 5%);
-    mask-image: linear-gradient(to left, transparent, black 5%);
-    margin-right: 3em;
+    transition: ease-in-out;
+    transition-duration: 0.75s;
 }
 
 .carousel {
@@ -243,6 +248,7 @@ main {
 
 .car-q-content {
     border: 2px solid lightgray;
+    border-radius: 20px;
     width: 9em;
     padding: 0.5rem;
 }
@@ -278,23 +284,43 @@ a {
     text-decoration:none;
 }
 
-.img1 img, .img2 img {
-    height: 8em;
-    width: auto;
+.img1, .img2 {
     position: absolute;
     top: 3.5em;
     transition: 0.2s ease-in-out;
+    height: 8em;
+    width: auto;
+    z-index: 9999;
 }
 
-.img1 img:hover, .img2 img:hover {
+.img1 {
+    transform: scaleX(-1);
+    left: 0.5em;
+    opacity: 0;
+}
+
+.img2 {
+    right: 0.5em;
+}
+
+.img1:hover {
+    transform: scaleX(-1) scale(1.1);
+}
+
+.img2:hover {
     transform: scale(1.1);
 }
 
-.img1 img {
-    left: 0.5em;
-    transform: scaleX(-1);
+#loginForm {
+    display: flex;
+    flex-direction: column;
+    width: min-content;
+    gap: 2em;
 }
 
-.img2 img {
-    right: 0.5em;
-}
+
+
+
+
+
+

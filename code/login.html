@@ -14,10 +14,31 @@
     </header>
 
     <main>
+        <button id="log-switch"> <span>Log-in</span> | <span>Register</span></button>
 
+        <form id="loginForm">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <form id="regForm">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
     </main>
 
     <script src="headerinsert.js"></script>
     <script src="header.js"></script>
+    <script src="login.js"></script>
 </body>
 </html>
