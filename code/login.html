@@ -14,27 +14,42 @@
     </header>
 
     <main>
-        <button id="log-switch"> <span>Log-in</span> | <span>Register</span></button>
+        <div class="log-forms-container">
+        <button id="log-switch"> <span>Log-in</span> | <span>Register</span></button><br><br>
 
         <form id="loginForm">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
-
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit">Login</button>
+            <div class="log-item">
+                <label class for="username">Username</label><br>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="log-item">
+                <label for="password">Password</label><br>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="log-item">
+                <button type="submit">Login</button>
+            </div>
+            
         </form>
 
         <form id="regForm">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
-
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit">Login</button>
+            <div class="log-item">
+                <label class for="username">YO</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="log-item">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="log-item">
+                <button type="submit">Login</button>
+            </div>
         </form>
+    </div>
     </main>
 
     <script src="headerinsert.js"></script>

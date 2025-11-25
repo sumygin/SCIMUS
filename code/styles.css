@@ -314,8 +314,23 @@ a {
 #loginForm {
     display: flex;
     flex-direction: column;
-    width: min-content;
+    text-align: center;
     gap: 2em;
+    padding: 10%;
+}
+
+input {
+    border:none;
+    border-bottom: 3px dotted black;
+}
+
+input:active {
+    border: none;
+}
+
+.log-forms.container {
+    align-items: center;
+    text-align: center;
 }
 
 

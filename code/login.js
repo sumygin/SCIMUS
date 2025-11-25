@@ -13,12 +13,12 @@ logbtn.addEventListener("click",() => {
         t1.style.opacity = 0.5
         t2.style.opacity = 1
         logForm.style.display = "none"
-        regForm.style.display = "block"
+        regForm.style.display = "flex"
     }
     else {
         t2.style.opacity = 0.5
         t1.style.opacity = 1
-        logForm.style.display = "block"
+        logForm.style.display = "flex"
         regForm.style.display = "none"
     }
 

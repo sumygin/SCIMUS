@@ -114,6 +114,10 @@ class CarQuestion {
     }
 }
 
+window.onresize = function() {
+    
+}
+
 let cars = document.getElementsByClassName("car-content")
 let carouselList = []
 for (c of cars) {
