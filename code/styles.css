@@ -9,7 +9,7 @@ body {
     left: 0;
     font-size: 1rem;
     width: 100%;
-    border-bottom: 3px solid black;
+    border-bottom: 1px solid black;
     box-shadow: 0 1px 5px black;
     background: white;
     z-index: 1000;
@@ -311,31 +311,43 @@ a {
     transform: scale(1.1);
 }
 
-#loginForm {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    gap: 2em;
-    padding: 10%;
-}
 
-input {
+
+.form input  {
     border:none;
-    border-bottom: 3px dotted black;
+    border-bottom: 2px dotted black;
+    outline: none;
+    right: 0px;
 }
 
-input:active {
-    border: none;
+.form label {
+    padding-right: 2em;
 }
+
 
 .log-forms.container {
     align-items: center;
     text-align: center;
 }
 
+.form {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    gap: 2em;
+    padding: 10%;
+    font-size: 0.9rem;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
 
+.log-item {
+    text-align: right;
+    margin-right: 30%;
+}
 
-
-
-
+.login {
+    text-align: center;
+    margin: 0px;
+}
 
