@@ -155,6 +155,7 @@ main {
     margin-top: 6rem;
     padding: 1rem;
     text-align: center;
+    transition: 2s cubic-bezier(0.23, 1, 0.320, 1);
 }
 
 
@@ -311,13 +312,11 @@ a {
     transform: scale(1.1);
 }
 
-
-
-.form input  {
+.log-forms-container input  {
     border:none;
     border-bottom: 2px dotted black;
     outline: none;
-    right: 0px;
+    align-items: right;
 }
 
 .form label {
@@ -325,29 +324,43 @@ a {
 }
 
 
-.log-forms.container {
-    align-items: center;
+.log-forms-container {
     text-align: center;
-}
-
-.form {
-    text-align: left;
     display: flex;
     flex-direction: column;
     text-align: center;
+    margin-top: 10%;
     gap: 2em;
-    padding: 10%;
     font-size: 0.9rem;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-.log-item {
-    text-align: right;
-    margin-right: 30%;
-}
 
 .login {
     text-align: center;
     margin: 0px;
 }
+
+.form {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 1s cubic-bezier(0.39, 0.575, 0.565, 1);
+    margin-left: -2em;
+}
+
+#loginForm .log-item {
+    margin-left: 7ch;
+}
+
+.log-item {
+    text-align: right;
+}
+
+.log-item-field {
+    width: 10em;
+}
+
+
 

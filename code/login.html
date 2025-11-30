@@ -14,78 +14,86 @@
     </header>
 
     <main>
-        <div class="log-forms-container">
+        
         <button id="log-switch"> <span>Log-in</span> | <span>Register</span></button><br><br>
 
         <form id="loginForm" class="form">
-            <div class="log-item">
-                <label class for="tag">@tag</label>
-                <input type="text" id="tag" name="tag" required>
+            <div class="log-forms-container">
+                <div class="log-item">
+                    <label class for="tag">@tag</label>
+                    <input type="text" id="tag" name="tag" required class="log-item-field">
+                </div>
+               
+                <div class="log-item">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required class="log-item-field">
+                </div>
+                
+                <div class="login">
+                    <button type="submit">Login</button>
+                </div>
             </div>
-            
-            <div class="log-item">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            
-            <div class="log-item login">
-                <button type="submit">Login</button>
-            </div>
+        </div>
+
             
         </form>
 
         <form id="regForm" class="form">
+            <div class="log-forms-container">
             <div class="log-item">
                 <label class for="name">Full name</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="name" name="name" required autocomplete="name" class="log-item-field">
             </div>
             
             <div class="log-item">
-                <label class for="name">Display name</label>
-                <input type="text" id="name" name="name" required>
+                <label class for="username">Display name</label>
+                <input type="text" id="username" name="username" required autocomplete="username" class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="name">@tag</label>
-                <input type="text" id="name" name="name" required>
+                <label class for="tag">@tag</label>
+                <input type="text" id="tag" name="tag" required class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="name">Email</label>
-                <input type="text" id="name" name="name" required>
+                <label class for="email">Email</label>
+                <input type="text" id="email" name="email" required autocomplete="email" class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="password">Confirm password</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="name">School</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="log-item">
-                <label class for="name">Stage of study</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="log-item">
-                <label class for="name">Subjects studied</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="log-item">
-                <label class for="name">Exam boards</label>
-                <input type="text" id="name" name="name" required>
+                <input type="search" id="name" name="name" required autocomplete="" class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="name">Country</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="name" name="name"class="log-item-field">
             </div>
+            <div class="log-item">
+                <label for="stage">Stage of study</label>
+                <select id="stage" name="stage"class="log-item-field">
+                    <option value="0">GCSE</option>
+                    <option value="1">A-level</option>
+                    <option value="2">University+</option>
+                </select>
+            </div>
+            <div class="log-item">
+                <label for="subjects">Subjects studied</label>
+                <input type="text" id="subjects" name="subjects"class="log-item-field">
+            </div>
+            
 
             
-            <div class="log-item login">
+            <div class="login">
                 <button type="submit">Register</button>
             </div>
+
         </form>
+
     </div>
     </main>
 
