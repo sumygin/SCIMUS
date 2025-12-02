@@ -437,13 +437,24 @@ a {
 .s-q-metadata {
     display: flex;
     flex-direction: row;
-    align-content: left;
-    text-align: left;
-    padding: 1em;
-    gap: 2em;
+    padding: 2em;
     flex-wrap: wrap;
+    align-content: stretch;
 }
 
 #collectionSearch {
-    overflow-y:scroll;
+    overflow-y:auto;
+    overflow-x:auto;
+}
+
+.s-q-item {
+    border-right: 1px solid gray;
+    padding-right: 1em;
+    padding-left:1em;
+}
+
+.s-q-item-last {
+    border-right: none;
+    padding-right: 1em;
+    padding-left:1em;
 }
