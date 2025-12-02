@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCIMUS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="shortcut icon" href="../resources/SMALL_logo.png" type="image/x-icon">
+</head>
+<body>
+    <header id="header">
+
+    </header>
+
+    <main>
+        <button id="qc-switch"> <span>Questions</span> | <span>Collections</span></button><br><br>
+        <div class="searchwrapper">
+        <div id="questionSearch" >
+            <form class="searchbar">
+                <input type="text" placeholder="search" name="search" id="search" class="searchbar-item">
+                <input type="text" placeholder="subject" name="subject" id="subject"class="searchbar-item">
+                <select name="exb" id="exb" class="searchbar-item">
+                    <option value="">OCR</option> <!--PLACE EXB IDs HERE-->
+                    <option value="">AQA</option>
+                    <option value="">Edexcel</option>
+                </select>
+                <select name="los" id="los" class="searchbar-item">
+                    <option value="0">GCSE</option> 
+                    <option value="1">A-level</option>
+                    <option value="2">University+</option>
+                </select>
+                <select name="paper" id="paper" class="searchbar-item">
+                    <option value="">Paper 1</option> 
+                    <option value="">Paper 2</option>
+                    <option value="">Paper 3</option>
+                </select>
+                <input type="text" placeholder="year" name="year" id="year" class="searchbar-item">
+                <select name="tag" id="tag" class="searchbar-item">
+                    <option value="">Past paper</option> 
+                    <option value="">User-made</option>
+                    <option value="">Looking for solution</option>
+                </select>
+                <input type="text" placeholder="@creator" name="creator" id="creator" class="searchbar-item">
+                <select name="topic" id="topic" class="searchbar-item">
+                    <option value="">placeholder1</option> 
+                    <option value="">placeholder1</option>
+                    <option value="">placeholder1</option>
+                </select>
+                
+            
+                <select name="sort" id="sort" class="searchbar-item">
+                    <option value="">Difficulty</option>
+                    <option value="">Likes</option>
+                    <option value="">Comments</option>
+                    <option value="">Ratings</option>
+                    <option value="">Question number</option>
+                </select>
+                <button class="search-btn" id="sorttype"> ARW </button>
+                    <button class="search-btn " id="watched" > EYE </button>
+                    <button class="search-btn " id="checked" > CHK </button> 
+                
+
+            </form>
+        </div>
+
+        <div id="collectionSearch">
+            <form class="searchbar">
+                <input type="text" placeholder="search" name="search" id="search1" class="searchbar-item">
+                <input type="text" placeholder="subject" name="subject" id="subject1"class="searchbar-item">
+                <select name="exb" id="exb1" class="searchbar-item">
+                    <option value="">OCR</option> <!--PLACE EXB Ids HERE-->
+                    <option value="">AQA</option>
+                    <option value="">Edexcel</option>
+                </select>
+                <select name="los" id="los1" class="searchbar-item">
+                    <option value="0">GCSE</option> 
+                    <option value="1">A-level</option>
+                    <option value="2">University+</option>
+                </select>
+                <select name="paper" id="paper1" class="searchbar-item">
+                    <option value="">Paper 1</option> 
+                    <option value="">Paper 2</option>
+                    <option value="">Paper 3</option>
+                </select>
+                <input type="text" placeholder="year" name="year" id="year1" class="searchbar-item">
+                <select name="tag" id="tag1" class="searchbar-item">
+                    <option value="">Past paper</option> 
+                    <option value="">User-made</option>
+                </select>
+                <input type="text" placeholder="@creator" name="creator" id="creator1" class="searchbar-item">
+                <select name="topic" id="topic1" class="searchbar-item">
+                    <option value="">topicplaceholderlongname1</option> 
+                    <option value="">placeholder1</option>
+                    <option value="">placeholder1</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+        <div id="displaySpace">
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            <div class="s-q">
+                <div class="s-q-text">
+                    <div class="s-q-name">Two Forces</div>
+                    <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
+                </div>
+                <div class="s-q-metadata">
+                    <div class="s-q-exb s-q-item">OCR</div>
+                    <div class="s-q-los s-q-item">A-level</div>
+                    <div class="s-q-subject s-q-item">Physics</div>
+                    <div class="s-q-topic s-q-item">Forces</div>
+                    <div class="s-q-rating s-q-item">★★★☆☆</div>
+                    <div class="s-q-paper s-q-item">Paper 2</div>
+                    <div class="s-q-questionNo s-q-item">Q12</div>
+                    <div class="s-q-comments s-q-item">💬 10</div>
+                    <div class="s-q-likes s-q-item">☺︎ 100</div>
+                    <div class="s-q-tag s-q-item-last">Official</div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script src="js/headerinsert.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/search.js"></script>
+</body>
+</html>
