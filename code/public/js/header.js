@@ -15,7 +15,7 @@ const secsText = document.getElementById("secs")
 const timeInputs = document.getElementsByClassName("input-time")
 const headerTxt = document.getElementById("header-timer-text")
 
-const timerSound = new Audio("../resources/timersound.wav")
+const timerSound = new Audio("resources/timersound.wav")
 
 document.getElementsByTagName("main")[0].scroll = true
 

@@ -1,9 +1,9 @@
-let headerHMTL = `<a href="home.html"><button><img id="headerIMG" src="../resources/SMALL_logo.png" alt="SCIMUS" srcset=""></button></a> 
+let headerHMTL = `<a href="home.html"><button><img id="headerIMG" src="resources/SMALL_logo.png" alt="SCIMUS" srcset=""></button></a> 
     
     <div id="header-items">
       <a class="header-item" href="search.html"><button>SEARCH</button></a>
       <a class="header-item" href="create.html"><button>CREATE</button></a>
-      <a class="header-item" href="create.html"><button>LEADERBOARDS</button></a>
+      <a class="header-item" href="leaderboard.html"><button>LEADERBOARDS</button></a>
       <span class="header-item timer-hover"> <span id="timer-text-wrap"><span id="header-timer-text">30:00</span></span>
         <div id="timer-popup" class="timer-hover">
           <a href="preferences.html" id="timer-settings"><button class="btns" >⚙️</button></a>

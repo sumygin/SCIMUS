@@ -1,0 +1,84 @@
+.log-forms-container input   {
+    border:none;
+    border-bottom: 2px dotted black;
+    outline: none;
+    align-items: right;
+}
+
+.form label {
+    padding-right: 2em;
+}
+
+
+.log-forms-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    margin-top: 10%;
+    gap: 2em;
+    font-size: 0.9rem;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+
+.login {
+    text-align: center;
+    margin: 0px;
+}
+
+.form {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 1s cubic-bezier(0.39, 0.575, 0.565, 1);
+    margin-left: -2em;
+}
+
+#loginForm .log-item {
+    margin-left: 7ch;
+}
+
+
+.log-item-field {
+    width: 10em;
+}
+
+.log-item {
+    flex: 1 1 0;
+    min-width: 10em;
+    height: 3rem;
+    padding: 0.4rem 0.6rem;
+    box-sizing: border-box;
+    text-align: right;
+    transition: 1s ease-in-out;
+}
+
+.log-item[type="text"],
+.log-item[type="search"],
+.log-item textarea,
+.log-item select,
+.log-item button {           
+    line-height: 1;
+}
+
+.log-item select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 0.6rem center;
+    background-repeat: no-repeat;
+    height: 2em;
+    padding-left: 0.5em;
+    border-radius: 5px;
+}
+.log-item :hover {
+    opacity: 0.6;
+}
+
+.log-item :focus {
+    border-color: red;
+}
+
+

@@ -1,4 +1,15 @@
+.main-container {
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
 
+#bigtitle {
+    font-size: 400%; 
+    padding-top: 3rem;
+    width: 90vw;
+    height: auto;
+}
 
 .titlecontainer {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;

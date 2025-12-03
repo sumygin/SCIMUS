@@ -1,0 +1,125 @@
+.arr1, .arr2 {
+    position: absolute;
+    height: 10vh;
+    transition: 0.2s ease-in-out;
+    top: 50vh;
+    width: auto;
+    z-index: 9999;
+}
+
+
+.arr1:hover {
+    transform: scaleX(-1) scale(1.1);
+}
+
+.arr2:hover {
+    transform: scale(1.1);
+}
+
+.arr1 {
+    transform: scaleX(-1);
+    left: 0.5em;
+}
+.arr2 {
+    right: 0.5em;
+}
+
+main {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    padding: 0;
+    margin-top: 6.5vh;
+}
+
+.pagecontainer {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    justify-content: center;
+}
+
+.metadata {
+    text-align: left;
+   
+}
+
+.actions { 
+    text-align: right;
+}
+
+
+.action-item button {
+    width: 2em;
+    text-align: right;
+}
+
+.action-item .val {
+    padding: 0.5em;
+    font-size: 0.8em;
+}
+
+.titles {
+    padding: 1em;
+    width: 100%;
+}
+
+.title {
+    font-size: 3em;
+    font-weight: bolder;
+    text-align: center;
+    
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: inherit;
+    width: 100%;
+}
+
+.mark-scheme-text {
+    display: none;
+}
+
+.question {
+    height: 70vh;
+    position: relative;
+    border: 2px solid lightgray;
+    padding-bottom: 0.5em;
+    overflow: hidden;
+    border-radius: 1em;
+    padding-left: 1em;
+    padding-right: 2em;
+
+}
+
+.question-text, .mark-scheme-text {
+    position: absolute;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: inherit;
+    padding-top: 0.5em;
+    width: 100%;
+}
+
+.bottom-bar {
+    display: flex;
+    font-family: monospace;
+    flex-direction: row;
+    text-align: center;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.actions, .metadata{
+    height: 12vh;
+    justify-content: space-around;
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+    width: 10vw;
+}
+
+.displaywrapper {
+    height: 80vh;
+}

@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/question.css">
+    <link rel="stylesheet" href="css/create.css">
     <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
@@ -14,7 +16,79 @@
     </header>
 
     <main>
+        <form class="pagecontainer">
+            <div class="metadata">
+                <div class="meta-item">
+                    <select name="exb" id="exb">
+                        <option value="ocr">OCR</option>
+                        <option value="aqa">AQA</option>
+                        <option value="edexcel">Edexcel</option>
+                    </select>
+                </div>
 
+                <div class="meta-item">
+                    <select name="studyStage" id="studyStage">
+                        <option value="0">GCSE Physics</option>
+                        <option value="1">A-level Physics</option>
+                        <option value="2">University Physics</option>
+                    </select>
+                </div>
+
+                <div class="meta-item">
+                    <select name="paper" id="paper">
+                        <option value="1">Paper 1</option>
+                        <option value="2" selected>Paper 2</option>
+                        <option value="3">Paper 3</option>
+                    </select>
+                </div>
+
+                <div class="meta-item">
+                    <select name="questionNum" id="questionNum">
+                        <option value="1">Question 1</option>
+                        <option value="2" selected>Question 2</option>
+                        <option value="3">Question 3</option>
+                    </select>
+                </div>
+
+                <div class="meta-item">
+                    <select name="topic" id="topic">
+                        <option value="forces" selected>Forces</option>
+                        <option value="energy">Energy</option>
+                        <option value="waves">Waves</option>
+                    </select>
+                </div>
+
+                <div class="meta-item">
+                    <select name="tag" id="tag">
+                        <option value="official" selected>Official</option>
+                        <option value="userMade">User-made</option>
+                        <option value="solutionNeeded">Looking for solution</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="titles">
+                    <input type="text" class="title" autocapitalize="words" value="Question name" >
+                </div>
+                <div class="question">
+                    <div class="question-text">
+                        <textarea type="text" placeholder="Enter question here..."></textarea>
+                        <input class="mark-scheme-text" placeholder="Enter mark scheme here..."></input>
+                    </div>                   
+                   
+                   
+                    
+                </div>
+                <div class="bottom-bar">
+                    <input type="submit" value="Save">
+                    <button class="mark-scheme">Mark scheme</button>
+                    <input type="submit" value="Publish">
+                </div>
+            </div>
+            <div class="actions">
+            </div>
+        </form>
     </main>
 
     <script src="js/headerinsert.js"></script>

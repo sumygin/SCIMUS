@@ -1,0 +1,131 @@
+.searchbar {
+    display: flex;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5em;
+    gap: 0.5em;
+    padding:3em;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+
+.searchbar-item {
+    flex: 1 1 0;
+    min-width: 10em;
+    height: 3rem;
+    padding: 0.4rem 0.6rem;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+}
+
+.searchbar-item[type="text"],
+.searchbar-item[type="search"],
+.searchbar-item textarea,
+.searchbar-item select,
+.searchbar-item button {           
+    line-height: 1;
+}
+
+.search-btn {
+    flex: 0 0 auto;
+    border: 1px solid black;
+    padding: 0 0.75rem;;
+    margin: 0.4em;
+}
+
+.searchwrapper {
+    min-height: 14em;
+    padding: 1em;
+}
+
+select.searchbar-item {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 0.6rem center;
+    background-repeat: no-repeat;
+}
+
+#displaySpace {
+    overflow-y:scroll;
+    position: absolute;
+    height: inherit;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.displaywrapper {
+    border: 2px solid black;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.8em;
+    height: 67vh;
+    width: inherit;
+}
+
+.s-q {
+    border: 2px solid gray;
+    border-radius: 0.8em;
+    font-size: 0.8em;
+    margin: 0.2em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.s-q-text {
+    display: flex;
+    flex-direction: column;
+    align-content: left;
+    text-align: left;
+    width: 50%;
+    font-family: monospace;
+    padding: 1.3em;
+    padding-left: 3em;
+    padding-top: 2em;
+    padding-bottom: 1.5em;
+
+}
+
+.s-q-name {
+    font-size: 3em;
+    font-weight: bolder;
+}
+
+.s-q-content {
+    font-style: italic;
+    font-size: 1.2em;
+}
+
+.s-q-metadata {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content:flex-start;
+    padding: 1em;
+    right: 0px;
+}
+
+.s-q-item {
+    border-right: 1px solid gray;
+    padding-right: 1em;
+    padding-left:1em;
+    min-width: 6em;
+    box-sizing: border-box;
+    margin-top: 0.5em;
+}
+
+.s-q-item-last {
+    border-right: none;
+    padding-right: 1em;
+    padding-left:1em;
+    min-width: 6em;
+    box-sizing: border-box;
+    margin-top: 0.5em;
+}

@@ -1,0 +1,111 @@
+.car-title {
+    text-align: left;
+    font-weight: bold;
+    padding-bottom: 1rem;
+}
+
+.car-question {
+    padding: 0.3rem;
+}
+
+main {
+    overflow-y: auto;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+
+.car-container {
+    padding: 0.3rem;
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    border: 2px solid black;
+    transition: transform 0.2s ease-in-out;
+    
+}
+
+.car-mask {
+    -webkit-mask-image: linear-gradient(to left, transparent, black 5%) ;
+    mask-image: linear-gradient(to left, transparent, black 5%);
+    padding: 0.3rem;
+    position: relative;
+    overflow: hidden;
+    margin-right: 3em;
+    transition-duration: 1s;
+}
+
+
+.car-content::-webkit-scrollbar {
+    display:none;
+}
+
+
+.car-content {
+    padding: 0.3rem;
+    display: flex;
+    flex-direction: row;
+    transition: ease-in-out;
+    transition-duration: 0.75s;
+}
+
+.carousel {
+    font-family: Arial, Helvetica, sans-serif;
+    width: 100%;
+    padding-bottom: 2em;
+}
+
+.car-q-content {
+    border: 2px solid lightgray;
+    border-radius: 20px;
+    width: 9em;
+    padding: 0.5rem;
+}
+
+.car-q-header {
+    font-size: 0.8em;
+    padding-bottom: 1rem;
+    height: 2em;
+    
+}
+
+
+
+
+
+.car-q-title{
+    font-weight: bolder;
+    padding: 0.5em;
+    height: 4em;
+}
+
+a {
+    color: inherit;
+    text-decoration:none;
+}
+
+.img1, .img2 {
+    position: absolute;
+    top: 3.5em;
+    transition: 0.2s ease-in-out;
+    height: 8em;
+    width: auto;
+    z-index: 9999;
+}
+
+.img1 {
+    transform: scaleX(-1);
+    left: 0.5em;
+    opacity: 0;
+}
+
+.img2 {
+    right: 0.5em;
+}
+
+.img1:hover {
+    transform: scaleX(-1) scale(1.1);
+}
+
+.img2:hover {
+    transform: scale(1.1);
+}

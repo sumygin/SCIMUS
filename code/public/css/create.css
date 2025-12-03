@@ -1,0 +1,75 @@
+input {
+    border:none;
+    border-bottom: 2px dotted black;
+    outline: none;
+}
+
+.meta-item {
+    transition: 1s ease-in-out;
+}
+
+.meta-item[type="text"],
+.meta-item[type="search"],
+.meta-item textarea,
+.meta-item select,
+.meta-item button {           
+    line-height: 1;
+}
+
+.meta-item select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 0.6rem center;
+    background-repeat: no-repeat;
+    padding: 0.5em;
+    border-radius: 5px;
+    width: 10em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.meta-item :hover {
+    opacity: 0.6;
+}
+
+.meta-item :focus {
+    border-color: red;
+}
+
+.metadata {
+    height: 15vh;
+}
+
+.metadata, .actions {
+    width: 20vw;
+}
+
+.bottom-bar input {
+    border: 2px solid black;
+    border-radius: 2em;
+    padding: 0.5em;
+    padding-left: 2em;
+    padding-right: 2em;
+    background-color: white;
+}
+
+input:hover {
+    opacity: 0.7;
+}
+
+.question-text textarea {
+    border: none;
+    resize: none;
+    width: 97%;
+    height: 97%;
+    outline: none;
+}
+
+.question-text {
+    padding-left: 0px;
+    text-align: left;
+}
+
+textarea:focus {
+    border: none;
+}
