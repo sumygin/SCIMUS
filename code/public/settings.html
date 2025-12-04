@@ -5,7 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/settings.css">
     <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
@@ -14,10 +15,28 @@
     </header>
 
     <main>
-
+        <div class="content-wrapper">
+            <div class="div1">
+                <div class="usernames">
+                    <div class="username">Bruce Wayne</div>
+                    <div class="tag">@capedcrusader</div>
+                </div>
+                <div class="links">
+                    <a href="">Unwatch all questions</a>
+                    <a href="">Delete account</a>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="change-name action-item">Change display name</button>
+                <button class="change-password action-item">Change password</button>
+                <div class="notifs action-item">Email notifications: <input type="checkbox" class="notifs-inp"></div>
+                <div class="notifs action-item">Notify about: replies <input type="checkbox" class="replies-inp"></div>
+                <div class="notifs action-item"> likes <input type="checkbox" class="likes-inp"></div>
+            </div>
+        </div>
     </main>
 
-    <script src="headerinsert.js"></script>
-    <script src="header.js"></script>
+    <script src="js/headerinsert.js"></script>
+    <script src="js/header.js"></script>
 </body>
 </html>

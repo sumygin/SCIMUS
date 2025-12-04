@@ -1,0 +1,36 @@
+main {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    justify-content: space-around;
+}
+
+.usernames {
+    padding-bottom: 5em;
+}
+
+.username {
+    font-size: 5em;
+}
+
+.tag {
+    font-family: monospace;
+    font-size: 2em;
+}
+
+.links {
+    display: flex;
+    gap: 1em;
+    flex-direction: column;
+}
+
+.stats {
+    padding-top:8em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}

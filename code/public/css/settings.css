@@ -1,0 +1,78 @@
+main {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    justify-content: space-around;
+}
+
+.usernames {
+    padding-bottom: 5em;
+}
+
+.username {
+    font-size: 5em;
+}
+
+.tag {
+    font-family: monospace;
+    font-size: 2em;
+}
+
+.links {
+    display: flex;
+    gap: 1em;
+    flex-direction: column;
+}
+
+.actions {
+    padding-top:10em;
+    display: flex;
+    flex-direction: column;
+    align-items:end;
+    gap: 0.7em;
+    width: 30vw;
+    padding-right: 5em;
+}
+
+.action-item {
+    text-align: right;
+}
+
+.actions button {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.action-item input {
+    padding: 0px;
+}
+
+.div1 {
+    width: 50vw;
+}
+
+.change-name, .change-password {
+    padding-right: 1em;
+}
+
+input   {
+    border:none;
+    border-bottom: 2px solid lightgray;
+    outline: none;
+    align-items: right;
+    font-size: 1.1em;
+    width: 3ch;
+    text-align: right;
+}
+
+#special {
+    padding-top: 1em;
+}
+
+h3 {
+    font-weight: lighter;
+    font-style: italic;
+}

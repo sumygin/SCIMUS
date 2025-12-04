@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/leaderboard.css">
     <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
@@ -14,7 +15,188 @@
     </header>
 
     <main>
+        <div class="titlecontainer">
+            <h3>LEADERBOARD</h3>
+        </div>
 
+        <div id="leaderboardSearch" >
+            <form class="searchbar">
+                <select name="sort" id="sort" class="searchbar-item">
+                    <option value="">Time studied</option> 
+                    <option value="">Questions created</option>
+                    <option value="">Questions completed</option>
+                    <option value="">Average question rating</option>
+                </select>
+                <select name="time" id="time" class="searchbar-item">
+                    <option value="">All time</option> 
+                    <option value="">Today</option>
+                </select>
+                <input type="text" placeholder="school" name="school" id="school" class="searchbar-item">
+                <input type="text" placeholder="country" name="country" id="country" class="searchbar-item">
+
+
+            </form>
+        </div>
+
+        <div class="displaywrapper">
+            <div id="displaySpace">
+                <div class="lb-item" id="headers">
+                    <div class="lb-info rank">Rank</div>
+                    <div class="lb-info tag">Tag</div>
+                    <div class="lb-info filter">Time studied</div>
+                    <div class="lb-info school">School</div>
+                    <div class="lb-info country">Country</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">2</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">3</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">4</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <div class="lb-info tag">@monkey</div>
+                    <div class="lb-info filter">520h</div>
+                    <div class="lb-info school">St Olave's Grammar School</div>
+                    <div class="lb-info country">UK</div>
+                </div>
+            </div>
+                
+        </div>
     </main>
 
     <script src="js/headerinsert.js"></script>

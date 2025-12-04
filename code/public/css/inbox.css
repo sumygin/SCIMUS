@@ -1,0 +1,63 @@
+main {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+
+#displaySpace {
+    overflow-y:scroll;
+    position: absolute;
+    height: inherit;
+    width: 100%;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.displaywrapper {
+    border: 2px solid black;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.8em;
+    height: 84vh;
+    width: inherit;
+}
+
+.msg-item {
+    border: 2px solid gray;
+    border-radius: 0.8em;
+    margin: 0.2em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    width: 99%;
+    
+}
+
+.msg-text {
+    display: flex;
+    flex-direction: column;
+    align-content: left;
+    text-align: left;
+    width: 50%;
+    font-family: monospace;
+    padding: 1.3em;
+    padding-top: 2em;
+    padding-bottom: 1.5em;
+
+}
+
+.message {
+    font-style: italic;
+    font-size: 1.1em;
+}
+
+
+.hyperlink {
+    text-align: right;
+    padding-right: 3em;
+}
+
+.timestamp {
+    opacity: 0.7;
+    font-style: italic;
+    font-size: 0.8em;
+}

@@ -1,0 +1,91 @@
+main {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.searchbar {
+    display: flex;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5em;
+    gap: 0.5em;
+    padding:3em;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+
+.searchbar-item {
+    flex: 1 1 0;
+    min-width: 10em;
+    height: 3rem;
+    padding: 0.4rem 0.6rem;
+    box-sizing: border-box;
+}
+
+.searchbar-item[type="text"],
+.searchbar-item[type="search"],
+.searchbar-item textarea,
+.searchbar-item select,
+.searchbar-item button {           
+    line-height: 1;
+}
+
+.search-btn {
+    flex: 0 0 auto;
+    border: 1px solid black;
+    padding: 0 0.75rem;;
+    margin: 0.4em;
+}
+
+.searchwrapper {
+    min-height: 14em;
+    padding: 1em;
+}
+
+select.searchbar-item {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 0.6rem center;
+    background-repeat: no-repeat;
+}
+
+#displaySpace {
+    overflow-y:scroll;
+    position: absolute;
+    height: inherit;
+    width: 100%;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.displaywrapper {
+    border: 2px solid black;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.8em;
+    height: 73vh;
+    width: inherit;
+}
+
+.lb-item {
+    border: 2px solid gray;
+    border-radius: 0.8rem;
+    font-size: 0.8rem;
+    margin: 0.2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    height: 5rem;
+}
+
+.lb-info {
+    width: 15em;
+}
+
+#headers {
+    font-size: 1.05em;
+    font-weight: bolder;
+}
