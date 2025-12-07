@@ -1,6 +1,5 @@
 const express = require("express")
 const session = require("express-session")
-const bodyParser = require("body-parser")
 const path = require("path")
 const passport = require("passport")
 const LocalStrategy = require("passport-local").Strategy;
@@ -8,7 +7,9 @@ const bcrypt = require("bcrypt")
 const mongoose = require("mongoose")
 const MongoStore = require('connect-mongo').default
 
-const PORT = 3000
+const validator = require("validator")
+const leoProfanity = require("leo-profanity")
+const compromise = require("compromise")
 
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
@@ -20,35 +21,60 @@ module.exports = function(app) {
     const {User, Subject, Topic, School, Country, Question, Collection, QuestionCollection, 
     Like, Solve, Watch, Comment, Notification} = require("./database")
 
-    
-
     mongoose.connect(hostUrl)
         .then(() => {
-            console.log("mongodb connected")
-
-            app.use(session({
-                secret: process.env.SESSION_SECRET || 'secret',
-                resave: false,
-                saveUninitialized: false,
-                store: MongoStore.create({ mongoUrl: hostUrl }),
-                cookie: { 
-                    httpOnly: true, 
-                    maxAge: day*30
-                }
-            }))
-
-            // LOADING MIDDLEWARE
-            app.use(bodyParser.urlencoded({ extended: false }))
-
-            app.use(express.static(path.join(__dirname, "public")))
-
-            app.use(passport.initialize())
-            app.use(passport.session())
-
-            // start server
-            app.listen(PORT, () => console.log(`Server running on ${PORT}`))
-                })
+            console.log("mongodb connected")})
         .catch(err => console.error(err))
+
+    // LOADING MIDDLEWARE
+
+    app.use(session({
+        secret: process.env.SESSION_SECRET || 'secret',
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({ mongoUrl: hostUrl }),
+        cookie: { 
+            httpOnly: true, 
+            maxAge: day*30
+        }
+    }))
+
+    app.use(express.urlencoded({ extended: false }))
+    app.use(express.json())
+
+    app.use(express.static(path.join(__dirname, "public")))
+
+    app.use(passport.initialize())
+    app.use(passport.session())
+
+    passport.use(new LocalStrategy(async (username, password, done) => {
+        try {
+            const user = await User.findOne({ username });
+            if (!user) return done(null, false, { message: "incorrect username" })
+
+            const match = bcrypt.compare(password, user.password);
+            if (!match) return done(null, false, { message: "incorrect password" })
+
+            return done(null, user)
+        } catch (err) {
+            return done(err)
+        }
+    }))
+
+    passport.serializeUser((user, done) => done(null, user.id))
+    passport.deserializeUser(async (id, done) => {
+        try {
+            const user = await User.findById(id)
+            done(null, user)
+        } catch (err) {
+            done(err)
+        }
+    })
+
+    function isLoggedIn(req, res, next) {
+        if (req.isAuthenticated()) return next()
+        res.redirect("/login")
+    }
 
     //ROUTES
 
@@ -115,55 +141,15 @@ module.exports = function(app) {
         res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
     })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Passport local strategy
-    passport.use(new LocalStrategy(async (username, password, done) => {
-        try {
-            const user = await User.findOne({ username });
-            if (!user) return done(null, false, { message: "Incorrect username." })
-
-            const match = bcrypt.compare(password, user.password);
-            if (!match) return done(null, false, { message: "Incorrect password." })
-
-            return done(null, user)
-        } catch (err) {
-            return done(err)
-        }
-    }))
-
-
-
-    passport.serializeUser((user, done) => done(null, user.id))
-    passport.deserializeUser(async (id, done) => {
-        try {
-            const user = await User.findById(id)
-            done(null, user)
-        } catch (err) {
-            done(err)
-        }
-    })
-
+    //POST REQUESTS
 
     app.post("/register", async (req, res) => {
+
         console.log(req.body)
-        const { username, password } = req.body;
-        const hash = await bcrypt.hash(password, 10);
+        const { tag, password } = req.body;
+        const hash = await bcrypt.hash(password, 10)
         try {
-            const user = new User({ username, password: hash })
+            const user = new User({ user_tag:tag, password: hash })
             await user.save();
             res.redirect("/login")
         } catch (err) {
@@ -176,7 +162,7 @@ module.exports = function(app) {
     )
 
     // Protected dashboard
-    app.get("/dashboard", isAuthenticated, (req, res) => {
+    app.get("/dashboard", isLoggedIn, (req, res) => {
         res.send(`<h2>Dashboard</h2><p>Welcome, ${req.user.username}!</p><a href="/logout">Logout</a>`)
     })
 
@@ -188,10 +174,7 @@ module.exports = function(app) {
     })
 
     // Auth middleware
-    function isAuthenticated(req, res, next) {
-        if (req.isAuthenticated()) return next()
-        res.redirect("/login")
-    }
+    
 
 
     //delete all notifications that are older than 60 days
