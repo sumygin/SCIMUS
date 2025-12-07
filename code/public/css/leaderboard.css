@@ -4,39 +4,29 @@ main {
 
 .searchbar {
     display: flex;
-    height: auto;
-    flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    padding: 1.5em;
     gap: 0.5em;
-    padding:3em;
+    padding: 1.5em 3em;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
-
 
 .searchbar-item {
     flex: 1 1 0;
     min-width: 10em;
     height: 3rem;
-    padding: 0.4rem 0.6rem;
     box-sizing: border-box;
+    position: relative;
 }
 
-.searchbar-item[type="text"],
-.searchbar-item[type="search"],
-.searchbar-item textarea,
-.searchbar-item select,
-.searchbar-item button {           
-    line-height: 1;
-}
-
-.search-btn {
-    flex: 0 0 auto;
-    border: 1px solid black;
-    padding: 0 0.75rem;;
-    margin: 0.4em;
+.searchbar-item input,
+.searchbar-item select {
+    width: 100%;
+    height: 100%;
+    padding: 0.4em 0.6em;
+    box-sizing: border-box;
+    font-size: 0.9rem;
 }
 
 .searchwrapper {
@@ -50,6 +40,7 @@ select.searchbar-item {
     appearance: none;
     background-position: right 0.6rem center;
     background-repeat: no-repeat;
+    padding: 1em;
 }
 
 #displaySpace {
@@ -60,12 +51,13 @@ select.searchbar-item {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
+
 .displaywrapper {
     border: 2px solid black;
     position: relative;
     overflow: hidden;
     border-radius: 0.8em;
-    height: 73vh;
+    height: 77vh;
     width: inherit;
 }
 
@@ -82,10 +74,48 @@ select.searchbar-item {
 }
 
 .lb-info {
-    width: 15em;
+    max-width: 15em;
 }
 
 #headers {
     font-size: 1.05em;
     font-weight: bolder;
+}
+
+.autocomplete-input {
+    flex: 1 1 0; 
+    height: 3rem;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+.space {
+    position: absolute;
+    left: 0;
+    top: 105%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+.auto-item {
+    border: 2px solid black;
+    border-top: none;
+    padding: 0.5em;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: white;
+    text-align: left;
+}
+
+.auto-item:first-child {
+    border-top: 2px solid black;
+}
+
+.auto-item:hover {
+    opacity: 0.6;
 }

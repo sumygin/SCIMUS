@@ -31,8 +31,17 @@
                     <option value="">All time</option> 
                     <option value="">Today</option>
                 </select>
-                <input type="text" placeholder="school" name="school" id="school" class="searchbar-item">
-                <input type="text" placeholder="country" name="country" id="country" class="searchbar-item">
+                <div class="autocomplete-input school searchbar-item">
+                    <input type="text" placeholder="school" name="school" id="school" class="">
+                    <div class="space">
+                    </div>
+                </div>
+                
+                <div class="autocomplete-input country searchbar-item">
+                    <input type="text" placeholder="country" name="country" id="country" class="">
+                    <div class="space">
+                    </div>
+                </div>
             </form>
         </div>
 
@@ -47,6 +56,15 @@
                     <div class="lb-info school">School</div>
                     <div class="lb-info country">Country</div>
                 </div>
+                <div class="lb-item">
+                    <div class="lb-info rank">1</div>
+                    <a href="/profile">
+                        <div class="lb-info tag">@monkey</div>
+                    </a>
+                    <div class="lb-info filter">30h</div>
+                    <div class="lb-info school">St Olave's</div>
+                    <div class="lb-info country">UK</div>
+                </div>
             </div>
                 
         </div>
@@ -54,5 +72,6 @@
 
     <script src="js/headerinsert.js"></script>
     <script src="js/header.js"></script>
+    <script src="js/autocomplete.js"></script>
 </body>
 </html>
