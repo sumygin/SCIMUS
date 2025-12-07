@@ -1,107 +1,198 @@
-const express = require('express')
-const session = require('express-session')
-const bodyParser = require('body-parser')
-const path = require('path')
-const passport = require('passport')
-const LocalStrategy = require('passport-local').Strategy;
-const bcrypt = require('bcrypt');
-const mongoose = require('mongoose')
+const express = require("express")
+const session = require("express-session")
+const bodyParser = require("body-parser")
+const path = require("path")
+const passport = require("passport")
+const LocalStrategy = require("passport-local").Strategy;
+const bcrypt = require("bcrypt")
+const mongoose = require("mongoose")
+const MongoStore = require('connect-mongo').default
+
+const PORT = 3000
+
+const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
+const day = 1000 * 60 * 60 * 24
+
 
 module.exports = function(app) {
-    mongoose.connect('mongodb://127.0.0.1:27017/SCIMUS') //connect mongoDB
-        .then(() => console.log('MongoDB connected'))
-        .catch(err => console.error('MongoDB connection error:', err))
+    
 
-    // Middleware
-    app.use(bodyParser.urlencoded({ extended: false }))
-    app.use(express.static(path.join(__dirname, 'public')));
-    app.use(session({
-        secret: 'secretkey',
-        resave: false,
-        saveUninitialized: false
-    }));
-    app.use(passport.initialize());
-    app.use(passport.session());
+    const {User, Subject, Topic, School, Country, Question, Collection, QuestionCollection, 
+    Like, Solve, Watch, Comment, Notification} = require("./database")
+
+    
+
+    mongoose.connect(hostUrl)
+        .then(() => {
+            console.log("mongodb connected")
+
+            app.use(session({
+                secret: process.env.SESSION_SECRET || 'secret',
+                resave: false,
+                saveUninitialized: false,
+                store: MongoStore.create({ mongoUrl: hostUrl }),
+                cookie: { 
+                    httpOnly: true, 
+                    maxAge: day*30
+                }
+            }))
+
+            // LOADING MIDDLEWARE
+            app.use(bodyParser.urlencoded({ extended: false }))
+
+            app.use(express.static(path.join(__dirname, "public")))
+
+            app.use(passport.initialize())
+            app.use(passport.session())
+
+            // start server
+            app.listen(PORT, () => console.log(`Server running on ${PORT}`))
+                })
+        .catch(err => console.error(err))
+
+    //ROUTES
+
+    app.get("/", (req, res) => {
+        //check if logged in first; redirect to home, otherwise welcome page
+        res.sendFile(path.join(__dirname, "public", "welcome.html"))
+    })
+
+    app.get("/home", (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "home.html"))
+    })
+    
+    app.get("/login", (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "login.html"))
+    })
+
+    app.get("/settings", (req, res) => {
+        //check if logged in first; redirect to login if not
+        res.sendFile(path.join(__dirname, "public", "settings.html"))
+    })
+
+    app.get("/preferences", (req, res) => {
+        //check if logged in first; redirect to login if not
+        res.sendFile(path.join(__dirname, "public", "preferences.html"))
+    })
+
+    app.get("/inbox", (req, res) => {
+        //check if logged in first; redirect to login if not
+        res.sendFile(path.join(__dirname, "public", "inbox.html"))
+    })
+    
+    app.get("/search", (req, res) => {
+        //return filters that are to be applied as well
+        //if filters are invalid, return error page
+        res.sendFile(path.join(__dirname, "public", "search.html"))
+    })
+    
+    app.get("/question", (req, res) => {
+        //process id in link as well
+        //if the question is private, and belongs to user, open in create.html
+        //if question is not accesible or doesnt exist, return error page
+        res.sendFile(path.join(__dirname, "public", "question.html"))
+    })
+
+    app.get("/collection", (req, res) => {
+        //process id in link as well
+        //if collection is private, check that it belongs to user
+        //if collection is not accesible or doesnt exist, return error page
+        res.sendFile(path.join(__dirname, "public", "collection.html"))
+    })
+
+    app.get("/profile", (req, res) => {
+        //process id in link as well
+        //if profile doesnt exist, return error page
+        res.sendFile(path.join(__dirname, "public", "profile.html"))
+    })
+
+    app.get("/create", (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "create.html"))
+    })
+
+    app.get("/leaderboards", (req, res) => {
+        //process + return leaderboard filters in link as well
+        res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Passport local strategy
     passport.use(new LocalStrategy(async (username, password, done) => {
         try {
             const user = await User.findOne({ username });
-            if (!user) return done(null, false, { message: 'Incorrect username.' });
+            if (!user) return done(null, false, { message: "Incorrect username." })
 
             const match = bcrypt.compare(password, user.password);
-            if (!match) return done(null, false, { message: 'Incorrect password.' });
+            if (!match) return done(null, false, { message: "Incorrect password." })
 
-            return done(null, user);
+            return done(null, user)
         } catch (err) {
-            return done(err);
+            return done(err)
         }
-    }));
+    }))
 
-    passport.serializeUser((user, done) => done(null, user.id));
+
+
+    passport.serializeUser((user, done) => done(null, user.id))
     passport.deserializeUser(async (id, done) => {
         try {
-            const user = await User.findById(id);
-            done(null, user);
+            const user = await User.findById(id)
+            done(null, user)
         } catch (err) {
-            done(err);
+            done(err)
         }
-    });
+    })
 
 
-    // Routes
-    app.get('/', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'welcome.html'))
-    });
-
-    // Register
-    app.get('/register', (req, res) => {
-        res.send(`
-            <h2>Register</h2>
-            <form method="post" action="/register">
-                Username: <input name="username" /><br/>
-                Password: <input name="password" type="password" /><br/>
-                <button type="submit">Register</button>
-            </form>
-        `);
-    });
-
-    app.post('/register', async (req, res) => {
+    app.post("/register", async (req, res) => {
+        console.log(req.body)
         const { username, password } = req.body;
         const hash = await bcrypt.hash(password, 10);
         try {
-            const user = new User({ username, password: hash });
+            const user = new User({ username, password: hash })
             await user.save();
-            res.redirect('/login');
+            res.redirect("/login")
         } catch (err) {
-            res.send('Error: Username already exists');
+            res.send("Error: Username already exists")
         }
-    });
+    })
 
-    // Login
-    app.get('/login', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'login.html'))
-    });
-
-    app.post('/login',
-        passport.authenticate('local', { failureRedirect: '/login', successRedirect: '/dashboard' })
-    );
+    app.post("/login",
+        passport.authenticate("local", { failureRedirect: "/login", successRedirect: "/dashboard" })
+    )
 
     // Protected dashboard
-    app.get('/dashboard', isAuthenticated, (req, res) => {
+    app.get("/dashboard", isAuthenticated, (req, res) => {
         res.send(`<h2>Dashboard</h2><p>Welcome, ${req.user.username}!</p><a href="/logout">Logout</a>`)
-    });
+    })
 
     // Logout
-    app.get('/logout', (req, res) => {
+    app.get("/logout", (req, res) => {
         req.logout(() => {
-            res.redirect('/')
+            res.redirect("/")
         });
-    });
+    })
 
     // Auth middleware
     function isAuthenticated(req, res, next) {
         if (req.isAuthenticated()) return next()
-        res.redirect('/login')
+        res.redirect("/login")
     }
+
+
+    //delete all notifications that are older than 60 days
 }

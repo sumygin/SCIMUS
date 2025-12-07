@@ -18,49 +18,23 @@
     <main>
         <form class="pagecontainer">
             <div class="metadata">
-                <div class="meta-item">
-                    <select name="exb" id="exb">
-                        <option value="ocr">OCR</option>
-                        <option value="aqa">AQA</option>
-                        <option value="edexcel">Edexcel</option>
-                    </select>
-                </div>
 
                 <div class="meta-item">
                     <select name="studyStage" id="studyStage">
-                        <option value="0">GCSE Physics</option>
-                        <option value="1">A-level Physics</option>
-                        <option value="2">University Physics</option>
-                    </select>
-                </div>
-
-                <div class="meta-item">
-                    <select name="paper" id="paper">
-                        <option value="1">Paper 1</option>
-                        <option value="2" selected>Paper 2</option>
-                        <option value="3">Paper 3</option>
-                    </select>
-                </div>
-
-                <div class="meta-item">
-                    <select name="questionNum" id="questionNum">
-                        <option value="1">Question 1</option>
-                        <option value="2" selected>Question 2</option>
-                        <option value="3">Question 3</option>
+                        <option value="0">OCR GCSE Physics</option>
+                        <option value="1">OCR A-level Physics</option>
+                        <option value="2">OCR University Physics</option>
                     </select>
                 </div>
 
                 <div class="meta-item">
                     <select name="topic" id="topic">
-                        <option value="forces" selected>Forces</option>
-                        <option value="energy">Energy</option>
-                        <option value="waves">Waves</option>
+                        <option value="forces" selected>Select a subject first...</option>
                     </select>
                 </div>
 
                 <div class="meta-item">
                     <select name="tag" id="tag">
-                        <option value="official" selected>Official</option>
                         <option value="userMade">User-made</option>
                         <option value="solutionNeeded">Looking for solution</option>
                     </select>
@@ -69,7 +43,7 @@
 
             <div class="content">
                 <div class="titles">
-                    <input required type="text" class="title" autocapitalize="words" value="Question name" >
+                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" >
                 </div>
                 <div class="question">
                     <div class="question-text">

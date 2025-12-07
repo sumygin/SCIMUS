@@ -17,10 +17,10 @@
     <main>
         <button id="log-switch"> <span>Log-in</span> | <span>Register</span></button><br><br>
 
-        <form id="loginForm" class="form">
+        <form id="loginForm" class="form" action="/login" method="post">
             <div class="log-forms-container">
                 <div class="log-item">
-                    <label class for="tag">Username</label>
+                    <label class for="tag">User tag</label>
                     <input type="text" id="tag" name="tag" required class="log-item-field">
                 </div>
                
@@ -38,24 +38,24 @@
             
         </form>
 
-        <form id="regForm" class="form">
+        <form id="regForm" class="form" action="/register" method="post">
             <div class="log-forms-container">
             <div class="log-item">
                 <label class for="name">Full name</label>
-                <input type="text" id="name" name="name" required autocomplete="name" class="log-item-field">
+                <input type="text" id="name" name="name"  autocomplete="name" class="log-item-field">
             </div>
             
             <div class="log-item">
                 <label class for="username">Display name</label>
-                <input type="text" id="username" name="username" required autocomplete="username" class="log-item-field">
+                <input type="text" id="username" name="username"  autocomplete="username" class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="tag">Username</label>
+                <label class for="tag">User tag</label>
                 <input type="text" id="tag" name="tag" required class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="email">Email</label>
-                <input type="text" id="email" name="email" required autocomplete="email" class="log-item-field">
+                <input type="text" id="email" name="email"  autocomplete="email" class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="password">Password</label>
@@ -63,11 +63,11 @@
             </div>
             <div class="log-item">
                 <label class for="password">Confirm password</label>
-                <input type="password" id="password" name="password" required class="log-item-field">
+                <input type="password" id="password" name="password"  class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="name">School</label>
-                <input type="search" id="name" name="name" required autocomplete="" class="log-item-field">
+                <input type="search" id="name" name="name"  autocomplete="" class="log-item-field">
             </div>
             <div class="log-item">
                 <label class for="name">Country</label>

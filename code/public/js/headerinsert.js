@@ -1,12 +1,12 @@
-let headerHMTL = `<a href="home.html"><button><img id="headerIMG" src="resources/SMALL_logo.png" alt="SCIMUS" srcset=""></button></a> 
+let headerHMTL = `<a href="/home"><button><img id="headerIMG" src="resources/SMALL_logo.png" alt="SCIMUS" srcset=""></button></a> 
     
     <div id="header-items">
-      <a class="header-item" href="search.html"><button>SEARCH</button></a>
-      <a class="header-item" href="create.html"><button>CREATE</button></a>
-      <a class="header-item" href="leaderboard.html"><button>LEADERBOARDS</button></a>
+      <a class="header-item" href="/search"><button>SEARCH</button></a>
+      <a class="header-item" href="/create"><button>CREATE</button></a>
+      <a class="header-item" href="/leaderboards"><button>LEADERBOARDS</button></a>
       <span class="header-item timer-hover"> <span id="timer-text-wrap"><span id="header-timer-text">30:00</span></span>
         <div id="timer-popup" class="timer-hover">
-          <a href="preferences.html" id="timer-settings"><button class="btns" >⚙️</button></a>
+          <a href="/preferences" id="timer-settings"><button class="btns" >⚙️</button></a>
           
           <canvas id="timer-arc"></canvas>
           <span id="time-text">
@@ -27,17 +27,17 @@ let headerHMTL = `<a href="home.html"><button><img id="headerIMG" src="resources
       <span class="header-item profile-hover" >pfp
         <div class="profile-hover" id="profile-popup">
           <span class="profile-hover-item">
-            <a href="profile.html"><button>Profile</button></a>
-            <a href="inbox.html"><button style="text-align: right;">📧</button></a>
+            <a href="/profile"><button>Profile</button></a>
+            <a href="/inbox"><button style="text-align: right;">📧</button></a>
           </span>
           <span class="profile-hover-item">
-            <a href="search.html"><button>My stuff</button></a>
+            <a href="/search"><button>My stuff</button></a>
           </span>
           <span class="profile-hover-item">
-            <a href="settings.html"><button>Settings</button></a>
+            <a href="/settings"><button>Settings</button></a>
           </span>
           <span class="profile-hover-item">
-            <a href="preferences.html"><button>Preferences</button></a>
+            <a href="/preferences"><button>Preferences</button></a>
           </span>
         </div>
       </span> 

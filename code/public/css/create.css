@@ -24,7 +24,7 @@ input {
     background-repeat: no-repeat;
     padding: 0.5em;
     border-radius: 5px;
-    width: 10em;
+    width: 100%;
     text-overflow: ellipsis;
     overflow: hidden;
 }
@@ -37,7 +37,7 @@ input {
 }
 
 .metadata {
-    height: 15vh;
+    height: 8vh;
 }
 
 .metadata, .actions {

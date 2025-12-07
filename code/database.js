@@ -1,17 +1,16 @@
 const mongoose = require('mongoose')
 
-// Users
 const userSchema = new mongoose.Schema({
   user_tag: { type: String, unique: true, required: true }, // primary key, unique, no spaces
   school_id: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: false },
   country_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Country', required: false },
-  study_stage: { type: Number, enum: [0, 1, 2] }, // 0=GCSE,1=A-level,2=University
+  study_stage: { type: Number, enum: [0, 1, 2] }, // 0=GCSE,1=A-level,2=University+
   username: { type: String, maxlength: 20 },
   full_name: String,
   email: String,
   password_hash: String,
-  scroll_data: { type: [Number], default: [] },       // stored as array
-  preference_data: { type: [mongoose.Mixed], default: [] }, // JSON preferences
+  scroll_data: { type: [Number], default: [] },      
+  preference_data: { type: [Number], default: [] }, 
   created_at: { type: Date, default: Date.now },
   completed_today: Number,
   completed_total: Number,
@@ -22,34 +21,38 @@ const userSchema = new mongoose.Schema({
   average_like_rating: Number
 });
 
-// Subjects
+
 const subjectSchema = new mongoose.Schema({
   subject_id: { type: Number, unique: true },
   study_stage: { type: Number, enum: [0, 1, 2] },
   name: String,
-  colour: String
+  colour: String,
+  papers: Number,
+  exam_board: String,
+  formulas: String,
+  spec: String,
 });
 
-// Topics
+
 const topicSchema = new mongoose.Schema({
   topic_id: { type: Number, unique: true },
   subject_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject' },
   name: { type: String, maxlength: 30 }
 });
 
-// Schools
+
 const schoolSchema = new mongoose.Schema({
   school_id: { type: Number, unique: true },
   name: String
 });
 
-// Countries
+
 const countrySchema = new mongoose.Schema({
   country_id: { type: Number, unique: true },
   name: String
 });
 
-// Questions
+
 const questionSchema = new mongoose.Schema({
   question_id: { type: Number, unique: true },
   topic_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: false },
@@ -59,7 +62,7 @@ const questionSchema = new mongoose.Schema({
   avg_rating: Number,
   num_ratings: Number,
   like_rating: Number,
-  images: { type: [Buffer], default: [] }, // binary images
+  images: { type: [Buffer], default: [] }, // references to images
   paper_num: Number,
   question_num: Number,
   tag: { type: Number, enum: [0, 1, 2] }, // 0=official,1=user-made,2=looking-for-solution
@@ -67,9 +70,9 @@ const questionSchema = new mongoose.Schema({
   mark_scheme: String,
   created_at: { type: Date, default: Date.now },
   published: { type: Boolean, default: false }
-});
+})
 
-// Collections
+
 const collectionSchema = new mongoose.Schema({
   collection_id: { type: Number, unique: true },
   user_tag: { type: String, ref: 'User', required: true }, // creator
@@ -78,17 +81,17 @@ const collectionSchema = new mongoose.Schema({
   paper_num: Number,
   created_at: { type: Date, default: Date.now },
   published: { type: Boolean, default: false }
-});
+})
 
-// QuestionCollection (many-to-many)
+
 const questionCollectionSchema = new mongoose.Schema({
   question_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
   collection_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Collection', required: true }
 }, {
   _id: false
-});
+})
 
-// Likes
+
 const likeSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User', required: true },
   item_id: { type: mongoose.Schema.Types.ObjectId, required: true }, // question/comment
@@ -97,18 +100,26 @@ const likeSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 }, {
   _id: false
-});
+})
 
-// Solves
+
 const solveSchema = new mongoose.Schema({
   question_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
   user_tag: { type: String, ref: 'User', required: true },
   created_at: { type: Date, default: Date.now }
 }, {
   _id: false
-});
+})
 
-// Comments
+const watchSchema = new mongoose.Schema({
+  question_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
+  user_tag: { type: String, ref: 'User', required: true },
+  created_at: { type: Date, default: Date.now }
+}, {
+  _id: false
+})
+
+
 const commentSchema = new mongoose.Schema({
   comment_id: { type: Number, unique: true },
   parent_comment_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment', required: false },
@@ -117,9 +128,9 @@ const commentSchema = new mongoose.Schema({
   content: { type: String, maxlength: 200 },
   like_rating: Number,
   created_at: { type: Date, default: Date.now }
-});
+})
 
-// Notifications
+
 const notificationSchema = new mongoose.Schema({
   notif_id: { type: Number, unique: true },
   user_id: { type: String, ref: 'User', required: true },
@@ -127,20 +138,21 @@ const notificationSchema = new mongoose.Schema({
   message: String,
   viewed: { type: Boolean, default: false },
   created_at: { type: Date, default: Date.now }
-});
+})
 
-// Model exports
+
 module.exports = {
-  User: mongoose.model('User', userSchema),
-  Subject: mongoose.model('Subject', subjectSchema),
-  Topic: mongoose.model('Topic', topicSchema),
-  School: mongoose.model('School', schoolSchema),
-  Country: mongoose.model('Country', countrySchema),
-  Question: mongoose.model('Question', questionSchema),
-  Collection: mongoose.model('Collection', collectionSchema),
-  QuestionCollection: mongoose.model('QuestionCollection', questionCollectionSchema),
-  Like: mongoose.model('Like', likeSchema),
-  Solve: mongoose.model('Solve', solveSchema),
-  Comment: mongoose.model('Comment', commentSchema),
-  Notification: mongoose.model('Notification', notificationSchema)
-};
+    User: mongoose.model('User', userSchema),
+    Subject: mongoose.model('Subject', subjectSchema),
+    Topic: mongoose.model('Topic', topicSchema),
+    School: mongoose.model('School', schoolSchema),
+    Country: mongoose.model('Country', countrySchema),
+    Question: mongoose.model('Question', questionSchema),
+    Collection: mongoose.model('Collection', collectionSchema),
+    QuestionCollection: mongoose.model('QuestionCollection', questionCollectionSchema),
+    Like: mongoose.model('Like', likeSchema),
+    Solve: mongoose.model('Solve', solveSchema),
+    Watch: mongoose.model('Watch', watchSchema),
+    Comment: mongoose.model('Comment', commentSchema),
+    Notification: mongoose.model('Notification', notificationSchema)
+}

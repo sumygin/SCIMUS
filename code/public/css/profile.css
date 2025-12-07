@@ -29,8 +29,14 @@ main {
 }
 
 .stats {
-    padding-top:8em;
+    padding-top:4em;
     display: flex;
     flex-direction: column;
     gap: 0.7em;
+    width: 30vw;
+    padding-right: 5em;
+}
+
+.div1 {
+    width: 50vw;
 }
