@@ -47,6 +47,10 @@
 
 .log-item {
     flex: 1 1 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
     min-width: 10em;
     height: 3rem;
     padding: 0.4rem 0.6rem;
@@ -55,8 +59,8 @@
     transition: 1s ease-in-out;
 }
 
-.log-item[type="text"],
-.log-item[type="search"],
+.log-item input[type="text"],
+.log-item input[type="search"],
 .log-item textarea,
 .log-item select,
 .log-item button {           
@@ -73,9 +77,7 @@
     padding-left: 0.5em;
     border-radius: 5px;
 }
-.log-item :hover {
-    opacity: 0.6;
-}
+
 
 .log-item :focus {
     border-color: red;

@@ -46,32 +46,40 @@
             </div>
             
             <div class="log-item">
-                <label class for="username">Display name</label>
+                <label for="username">Display name</label>
                 <input type="text" id="username" name="username" required  autocomplete="username" class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="tag">User tag</label>
+                <label for="tag">User tag</label>
                 <input type="text" id="tag" name="tag" required class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="email">Email</label>
+                <label for="email">Email</label>
                 <input type="text" id="email" name="email" required  autocomplete="email" class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="password">Password</label>
+                <label for="password">Password</label>
                 <input type="password" id="password" name="password" required class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="password_1">Confirm password</label>
+                <label for="password_1">Confirm password</label>
                 <input type="password_1" id="password_1" name="password_1" required  class="log-item-field">
             </div>
             <div class="log-item">
-                <label class for="name">School</label>
-                <input type="search" id="name" name="name"  autocomplete="" class="log-item-field">
+                <label for="name">School</label>
+                <div class="autocomplete-input school">
+                    <input type="text" id="school" name="school" class="log-item-field">
+                    <div class="space">
+                    </div>
+                </div>
             </div>
             <div class="log-item">
-                <label class for="name">Country</label>
-                <input type="text" id="name" name="name"class="log-item-field">
+                <label for="name">Country</label>
+                <div class="autocomplete-input country ">
+                    <input type="text" id="country" name="country" class="log-item-field">
+                    <div class="space">
+                    </div>
+                </div>
             </div>
             <div class="log-item">
                 <label for="stage">Stage of study</label>
@@ -100,5 +108,6 @@
     <script src="js/headerinsert.js"></script>
     <script src="js/header.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/autocomplete.js"></script>
 </body>
 </html>
