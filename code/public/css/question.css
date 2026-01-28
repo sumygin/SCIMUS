@@ -90,7 +90,7 @@ main {
     border-radius: 1em;
     padding-left: 1em;
     padding-right: 2em;
-
+    width: 70%;
 }
 
 .question-text, .mark-scheme-text {
@@ -99,7 +99,7 @@ main {
     overflow-x: hidden;
     height: inherit;
     padding-top: 0.5em;
-    width: 100%;
+    width: 95%;
 }
 
 .bottom-bar {
@@ -122,4 +122,54 @@ main {
 
 .displaywrapper {
     height: 80vh;
+}
+
+.middle-container {
+    flex-direction: row;
+    display: flex;
+}
+
+.comments {
+    border: 2px solid lightgray;
+    border-radius: 1em;
+    width: 30%;
+    margin-left: 5px;
+    font-size: 0.75rem;
+    text-align: left;
+}
+
+.c-bar {
+    position: absolute;
+    bottom: 0px;
+    padding: 1em;
+    text-align: center;
+}
+
+.comments {
+    position: relative;
+    overflow-y: auto;
+}
+
+.c-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment {
+    border: 1px solid lightgray;
+    margin: 0.3em;
+    border-radius: 1em;
+    padding: 0.3em;
+}
+
+.c-top {
+    display: flex;
+    flex-direction:row;
+    font-size: 0.65rem;
+    padding-bottom: 0.67em;
+}
+
+.c-names {
+    width: 70%;
+    font-weight: bold;
 }
