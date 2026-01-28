@@ -39,11 +39,19 @@ class AutoHandler {
             for (item of this.list) {
                 if (item.toLowerCase().includes(query)) {
                     result.push(item)
-                    if (result.length >= 10){
-                        break
-                    }
+                    if (result.length >= 10) break
                 }
             }
+
+            //sort result by ones that match, otherwise keep it
+            result.sort((a, b) => {
+                const aMatch = a.toLowerCase().startsWith(query)
+                const bMatch = b.toLowerCase().startsWith(query)
+
+                if (aMatch && !bMatch) return -1
+                if (!aMatch && bMatch) return 1
+                return 0
+            });
             
             if (((result.length == 0 && !this.creatable) || this.input.value == "")) {
                 this.hideSpace()
@@ -109,16 +117,16 @@ class AutoHandler {
 async function loadData(path) {
     try {
         const res = await fetch(path)
+        return await res.json()
     }
     catch (err) {
         console.log(err)
     }
     
-    return await res.json()
 }
 
 async function createHandlers() {
-    const countries =  ["Algeria"] //await loadData("../resources/countries.json")
+    const countries =  await loadData("../resources/countries.json")
     const schools = ["St Olave's Grammar School"]
     const subjects = ["Maths", ]
 
