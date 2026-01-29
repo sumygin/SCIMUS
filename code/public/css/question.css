@@ -144,13 +144,14 @@ main {
 .commentWrapper {
     position: relative;
     overflow: none;
-    height: calc(94% - 4em);
+    height: calc(94% - 5rem);
 }
 
 .comments {
     overflow-y: auto;
     position: absolute;
-    padding-bottom: 3em;
+    padding-bottom: 2em;
+    border-bottom: 2px solid lightgray;
 }
 
 .c-bar {
@@ -158,7 +159,7 @@ main {
     text-align: center;
     width: 90%;
     top: 30vh;
-    height: 4em;
+    height: 6rem;
 }
 
 .c-input { 
@@ -202,3 +203,13 @@ main {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
+.reply-bar {
+    width: 100%;
+    background: white;
+    text-align: center;
+    padding: 0.3em;
+}
+
+.r-cancel {
+    color: red;
+}
