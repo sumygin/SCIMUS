@@ -141,11 +141,17 @@ module.exports = function(app) {
         res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
     })
 
+    app.get("/api/subjects/names", async (req, res) => {
+        const subjects = await Subject.find({}).sort({ subject_id: 1 }).lean();
+        res.json(subjects)
+    })
+
     //POST REQUESTS
 
     app.post("/register", async (req, res) => {
-
         console.log(req.body)
+
+
         const { tag, password } = req.body;
         const hash = await bcrypt.hash(password, 10)
         try {

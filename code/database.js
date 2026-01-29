@@ -47,12 +47,6 @@ const schoolSchema = new mongoose.Schema({
 });
 
 
-const countrySchema = new mongoose.Schema({
-  country_id: { type: Number, unique: true },
-  name: String
-});
-
-
 const questionSchema = new mongoose.Schema({
   question_id: { type: Number, unique: true },
   topic_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: false },
@@ -146,7 +140,6 @@ module.exports = {
     Subject: mongoose.model('Subject', subjectSchema),
     Topic: mongoose.model('Topic', topicSchema),
     School: mongoose.model('School', schoolSchema),
-    Country: mongoose.model('Country', countrySchema),
     Question: mongoose.model('Question', questionSchema),
     Collection: mongoose.model('Collection', collectionSchema),
     QuestionCollection: mongoose.model('QuestionCollection', questionCollectionSchema),

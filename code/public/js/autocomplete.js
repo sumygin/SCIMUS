@@ -14,7 +14,7 @@ function upperCaseify(text) {
 }
 
 class AutoHandler {
-    constructor(element, inputList, creatable) {
+    constructor(element, inputList, creatable, type) {
         console.log("HELLO", this.list)
         this.element = element
         this.input = element.children[0]
@@ -22,6 +22,7 @@ class AutoHandler {
         this.list = inputList
         this.selected = false
         this.creatable = creatable
+        this.type = type
 
         this.init()
     }
@@ -125,27 +126,40 @@ async function loadData(path) {
     
 }
 
+async function getSubjects() {
+    const res = await fetch("api/subjects/names")
+    return await res.json()
+}
+
+async function getSchools (){
+    const res = await fetch("api/schools/names")
+}
+
 async function createHandlers() {
     const countries =  await loadData("../resources/countries.json")
-    const schools = ["St Olave's Grammar School"]
-    const subjects = ["Maths", ]
+    const schools = await getSchools()
+    const subjects = await getSubjects()
 
 
     for (el of elements) {
         let inplist = []
         let creatable = false
+        let type
         if (el.classList.contains("school")) {
             inplist = schools
             creatable = true
+            type = "school"
         }
         else if (el.classList.contains("subject")) {
-            inplist = subjects
+            inplist = 
+            type = "subject"
         }
         else if (el.classList.contains("country")) {
             inplist = countries
+            type = "country"
         }
         if (inplist.length != 0) {
-            allHandlers.push(new AutoHandler(el, inplist, creatable))
+            allHandlers.push(new AutoHandler(el, inplist, creatable, type))
         }
     }
 }
