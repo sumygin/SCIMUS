@@ -16,8 +16,6 @@ const day = 1000 * 60 * 60 * 24
 
 
 module.exports = function(app) {
-    
-
     const {User, Subject, Topic, School, Country, Question, Collection, QuestionCollection, 
     Like, Solve, Watch, Comment, Notification} = require("./database")
 
@@ -141,9 +139,29 @@ module.exports = function(app) {
         res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
     })
 
-    app.get("/api/subjects/names", async (req, res) => {
-        const subjects = await Subject.find({}).sort({ subject_id: 1 }).lean();
-        res.json(subjects)
+    app.get("/api/subjects/names/:stage", async (req, res) => {
+        try {
+            const stage = Number(req.params.stage)
+            const subjects = await Subject.find({study_stage: stage}, {name:1, _id:0})
+            subjects.map(s => s.name)
+            console.log(subjects, "subjects")
+            res.json(subjects)
+
+        } catch (err) {
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/schools/names", async (req, res) => {
+        try {
+            const schools = await School.find({}, {name:1, _id:0})
+            schools.map(s => s.name)
+            console.log(schools, "subjects")
+            res.json(schools)
+
+        } catch (err) {
+            res.status(500).json({ error: err.message })
+        }
     })
 
     //POST REQUESTS

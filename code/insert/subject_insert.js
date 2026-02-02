@@ -1,10 +1,19 @@
-import mongoose from "mongoose"; 
-const Subject = require("./database")
-await mongoose.connect("mongodb://localhost:27017/mongodb://127.0.0.1:27017/SCIMUS"); 
+const mongoose = require("mongoose")
+const {Subject} = require("../database")
+const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 
-  
+mongoose.connect(hostUrl)
+        .then(() => {
+            console.log("mongodb connected")})
+        .catch(err => console.error(err))
 
-await Subject.insertMany([ 
+async function del() {
+  await Subject.deleteMany({})
+}
+
+del()
+
+Subject.insertMany([ 
   // A‑Level subjects (stage 1)
   { subject_id: 1, study_stage: 1, name: "Maths", exam_board: "OCR MEI", colour: "red", papers: 3,
     formulas: "https://www.ocr.org.uk/Images/643243-formulae-booklet.pdf",

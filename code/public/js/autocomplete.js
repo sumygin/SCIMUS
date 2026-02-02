@@ -1,4 +1,6 @@
 const elements = document.getElementsByClassName('autocomplete-input')
+const stageSelect = document.getElementById("stage")
+let subjectList = []
 
 let allHandlers = []
 
@@ -15,7 +17,6 @@ function upperCaseify(text) {
 
 class AutoHandler {
     constructor(element, inputList, creatable, type) {
-        console.log("HELLO", this.list)
         this.element = element
         this.input = element.children[0]
         this.space = element.children[1]
@@ -23,6 +24,8 @@ class AutoHandler {
         this.selected = false
         this.creatable = creatable
         this.type = type
+
+        console.log(this.list, this.type)
 
         this.init()
     }
@@ -126,36 +129,34 @@ async function loadData(path) {
     
 }
 
-async function getSubjects() {
-    const res = await fetch("api/subjects/names")
-    return await res.json()
+async function getSubjects(val) {
+    return (await fetch(`api/subjects/names/${val}}`)).json()
 }
 
-async function getSchools (){
-    const res = await fetch("api/schools/names")
+async function getSchools(){
+    return (await fetch(`api/schools/names`)).json()
 }
 
 async function createHandlers() {
-    const countries =  await loadData("../resources/countries.json")
-    const schools = await getSchools()
-    const subjects = await getSubjects()
-
 
     for (el of elements) {
         let inplist = []
         let creatable = false
-        let type
+        let type = ""
         if (el.classList.contains("school")) {
-            inplist = schools
+            inplist = await getSchools()
             creatable = true
             type = "school"
         }
         else if (el.classList.contains("subject")) {
-            inplist = 
+            if (!stageSelect) {
+                throw SyntaxError("stage selector undefined")
+            }
+            inplist = subjectList
             type = "subject"
         }
         else if (el.classList.contains("country")) {
-            inplist = countries
+            inplist = await loadData("../resources/countries.json")
             type = "country"
         }
         if (inplist.length != 0) {
@@ -163,5 +164,15 @@ async function createHandlers() {
         }
     }
 }
+
+stageSelect.addEventListener("change", async () => {
+    if (stageSelect.value == -1) {
+        subjectList = []
+    }
+    else {
+        subjectList = await getSubjects(stageSelect.value)
+        console.log("SUBJECTlist is now", subjectList)
+    }
+})
 
 createHandlers()
