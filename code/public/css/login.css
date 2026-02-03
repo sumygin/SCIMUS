@@ -84,5 +84,6 @@
 }
 
 #subject-space {
-    
+    border: none;
+    height: 2em;
 }
