@@ -25,8 +25,6 @@ class AutoHandler {
         this.creatable = creatable
         this.type = type
 
-        console.log(this.list, this.type)
-
         this.init()
     }
 
@@ -57,7 +55,7 @@ class AutoHandler {
                 return 0
             });
             
-            if (((result.length == 0 && !this.creatable) || this.input.value == "")) {
+            if (((result.length == 0 && !this.creatable))) {
                 this.hideSpace()
                 return
             }
@@ -130,7 +128,7 @@ async function loadData(path) {
 }
 
 async function getSubjects(val) {
-    return (await fetch(`api/subjects/names/${val}}`)).json()
+    return (await fetch(`api/subjects/names/${val}`)).json()
 }
 
 async function getSchools(){
@@ -159,18 +157,17 @@ async function createHandlers() {
             inplist = await loadData("../resources/countries.json")
             type = "country"
         }
-        if (inplist.length != 0) {
-            allHandlers.push(new AutoHandler(el, inplist, creatable, type))
-        }
+        allHandlers.push(new AutoHandler(el, inplist, creatable, type))
     }
 }
 
 stageSelect.addEventListener("change", async () => {
     if (stageSelect.value == -1) {
-        subjectList = []
+        subjectList.length = 0
     }
     else {
-        subjectList = await getSubjects(stageSelect.value)
+        subjectList.length = 0
+        subjectList.push(...await getSubjects(stageSelect.value))
         console.log("SUBJECTlist is now", subjectList)
     }
 })

@@ -142,10 +142,10 @@ module.exports = function(app) {
     app.get("/api/subjects/names/:stage", async (req, res) => {
         try {
             const stage = Number(req.params.stage)
-            const subjects = await Subject.find({study_stage: stage}, {name:1, _id:0})
-            subjects.map(s => s.name)
-            console.log(subjects, "subjects")
-            res.json(subjects)
+            const subjects = await Subject.find({study_stage: stage}, {name:1, _id:0, exam_board:1})
+            const names  = subjects.map(s => s.exam_board + " " + s.name)
+            console.log("sending subjects", names)
+            res.json(names)
 
         } catch (err) {
             res.status(500).json({ error: err.message })
@@ -155,9 +155,9 @@ module.exports = function(app) {
     app.get("/api/schools/names", async (req, res) => {
         try {
             const schools = await School.find({}, {name:1, _id:0})
-            schools.map(s => s.name)
-            console.log(schools, "subjects")
-            res.json(schools)
+            const names = schools.map(s => s.name)
+            console.log("sending schools", names)
+            res.json(names)
 
         } catch (err) {
             res.status(500).json({ error: err.message })
