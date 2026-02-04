@@ -1,3 +1,5 @@
+import {loadData} from './utils.js'
+
 const elements = document.getElementsByClassName('autocomplete-input')
 const stageSelect = document.getElementById("stage")
 let subjectList = []
@@ -138,17 +140,6 @@ class AutoHandler {
     }
 }
 
-async function loadData(path) {
-    try {
-        const res = await fetch(path)
-        return await res.json()
-    }
-    catch (err) {
-        console.log(err)
-    }
-    
-}
-
 async function getSubjects(val) {
     return (await fetch(`api/subjects/names/${val}`)).json()
 }
@@ -188,7 +179,7 @@ stageSelect.addEventListener("change", async () => {
         subjectList.length = 0
     }
     else {
-        for (handler of allHandlers) {
+        for (const handler of allHandlers) {
             if (handler.type == "subject" && handler.selectMultiple) {
                 handler.multiSpace.innerHTML = ""
             }

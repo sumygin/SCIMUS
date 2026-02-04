@@ -4,12 +4,10 @@ const path = require("path")
 const passport = require("passport")
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcrypt")
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const { publicDecrypt } = require("crypto");
 const MongoStore = require('connect-mongo').default
-
-const validator = require("validator")
-const leoProfanity = require("leo-profanity")
-const compromise = require("compromise")
+const fs = require("fs").promises
 
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
@@ -144,7 +142,6 @@ module.exports = function(app) {
             const stage = Number(req.params.stage)
             const subjects = await Subject.find({study_stage: stage}, {name:1, _id:0, exam_board:1})
             const names  = subjects.map(s => s.exam_board + " " + s.name)
-            console.log("sending subjects", names)
             res.json(names)
 
         } catch (err) {
@@ -156,7 +153,6 @@ module.exports = function(app) {
         try {
             const schools = await School.find({}, {name:1, _id:0})
             const names = schools.map(s => s.name)
-            console.log("sending schools", names)
             res.json(names)
 
         } catch (err) {
