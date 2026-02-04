@@ -83,7 +83,26 @@
     border-color: red;
 }
 
-#subject-space {
+#multispace {
     border: none;
-    height: 2em;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    width: 22em;
+}
+
+.sbj {
+    border: 1px solid black;
+    width: fit-content;
+    height: 1em;
+    display: flex;
+    padding: 0.67em;
+    border-radius: 2em;
+}
+
+.x {
+    padding-left: 0.3em;
+    padding-right: 0.3em;
 }

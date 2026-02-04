@@ -16,9 +16,9 @@ body {
     box-shadow: 0 1px 5px black;
     background: white;
     z-index: 1000;
-    padding: 1.7vh;
+    padding: 1.3em;
     font-family: monospace;
-    height: 2.5vh;
+    min-height: 30px;
 }
 
 #headerIMG {
@@ -157,7 +157,7 @@ button:active {
 }
 
 main {
-    margin-top: 10vh;
+    margin-top: 7rem;
     padding: 1vh;
     text-align: center;
     overflow: none;

@@ -24,6 +24,11 @@ class AutoHandler {
         this.selected = false
         this.creatable = creatable
         this.type = type
+        this.selectMultiple = this.element.classList.contains("multiple")
+
+        if (this.selectMultiple) {
+            this.multiSpace = document.getElementById("multispace")
+        }
 
         this.init()
     }
@@ -65,7 +70,7 @@ class AutoHandler {
             this.showSpace()
 
             //render html
-            for (item of result) {
+            for (item of result) { //ADD MATCHING RESULTS
                 let newEl = document.createElement("div")
                 newEl.classList.add("auto-item")
                 newEl.innerText = item
@@ -75,17 +80,18 @@ class AutoHandler {
                 this.space.appendChild(newEl)
             }
 
-            if (this.creatable) {
+            if (this.creatable && !this.list.includes(this.query)) { //ADD EXTRA "ADD" RESULT
 
                 let upperQuery = upperCaseify(this.input.value)
                 
                 //render html
-                let newEl = document.createElement("div")
+                let newEl = document.createElement("div") //create new element for space
                 newEl.classList.add("auto-item")
                 newEl.style.fontStyle = "italic"
-                console.log(this.input.innerText)
+
                 newEl.innerText = `Add ${upperQuery}`
-                newEl.addEventListener("click", () => {
+
+                newEl.addEventListener("click", () => { //select eventlistener
                     this.collapse(upperQuery)
                 })
                 this.space.appendChild(newEl)
@@ -93,17 +99,33 @@ class AutoHandler {
     
         })
 
-        document.addEventListener("click", (e) => {
+        document.addEventListener("click", (e) => { //close when clicked off of
             if (e != this.space) {
                 this.hideSpace()
             }
         })
+
+        
     }
 
-    collapse (text) {
-        this.input.value = text
-        this.selected = true
+    collapse (text) { //response to an option being selected
+        this.selected = true //mark on selected
         this.hideSpace()
+
+        if (this.selectMultiple) { //if multiple subjects can be selected
+            this.input.value = ""
+            if (!this.multiSpace.innerText.includes(text)) { //create new element to be pushed to space
+                let newEl = document.createElement("div")
+                newEl.classList.add("sbj")
+                newEl.innerHTML = `${text} <button class="x">x</button>`
+                newEl.querySelector(".x").addEventListener("click", () => {
+                    newEl.remove()
+                })
+                this.multiSpace.appendChild(newEl)
+            }
+        } else {
+            this.input.value = text
+        }
     }
 
     hideSpace () {
@@ -166,9 +188,13 @@ stageSelect.addEventListener("change", async () => {
         subjectList.length = 0
     }
     else {
+        for (handler of allHandlers) {
+            if (handler.type == "subject" && handler.selectMultiple) {
+                handler.multiSpace.innerHTML = ""
+            }
+        }
         subjectList.length = 0
         subjectList.push(...await getSubjects(stageSelect.value))
-        console.log("SUBJECTlist is now", subjectList)
     }
 })
 
