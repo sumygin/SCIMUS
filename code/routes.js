@@ -252,11 +252,17 @@ module.exports = function(app) {
                 return res.status(409).json({ error: "User tag is taken!" })
             }
             else {
+                //subject check
+                let sbjs = data.subjects.split(" x")
+                console.log(sbjs)
+
+
                 //school check/creation
 
                 const skl = await School.findOne({name:data.school}, {school_id:1}) //return school id of matching school
+                let newSklID
                 if (!skl) {
-                    let newSklID = await idGenerator(School)
+                    newSklID = await idGenerator(School)
                     await School.insertOne({
                         school_id: newSklID,
                         name:data.school
@@ -264,13 +270,15 @@ module.exports = function(app) {
                 }
                 else {
                     console.log("SCHOOL EXISTS!!!")
-                    let newSklID = skl.school_id
+                    newSklID = skl.school_id
                 }
 
                 const hash = await bcrypt.hash(data.password, 10)
                 const user = new User({
                     user_tag:data.tag, 
                     password: hash,
+                    school_id:newSklID,
+
                     //rest of parameters will be here
                 })
                 await user.save()

@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
   user_tag: { type: String, unique: true, required: true },
   school_id: { type: Number, ref: 'School', required: false },
-  country_id: { type: Number, ref: 'Country', required: false },
+  country: { type: String, required: false },
   study_stage: { type: Number, enum: [0, 1, 2] },
   username: { type: String, maxlength: 20 },
   full_name: String,
@@ -31,6 +31,13 @@ const subjectSchema = new mongoose.Schema({
   formulas: String,
   spec: String,
 });
+
+const subjectUserSchema = new mongoose.Schema({
+  user_tag: { type: Number, ref: 'User', required: true },
+  subject_id: { type: Number, ref: 'Subject', required: true }
+}, {
+  _id: false
+})
 
 const topicSchema = new mongoose.Schema({
   topic_id: { type: Number, unique: true },
@@ -136,5 +143,6 @@ module.exports = {
     Solve: mongoose.model('Solve', solveSchema),
     Watch: mongoose.model('Watch', watchSchema),
     Comment: mongoose.model('Comment', commentSchema),
-    Notification: mongoose.model('Notification', notificationSchema)
+    Notification: mongoose.model('Notification', notificationSchema),
+    SubjectUser: mongoose.model("SubjectUser", subjectUserSchema)
 }
