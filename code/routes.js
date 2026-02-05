@@ -8,10 +8,29 @@ const mongoose = require("mongoose");
 const { publicDecrypt } = require("crypto");
 const MongoStore = require('connect-mongo').default
 const fs = require("fs").promises
+const validator = require("validator")
+const leo = require("leo-profanity")
 
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
 
+function passwordCheck(pw) {
+    const hasNumber = /[0-9]/.test(pw)
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};:'",.<>/?\\|~]/.test(pw)
+    return hasNumber && hasSpecial
+}
+
+async function idGenerator(obj) {
+    let id
+    let exists
+    do {
+        id = Math.floor(Math.random()*100000000) //8-digit id
+        exists = await obj.exists({school_id:id})
+    } while (exists)
+    return id
+}
+
+const countriesList = 
 
 module.exports = function(app) {
     const {User, Subject, Topic, School, Country, Question, Collection, QuestionCollection, 
@@ -165,15 +184,101 @@ module.exports = function(app) {
     app.post("/register", async (req, res) => {
         console.log(req.body)
 
+        //parsing data
 
-        const { tag, password } = req.body;
-        const hash = await bcrypt.hash(password, 10)
-        try {
-            const user = new User({ user_tag:tag, password: hash })
-            await user.save();
-            res.redirect("/login")
-        } catch (err) {
-            res.send("Error: Username already exists")
+        const {name, password, password_1, school, stage, subjects, tag, username, country, email} = req.body
+        let data = {name, password, password_1, school, stage, subjects, tag, username, country, email}
+
+        for (const key in data) { //remove whitespaces
+            if (typeof data[key] == "string") {
+                data[key] = data[key].trim()
+            }
+        }
+
+        try{
+            //validation
+
+            for (let field of Object.values(data)) { //check empty and profanities
+                field = field.trim()
+                if (field == "") return res.status(400).json({ error: "Fields cannot be empty!"})
+
+                const urls = field.match(/https?:\/\/[^\s]+/g) || [] //check for links
+                for (const url of urls) { //go through flagged urls and check them 
+                    if (validator.isURL(url)) {
+                        return res.status(400).json({ error: "No links allowed!"})
+                    }
+                }
+
+                if (leo.check(field)) { //check for profanities
+                    return res.status(400).json({error: "Profanities are not allowed"})
+                }
+            }
+
+            const countries = require("./public/resources/countries.json")
+            data.tag = data.tag.toLowerCase()
+
+            if (!validator.isEmail(data.email)) { 
+                return res.status(400).json({error: "This is not an email" })
+            }
+            else if (data.password !== data.password_1) {
+                return res.status(400).json({error: "Passwords do not match"})
+            }
+            else if (data.password.length < 8) {
+                return res.status(400).json({error: "Password must be at least 8 characters"})
+            }
+            else if (data.name.length < 3) {
+                return res.status(400).json({error: "Name is too short"})
+            }
+            else if (data.username.length < 3) {
+                return res.status(400).json({error: "Username is too short"})
+            }
+            else if (data.tag.length < 3){
+                return res.status(400).json({error: "Tag is too short"})
+            }
+            else if (!passwordCheck(data.password)) {
+                return res.status(400).json({error: "Password must have at least one special character and number"})
+            }   
+            else if (!countries.includes(data.country)) {
+                return res.status(400).json({error: "Country is invalid"})
+            }
+            else if (!["0", "1", "2"].includes(data.stage)) {
+                return res.status(400).json({error: "Please select a study stage"})
+            }
+            else if (data.subjects.length < 5) {
+                return res.status(400).json({error: "You must select at least one subject"})
+            }
+
+            else if (await User.exists({user_tag: data.tag})) {
+                return res.status(409).json({ error: "User tag is taken!" })
+            }
+            else {
+                //school check/creation
+
+                const skl = await School.findOne({name:data.school}, {school_id:1}) //return school id of matching school
+                if (!skl) {
+                    let newSklID = await idGenerator(School)
+                    await School.insertOne({
+                        school_id: newSklID,
+                        name:data.school
+                    })
+                }
+                else {
+                    console.log("SCHOOL EXISTS!!!")
+                    let newSklID = skl.school_id
+                }
+
+                const hash = await bcrypt.hash(data.password, 10)
+                const user = new User({
+                    user_tag:data.tag, 
+                    password: hash,
+                    //rest of parameters will be here
+                })
+                await user.save()
+                return res.status(200).json({success:true})
+            }
+        } catch(err) {
+            console.error(err)
+            return res.status(500).json({error:"Server error"}); 
         }
     })
 

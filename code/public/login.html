@@ -38,7 +38,7 @@
             
         </form>
 
-        <form id="regForm" class="form" action="/register" method="post">
+        <!--<form id="regForm" class="form" action="/register" method="post">
             <div class="log-forms-container">
                 <div class="log-item">
                     <label class for="name">Full name</label>
@@ -102,6 +102,7 @@
                 <div id="multispace">
 
                 </div>
+                <input type="hidden" name="subjects" id="hiddenSpace">
                 
 
                 
@@ -110,9 +111,92 @@
                 </div>
             </div>
 
+        </form>-->
+
+        <form id="regForm" class="form" action="/register" method="post">
+            <div class="log-forms-container">
+                <div class="log-item">
+                    <label for="name">Full name</label>
+                    <input type="text" id="name" name="name" autocomplete="name" required class="log-item-field" value="John Doe">
+                </div>
+                
+                <div class="log-item">
+                    <label for="username">Display name</label>
+                    <input type="text" id="username" name="username" required autocomplete="username" class="log-item-field" value="johndoe123">
+                </div>
+
+                <div class="log-item">
+                    <label for="tag">User tag</label>
+                    <input type="text" id="tag" name="tag" required class="log-item-field" value="JD">
+                </div>
+
+                <div class="log-item">
+                    <label for="email">Email</label>
+                    <input type="text" id="email" name="email" required autocomplete="email" class="log-item-field" value="johndoe@example.com">
+                </div>
+
+                <div class="log-item">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required class="log-item-field" value="Password1!^&*^&*">
+                </div>
+
+                <div class="log-item">
+                    <label for="password_1">Confirm password</label>
+                    <input type="password" id="password_1" name="password_1" required class="log-item-field" value="Password1!^&*^&*">
+                </div>
+
+                <div class="log-item">
+                    <label for="school">School</label>
+                    <div class="autocomplete-input school">
+                        <input type="text" id="school" name="school" class="log-item-field" required value="St Olave's Grammar School">
+                        <div class="space"></div>
+                    </div>
+                </div>
+
+                <div class="log-item">
+                    <label for="country">Country</label>
+                    <div class="autocomplete-input country">
+                        <input type="text" id="country" name="country" class="log-item-field" required value="Albania">
+                        <div class="space"></div>
+                    </div>
+                </div>
+
+                <div class="log-item">
+                    <label for="stage">Stage of study</label>
+                    <select id="stage" name="stage" class="log-item-field" required>
+                        <option value="-1" style="display: none;">-</option>
+                        <option value="0">GCSE</option>
+                        <option value="1">A-level</option>
+                        <option value="2">University+</option>
+                    </select>
+                </div>
+
+                <div class="log-item">
+                    <label for="subject">Subjects</label>
+                    <div class="autocomplete-input subject multiple">
+                        <input type="text" id="subject" name="subject" class="log-item-field" value="math">
+                        <div class="space"></div>
+                    </div>
+                </div>
+
+                <div id="multispace">
+
+                </div>
+                <input type="hidden" name="subjects" id="hiddenSpace" value="">
+
+                <div class="login">
+                    <button type="submit">Register</button>
+                </div>
+            </div>
+
+        
         </form>
 
+    
+
+
     </div>
+    <div class="error"></div>
     </main>
 
     <script src="js/headerinsert.js" ></script>
