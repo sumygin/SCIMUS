@@ -119,7 +119,7 @@ class AutoHandler {
             if (!this.multiSpace.innerText.includes(text)) { //create new element to be pushed to space
                 let newEl = document.createElement("div")
                 newEl.classList.add("sbj")
-                newEl.innerHTML = `${text} <button class="x">x</button>`
+                newEl.innerHTML = `${text} <button class="x">×</button>`
                 newEl.querySelector(".x").addEventListener("click", () => {
                     newEl.remove()
                 })

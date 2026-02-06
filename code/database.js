@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
 const subjectSchema = new mongoose.Schema({
   subject_id: { type: Number, unique: true },
   study_stage: { type: Number, enum: [0, 1, 2] },
+  full_name: {type:String},
   name: String,
   colour: String,
   papers: Number,
@@ -33,7 +34,7 @@ const subjectSchema = new mongoose.Schema({
 });
 
 const subjectUserSchema = new mongoose.Schema({
-  user_tag: { type: Number, ref: 'User', required: true },
+  user_tag: { type: String, ref: 'User', required: true },
   subject_id: { type: Number, ref: 'Subject', required: true }
 }, {
   _id: false

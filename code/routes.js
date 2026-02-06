@@ -33,8 +33,9 @@ async function idGenerator(obj) {
 const countriesList = 
 
 module.exports = function(app) {
-    const {User, Subject, Topic, School, Country, Question, Collection, QuestionCollection, 
-    Like, Solve, Watch, Comment, Notification} = require("./database")
+    const {User, Subject, Topic, School, Question, Collection, QuestionCollection, 
+    Like, Solve, Watch, Comment, Notification,
+    SubjectUser} = require("./database")
 
     mongoose.connect(hostUrl)
         .then(() => {
@@ -62,19 +63,31 @@ module.exports = function(app) {
     app.use(passport.initialize())
     app.use(passport.session())
 
-    passport.use(new LocalStrategy(async (username, password, done) => {
-        try {
-            const user = await User.findOne({ username });
-            if (!user) return done(null, false, { message: "incorrect username" })
+    passport.use(new LocalStrategy(
+        {
+            usernameField: 'tag_login',     
+            passwordField: 'password_login' 
+        },
+        async (tag_login, password_login, done) => {
+            try {
 
-            const match = bcrypt.compare(password, user.password);
-            if (!match) return done(null, false, { message: "incorrect password" })
+                const user = await User.findOne({ user_tag: tag_login })
+                if (!user) {
+                    return done(null, false, { message: "Incorrect usertag" })
+                }
 
-            return done(null, user)
-        } catch (err) {
-            return done(err)
+                const match = bcrypt.compare(password_login, user.password_hash)
+                if (!match) {
+                    return done(null, false, { message: "Incorrect password" })
+                }
+
+                return done(null, user) // success
+                
+            } catch (err) {
+                return done(err)
+            }
         }
-    }))
+    ))
 
     passport.serializeUser((user, done) => done(null, user.id))
     passport.deserializeUser(async (id, done) => {
@@ -182,7 +195,6 @@ module.exports = function(app) {
     //POST REQUESTS
 
     app.post("/register", async (req, res) => {
-        console.log(req.body)
 
         //parsing data
 
@@ -247,21 +259,35 @@ module.exports = function(app) {
             else if (data.subjects.length < 5) {
                 return res.status(400).json({error: "You must select at least one subject"})
             }
+            else if (data.tag.includes(" ")) {
+                return res.status(400).json({error: "Tag cannot contain spaces"})
+            }
 
             else if (await User.exists({user_tag: data.tag})) {
                 return res.status(409).json({ error: "User tag is taken!" })
             }
             else {
                 //subject check
-                let sbjs = data.subjects.split(" x")
+                let sbjs = data.subjects.split(" ×")
+                sbjs.pop()
                 console.log(sbjs)
 
-
+                for (const sbj of sbjs) {
+                    const subjectID = await Subject.findOne({full_name:sbj, study_stage:data.stage}, {subject_id:1})
+                    if (!subjectID) {
+                        return res.status(409).json({ error: "Subject does not exist!" })
+                    }
+                    await SubjectUser.insertMany([{
+                        user_tag: data.tag,
+                        subject_id:subjectID.subject_id
+                    }])
+                }
+                
                 //school check/creation
 
                 const skl = await School.findOne({name:data.school}, {school_id:1}) //return school id of matching school
                 let newSklID
-                if (!skl) {
+                if (!skl) { //if school doesnt exist, add a new one
                     newSklID = await idGenerator(School)
                     await School.insertOne({
                         school_id: newSklID,
@@ -269,18 +295,29 @@ module.exports = function(app) {
                     })
                 }
                 else {
-                    console.log("SCHOOL EXISTS!!!")
                     newSklID = skl.school_id
                 }
 
                 const hash = await bcrypt.hash(data.password, 10)
                 const user = new User({
                     user_tag:data.tag, 
-                    password: hash,
+                    password_hash: hash,
                     school_id:newSklID,
-
-                    //rest of parameters will be here
+                    country:data.country,
+                    study_stage:data.stage,
+                    username:data.username,
+                    full_name:data.full_name,
+                    email:data.email,
+                    
+                    average_like_rating:0,
+                    created_total:0,
+                    created_today:0,
+                    studied_total:0,
+                    studied_today:0,
+                    completed_total:0,
+                    completed_today:0,
                 })
+
                 await user.save()
                 return res.status(200).json({success:true})
             }
@@ -290,9 +327,27 @@ module.exports = function(app) {
         }
     })
 
-    app.post("/login",
-        passport.authenticate("local", { failureRedirect: "/login", successRedirect: "/dashboard" })
-    )
+    app.post("/login", (req, res, next) => {
+        console.log(req.body)
+        passport.authenticate("local", (err, user, info) => {
+            console.log(err, user, info)
+            if (err) {
+                return res.status(500).json({ error: "Server error" })
+            }
+
+            if (!user) {
+                return res.status(401).json({error: info?.message || "Invalid credentials"})
+            }
+
+            req.logIn(user, err => {
+                if (err){
+                    return res.status(500).json({ error: "Login failed" })
+                }
+                return res.json({ success: true })
+                })
+        })(req, res, next)
+    })
+
 
     // Protected dashboard
     app.get("/dashboard", isLoggedIn, (req, res) => {

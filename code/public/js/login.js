@@ -108,6 +108,10 @@ async function clientValidation() {
             reportInvalid(formData.subject, "You must select at least one subject", e)
             return
         }
+        if (formData.tag.value.includes(" ")) {
+            reportInvalid(formData.tag, "Tag cannot contain spaces", e)
+            return
+        }
         
         hiddenSpace.value = multispace.textContent
 
@@ -143,12 +147,49 @@ async function clientValidation() {
             errbar.style.color = "green"
             errbar.style.opacity = "1"
             setTimeout(() => {
-                window.location.href = "/home"
-                errbar.style.color = "red"
+                window.location.href = "/login"
+                errbar.style.opacity = "0"
             }, 1000)
         }
+    })
 
+    logForm.addEventListener("submit", async (e) => {
+        e.preventDefault()
 
+        //processing form data
+
+        const formdata = new FormData(logForm)
+        const data = Object.fromEntries(formdata.entries())
+
+        const res = await fetch(logForm.action, { //send data
+            method:logForm.method,
+            headers: {"Content-Type": "application/json"},
+            body:JSON.stringify(data),
+        })
+
+        const result = await res.json()
+
+        //display response
+
+        console.log(res.ok, result)
+
+        if (!res.ok) { //not successful
+            errbar.innerHTML = result.error
+            errbar.style.opacity = "1"
+            setTimeout(() => {
+                errbar.style.opacity = "0"
+            }, 3000)
+            return
+        }
+        else {
+            errbar.innerHTML = "Log-in successful"
+            errbar.style.color = "green"
+            errbar.style.opacity = "1"
+            setTimeout(() => {
+                window.location.href = "/home"
+                errbar.style.opacity = "0"
+            }, 1000)
+        }
     })
 }
 
