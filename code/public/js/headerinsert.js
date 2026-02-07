@@ -1,4 +1,4 @@
-let headerHMTL = `<a href="/home"><button><img id="headerIMG" src="resources/SMALL_logo.png" alt="SCIMUS" srcset=""></button></a> 
+let headerHMTL = `<a href="/"><button><img id="headerIMG" src="resources/HEADER_logo.png" alt="SCIMUS" srcset=""></button></a> 
     
     <div id="header-items">
       <a class="header-item" href="/search"><button>SEARCH</button></a>

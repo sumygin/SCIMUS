@@ -30,8 +30,6 @@ async function idGenerator(obj) {
     return id
 }
 
-const countriesList = 
-
 module.exports = function(app) {
     const {User, Subject, Topic, School, Question, Collection, QuestionCollection, 
     Like, Solve, Watch, Comment, Notification,
@@ -76,10 +74,14 @@ module.exports = function(app) {
                     return done(null, false, { message: "Incorrect usertag" })
                 }
 
-                const match = bcrypt.compare(password_login, user.password_hash)
+                const match = await bcrypt.compare(password_login, user.password_hash)
+
+                console.log(match)
                 if (!match) {
                     return done(null, false, { message: "Incorrect password" })
                 }
+
+                console.log("USER IS", user)
 
                 return done(null, user) // success
                 
@@ -90,6 +92,7 @@ module.exports = function(app) {
     ))
 
     passport.serializeUser((user, done) => done(null, user.id))
+
     passport.deserializeUser(async (id, done) => {
         try {
             const user = await User.findById(id)
@@ -108,63 +111,71 @@ module.exports = function(app) {
 
     app.get("/", (req, res) => {
         //check if logged in first; redirect to home, otherwise welcome page
+        if (req.isAuthenticated()) {
+            return res.redirect("/home")
+        }
+
         res.sendFile(path.join(__dirname, "public", "welcome.html"))
     })
 
-    app.get("/home", (req, res) => {
+    app.get("/home", isLoggedIn, (req, res) => {
         res.sendFile(path.join(__dirname, "public", "home.html"))
     })
     
     app.get("/login", (req, res) => {
+        if (req.isAuthenticated()) {
+            return res.redirect("/home")
+        }
+
         res.sendFile(path.join(__dirname, "public", "login.html"))
     })
 
-    app.get("/settings", (req, res) => {
+    app.get("/settings", isLoggedIn, (req, res) => {
         //check if logged in first; redirect to login if not
         res.sendFile(path.join(__dirname, "public", "settings.html"))
     })
 
-    app.get("/preferences", (req, res) => {
+    app.get("/preferences", isLoggedIn, (req, res) => {
         //check if logged in first; redirect to login if not
         res.sendFile(path.join(__dirname, "public", "preferences.html"))
     })
 
-    app.get("/inbox", (req, res) => {
+    app.get("/inbox", isLoggedIn, (req, res) => {
         //check if logged in first; redirect to login if not
         res.sendFile(path.join(__dirname, "public", "inbox.html"))
     })
     
-    app.get("/search", (req, res) => {
+    app.get("/search", isLoggedIn, (req, res) => {
         //return filters that are to be applied as well
         //if filters are invalid, return error page
         res.sendFile(path.join(__dirname, "public", "search.html"))
     })
     
-    app.get("/question", (req, res) => {
+    app.get("/question", isLoggedIn, (req, res) => {
         //process id in link as well
         //if the question is private, and belongs to user, open in create.html
         //if question is not accesible or doesnt exist, return error page
         res.sendFile(path.join(__dirname, "public", "question.html"))
     })
 
-    app.get("/collection", (req, res) => {
+    app.get("/collection", isLoggedIn, (req, res) => {
         //process id in link as well
         //if collection is private, check that it belongs to user
         //if collection is not accesible or doesnt exist, return error page
         res.sendFile(path.join(__dirname, "public", "collection.html"))
     })
 
-    app.get("/profile", (req, res) => {
+    app.get("/profile", isLoggedIn, (req, res) => {
         //process id in link as well
         //if profile doesnt exist, return error page
         res.sendFile(path.join(__dirname, "public", "profile.html"))
     })
 
-    app.get("/create", (req, res) => {
+    app.get("/create", isLoggedIn, (req, res) => {
         res.sendFile(path.join(__dirname, "public", "create.html"))
     })
 
-    app.get("/leaderboards", (req, res) => {
+    app.get("/leaderboards", isLoggedIn, (req, res) => {
         //process + return leaderboard filters in link as well
         res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
     })
@@ -185,6 +196,19 @@ module.exports = function(app) {
         try {
             const schools = await School.find({}, {name:1, _id:0})
             const names = schools.map(s => s.name)
+            res.json(names)
+
+        } catch (err) {
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/topics/names/:subject", async (req, res) => {
+        try {
+            const sbj = req.params.subject
+            const sbjID = (await Subject.findOne({full_name:sbj}, {_id:0, subject_id:1}))?.subject_id //find subject
+            const topics = await Topic.find({subject_id:sbjID}, {name:1, _id:0}) //find all topics for that subject
+            const names  = topics.map(s => s.name)
             res.json(names)
 
         } catch (err) {
@@ -270,7 +294,6 @@ module.exports = function(app) {
                 //subject check
                 let sbjs = data.subjects.split(" ×")
                 sbjs.pop()
-                console.log(sbjs)
 
                 for (const sbj of sbjs) {
                     const subjectID = await Subject.findOne({full_name:sbj, study_stage:data.stage}, {subject_id:1})
@@ -306,7 +329,7 @@ module.exports = function(app) {
                     country:data.country,
                     study_stage:data.stage,
                     username:data.username,
-                    full_name:data.full_name,
+                    full_name:name,
                     email:data.email,
                     
                     average_like_rating:0,
@@ -318,6 +341,8 @@ module.exports = function(app) {
                     completed_today:0,
                 })
 
+                //let data = {name, password, password_1, school, stage, subjects, tag, username, country, email}
+
                 await user.save()
                 return res.status(200).json({success:true})
             }
@@ -328,9 +353,7 @@ module.exports = function(app) {
     })
 
     app.post("/login", (req, res, next) => {
-        console.log(req.body)
         passport.authenticate("local", (err, user, info) => {
-            console.log(err, user, info)
             if (err) {
                 return res.status(500).json({ error: "Server error" })
             }
@@ -350,7 +373,7 @@ module.exports = function(app) {
 
 
     // Protected dashboard
-    app.get("/dashboard", isLoggedIn, (req, res) => {
+    app.get("/home", isLoggedIn, (req, res) => {
         res.send(`<h2>Dashboard</h2><p>Welcome, ${req.user.username}!</p><a href="/logout">Logout</a>`)
     })
 

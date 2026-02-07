@@ -1,21 +1,14 @@
-import {loadData} from './utils.js'
+import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames} from './utils.js'
 
 const elements = document.getElementsByClassName('autocomplete-input')
 const stageSelect = document.getElementById("stage")
-let subjectList = []
+const subjectSelect = document.getElementById("subject")
+
+let topicList
+let subjectList
 
 let allHandlers = []
 
-function upperCaseify(text) {
-    text = text.split("")
-    for (let i = 0; i<text.length; i++) {
-        if (text[i-1] == " " || i == 0) {
-            text[i] = text[i].toUpperCase()
-        }
-    }
-    text = text.join("")
-    return text
-}
 
 class AutoHandler {
     constructor(element, inputList, creatable, type) {
@@ -127,6 +120,9 @@ class AutoHandler {
             }
         } else {
             this.input.value = text
+            if (this.type == "subject") {
+                updateTopicList(this.input.value)
+            }
         }
     }
 
@@ -140,13 +136,7 @@ class AutoHandler {
     }
 }
 
-async function getSubjects(val) {
-    return (await fetch(`api/subjects/names/${val}`)).json()
-}
 
-async function getSchools(){
-    return (await fetch(`api/schools/names`)).json()
-}
 
 async function createHandlers() {
 
@@ -155,7 +145,7 @@ async function createHandlers() {
         let creatable = false
         let type = ""
         if (el.classList.contains("school")) {
-            inplist = await getSchools()
+            inplist = await getSchoolNames()
             creatable = true
             type = "school"
         }
@@ -163,6 +153,7 @@ async function createHandlers() {
             if (!stageSelect) {
                 throw SyntaxError("stage selector undefined")
             }
+            subjectList = []
             inplist = subjectList
             type = "subject"
         }
@@ -170,23 +161,47 @@ async function createHandlers() {
             inplist = await loadData("../resources/countries.json")
             type = "country"
         }
+        else if (el.classList.contains("topic")) {
+            if (!subjectSelect) {
+                throw SyntaxError("topic selector undefined")
+            }
+            topicList = []
+            inplist = topicList
+            type = "topic"
+        }
         allHandlers.push(new AutoHandler(el, inplist, creatable, type))
+
     }
 }
 
-stageSelect.addEventListener("change", async () => {
-    if (stageSelect.value == -1) {
-        subjectList.length = 0
-    }
-    else {
-        for (const handler of allHandlers) {
-            if (handler.type == "subject" && handler.selectMultiple) {
-                handler.multiSpace.innerHTML = ""
+createHandlers()
+
+if (stageSelect) {
+    stageSelect.addEventListener("change", async () => {
+        if (subjectList != undefined) {
+            if (stageSelect.value == -1) {
+                subjectList.length = 0
+            }
+            else {
+                for (const handler of allHandlers) {
+                    if (handler.type == "subject" && handler.selectMultiple) {
+                        handler.multiSpace.innerHTML = ""
+                    }
+                }
+                subjectList.length = 0
+                subjectList.push(...await getSubjectNames(stageSelect.value))
+                window.subjectList = subjectList
             }
         }
-        subjectList.length = 0
-        subjectList.push(...await getSubjects(stageSelect.value))
+    })
     }
-})
 
-createHandlers()
+
+async function updateTopicList(value) {
+    if (topicList != undefined) {
+        topicList.length = 0
+        topicList.push(...await getTopicNames(value))
+        window.topicList = topicList
+    }
+}
+

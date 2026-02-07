@@ -81,23 +81,46 @@ Topic.insertMany([
   { topic_id: 5019, subject_id: 1, name: "Moments" },
 
   // A-Level Further Maths (subject_id: 2)
-  { topic_id: 6001, subject_id: 2, name: "Matrices" },
-  { topic_id: 6002, subject_id: 2, name: "Complex Numbers" },
-  { topic_id: 6003, subject_id: 2, name: "Roots of Polynomials" },
-  { topic_id: 6004, subject_id: 2, name: "Vectors and 3D Space" },
-  { topic_id: 6005, subject_id: 2, name: "Series and Proof" },
-  { topic_id: 6006, subject_id: 2, name: "Further Calculus" },
-  { topic_id: 6007, subject_id: 2, name: "Polar Coordinates" },
-  { topic_id: 6008, subject_id: 2, name: "Maclaurin Series" },
-  { topic_id: 6009, subject_id: 2, name: "Hyperbolic Functions" },
-  { topic_id: 6010, subject_id: 2, name: "Differential Equations" },
-  { topic_id: 6011, subject_id: 2, name: "Discrete Random Variables" },
-  { topic_id: 6012, subject_id: 2, name: "Chi Squared Tests" },
-  { topic_id: 6013, subject_id: 2, name: "Work Energy and Power" },
-  { topic_id: 6014, subject_id: 2, name: "Impulse and Momentum" },
-  { topic_id: 6015, subject_id: 2, name: "Algorithms" },
-  { topic_id: 6016, subject_id: 2, name: "Graphs and Networks" },
-  { topic_id: 6017, subject_id: 2, name: "Linear Programming" },
+
+  // Pure
+  { topic_id: 6001, subject_id: 2, name: "Matrices and transformations" },
+  { topic_id: 6003, subject_id: 2, name: "Roots of polynomials" },
+  { topic_id: 6004, subject_id: 2, name: "Complex numbers and geometry" },
+  { topic_id: 6006, subject_id: 2, name: "Vectors and 3D space" },
+  { topic_id: 6010, subject_id: 2, name: "Series and induction" },
+  { topic_id: 6011, subject_id: 2, name: "Further calculus" },
+  { topic_id: 6012, subject_id: 2, name: "Polar coordinates" },
+  { topic_id: 6013, subject_id: 2, name: "Maclaurin series" },
+  { topic_id: 6014, subject_id: 2, name: "Hyperbolic functions" },
+  { topic_id: 6015, subject_id: 2, name: "Applications of integration" },
+  { topic_id: 6016, subject_id: 2, name: "First order differential equations" },
+  { topic_id: 6017, subject_id: 2, name: "Further complex numbers" },
+  { topic_id: 6018, subject_id: 2, name: "Further vectors" },
+  { topic_id: 6019, subject_id: 2, name: "Second order differential equations" },
+
+  // Stats
+  { topic_id: 6020, subject_id: 2, name: "Discrete random variables" },
+  { topic_id: 6021, subject_id: 2, name: "Discrete probability distributions" },
+  { topic_id: 6022, subject_id: 2, name: "Bivariate data" },
+  { topic_id: 6023, subject_id: 2, name: "Chi-squared tests" },
+
+  // Mechanics
+  { topic_id: 6024, subject_id: 2, name: "Forces" },
+  { topic_id: 6025, subject_id: 2, name: "Work, energy and power" },
+  { topic_id: 6026, subject_id: 2, name: "Impulse and momentum" },
+  { topic_id: 6027, subject_id: 2, name: "Centre of mass" },
+  { topic_id: 6028, subject_id: 2, name: "Dimensional analysis" },
+
+  // Modelling with algorithms
+  { topic_id: 6029, subject_id: 2, name: "Algorithms" },
+  { topic_id: 6030, subject_id: 2, name: "Modelling with graphs and networks" },
+  { topic_id: 6031, subject_id: 2, name: "Network algorithms" },
+  { topic_id: 6032, subject_id: 2, name: "More network problems" },
+  { topic_id: 6033, subject_id: 2, name: "Linear programming" },
+  { topic_id: 6034, subject_id: 2, name: "The simplex method" },
+  { topic_id: 6035, subject_id: 2, name: "Network problems as LPs" },
+
+
 
   // A-Level Computer Science (subject_id: 6)
   { topic_id: 7001, subject_id: 6, name: "Processor Structure & Function" },
@@ -115,7 +138,7 @@ Topic.insertMany([
   { topic_id: 7013, subject_id: 6, name: "Data Structures" },
   { topic_id: 7014, subject_id: 6, name: "Boolean Algebra" },
   { topic_id: 7015, subject_id: 6, name: "Adders and Logic Circuits" },
-  { topic_id: 7016, subject_id: 6, name: "Computing Legislation" },
+  { topic_id: 7016, subject_id: 6, name: "Legislation" },
   { topic_id: 7017, subject_id: 6, name: "Moral and Ethical Issues" },
   { topic_id: 7018, subject_id: 6, name: "Thinking Abstractly" },
   { topic_id: 7019, subject_id: 6, name: "Thinking Ahead" },

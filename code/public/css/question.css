@@ -213,3 +213,7 @@ main {
 .r-cancel {
     color: red;
 }
+
+.mark-scheme {
+    width: 20em;
+}

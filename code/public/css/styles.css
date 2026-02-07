@@ -234,3 +234,19 @@ a:hover {
 .auto-item:hover {
     opacity: 0.6;
 }
+
+.error {
+    opacity: 0;
+    transition: 0.5s;
+    width: fit-content;
+    top: 5.32em;
+    font-size: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: red;
+    position: absolute;
+    font-family: monospace;
+    font-weight: bolder;
+    padding: 0.3em;
+    background: rgb(237, 234, 234)
+}

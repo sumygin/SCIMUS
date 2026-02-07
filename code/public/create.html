@@ -16,56 +16,79 @@
     </header>
 
     <main>
-        <form class="pagecontainer">
+        <form class="pagecontainer" id="qform">
             <div class="metadata">
 
+                
                 <div class="meta-item">
-                    <select name="studyStage" id="studyStage">
-                        <option value="0">OCR GCSE Physics</option>
-                        <option value="1">OCR A-level Physics</option>
-                        <option value="2">OCR University Physics</option>
+                    <label for="stage">Study stage</label>
+                    <select name="stage" id="stage" required>
+                        <option value="-1" style="display: none;" selected>-</option>
+                        <option value="0">GCSE</option>
+                        <option value="1">A-level</option>
+                        <option value="2">University+</option>
                     </select>
                 </div>
 
                 <div class="meta-item">
-                    <select name="topic" id="topic">
-                        <option value="forces" selected>Select a subject first...</option>
-                    </select>
+                    <label for="subject">Subject</label>
+                    <div class="autocomplete-input subject">
+                        <input type="text" id="subject" name="subject" required>
+                        <div class="space">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="meta-item">
-                    <select name="tag" id="tag">
-                        <option value="userMade">User-made</option>
-                        <option value="solutionNeeded">Looking for solution</option>
+                    <label for="topic">Topic</label>
+                    <div class="autocomplete-input topic">
+                        <input type="text" id="topic" name="topic" required>
+                        <div class="space">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="meta-item">
+                    <label for="stage">Type</label>
+                    <select name="tag" id="tag" required>
+                        <option value="-1" style="display: none;" selected>-</option>
+                        <option value="user">User-made</option>
+                        <option value="solution">Looking for solution</option>
                     </select>
                 </div>
             </div>
 
             <div class="content">
                 <div class="titles">
-                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" >
+                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" id="qname">
                 </div>
                 <div class="question">
                     <div class="question-text">
-                        <textarea required type="text" placeholder="Enter question here..."></textarea>
-                        <input class="mark-scheme-text" placeholder="Enter mark scheme here..."></input>
-                    </div>                   
-                   
-                   
-                    
+                        <textarea required type="text" placeholder="Enter question here..." id="qtext"></textarea>
+                    </div>  
                 </div>
+                <div class="question">
+                    <div class="question-text">
+                        <textarea required type="text" placeholder="Enter mark scheme here..." id="mstext" class="ms-text"></textarea>
+                    </div>                   
+                </div>
+                
                 <div class="bottom-bar">
-                    <input type="submit" value="Save">
-                    <button class="mark-scheme">Mark scheme</button>
-                    <input type="submit" value="Publish">
+                    <input type="submit" value="Save" id="save">
+                    <button class="mark-scheme" id="flip">Mark scheme</button>
+                    <input type="submit" value="Publish" id="pub">
                 </div>
             </div>
             <div class="actions">
             </div>
         </form>
+
+        <div class="error"></div>
     </main>
 
     <script src="js/headerinsert.js"></script>
     <script src="js/header.js"></script>
+    <script type="module" src="js/autocomplete.js"></script>
+    <script type="module" src="js/create.js"></script>
 </body>
 </html>

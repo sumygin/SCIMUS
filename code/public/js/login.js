@@ -1,4 +1,4 @@
-import {loadData} from './utils.js'
+import {loadData, reportInvalid} from './utils.js'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function passwordCheck(pw) {
@@ -40,12 +40,6 @@ logbtn.addEventListener("click",() => {
 
     state = !state
 })
-
-function reportInvalid(el, message, e) {
-    el.setCustomValidity(message)
-    el.reportValidity()
-    e.preventDefault()
-}
 
 for (const el of Object.values(formData)) { //reset form invalidity after input edited
     el.addEventListener("input", () => {
@@ -135,6 +129,7 @@ async function clientValidation() {
         console.log(res.ok, result)
 
         if (!res.ok) { //not successful
+            errbar.style.color = "red"
             errbar.innerHTML = result.error
             errbar.style.opacity = "1"
             setTimeout(() => {
@@ -174,6 +169,7 @@ async function clientValidation() {
         console.log(res.ok, result)
 
         if (!res.ok) { //not successful
+            errbar.style.color = "red"
             errbar.innerHTML = result.error
             errbar.style.opacity = "1"
             setTimeout(() => {

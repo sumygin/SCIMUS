@@ -28,7 +28,8 @@ input {
     text-overflow: ellipsis;
     overflow: hidden;
 }
-.meta-item :hover {
+
+.meta-item select :hover {
     opacity: 0.6;
 }
 
@@ -37,7 +38,7 @@ input {
 }
 
 .metadata {
-    height: 8vh;
+    height: 20vh;
 }
 
 .metadata, .actions {
@@ -57,19 +58,52 @@ input:hover {
     opacity: 0.7;
 }
 
-.question-text textarea {
+textarea{
     border: none;
     resize: none;
-    width: 97%;
-    height: 97%;
+    width: 98%;
     outline: none;
+    min-height: 99%;
+    padding: 0px;
 }
 
-.question-text {
-    padding-left: 0px;
+.question-text{
+    padding: 0px;
     text-align: left;
+    padding: 0;
+    width: 101%;
 }
 
 textarea:focus {
     border: none;
+}
+
+.question {
+    width: 97%;
+    height: 35vh;
+}
+
+.input:hover {
+    opacity: 1;
+}
+
+#subject:hover {
+    opacity: 1;
+}
+
+#subject {
+    width: 100%;
+}
+
+label {
+    font-size: 0.75em;
+    margin-bottom: 5em;
+}
+
+.meta-item select, .meta-item input {
+    margin-top: 0.3em;
+}
+
+.question {
+    padding: 0.5em;
 }
