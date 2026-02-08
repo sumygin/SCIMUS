@@ -1,5 +1,7 @@
 import { upperCaseify, reportInvalid, success, warn} from "./utils.js"
 
+document.documentElement.style.visibility = "hidden"
+
 const qName = document.getElementById("qname")
 const qText = document.getElementById('qtext')
 const msText = document.getElementById("mstext")
@@ -132,12 +134,11 @@ let saveForm = async (e, publish) => { //validates then sends form values
 async function fetchData() {
     if (qID == 0) return
     if (qID == -1) {
-        console.log("HELLO!")
         window.location.href = "/create"
         return
     }
 
-    const res = await fetch(`/question/get/${qID}`)
+    const res = await fetch(`/create/get/${qID}`)
     const result = await res.json()
 
     if (!res.ok) { //not successful
@@ -156,6 +157,12 @@ async function fetchData() {
     }
 }
 
-fetchData()
-clientValidation()
+async function showPage() {
+    await Promise.all([
+        fetchData(), 
+        clientValidation()
+    ])
+    document.documentElement.style.visibility = "visible"
+}
 
+showPage()

@@ -50,9 +50,46 @@ function validate(field, res) {
     }
 }
 
+function convertStudyStage(val) {
+    if (!isNaN(Number(val))) {
+        if (val == 0 || val == "0") {
+            return "GCSE"
+        }
+        if (val == 1 || val == "1") {
+            return "A-level"
+        }
+        if (val == 2 || val == "2") {
+            return "University+"
+        }
+    }
+    else {
+        if (val == "GCSE") {
+            return 0
+        }
+        if (val == "A-level") {
+            return 1
+        }
+        if (val == "University+") {
+            return 2
+        }
+    }
+}
+
+function convertTag(val) {
+    if (val == "1") {
+        return "User-made"
+    }
+    else if (val == "0") {
+        return "Official"
+    }
+    else if (val == "2") {
+        return "Looking for solution"
+    }
+}
+
 module.exports = function(app) {
     const {User, Subject, Topic, School, Question, Collection, QuestionCollection, 
-    Like, Solve, Watch, Comment, Notification,
+    Like, Solve, Watch, Comment, Notification, Rate,
     SubjectUser} = require("./database")
 
     mongoose.connect(hostUrl)
@@ -169,9 +206,10 @@ module.exports = function(app) {
     })
     
     app.get("/question", isLoggedIn, (req, res) => {
-        //process id in link as well
-        //if the question is private, and belongs to user, open in create.html
-        //if question is not accesible or doesnt exist, return error page
+        res.sendFile(path.join(__dirname, "public", "home.html"))
+    })
+
+    app.get("/question/:id", isLoggedIn, (req, res) => {
         res.sendFile(path.join(__dirname, "public", "question.html"))
     })
 
@@ -237,63 +275,163 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/create/get/:id", async (req, res) => {
+        try {
+            const qID = Number(req.params.id)
+            const userTag = req.user.user_tag
+            let question = await Question.findOne( //query question
+                {question_id:qID},
+                {name:1, topic_id:1, user_tag:1, content:1, tag:1, mark_scheme:1, published:1, _id:0})
+
+            let topic = await Topic.findOne( //query topic
+                {topic_id:question?.topic_id},
+                {_id:0, name:1, subject_id:1}
+            )
+
+            let subject = await Subject.findOne( //query subject
+                {subject_id:topic?.subject_id},
+                {_id:0, full_name:1, study_stage:1}
+            )
+
+            if (!question || !topic || !subject) { //if any are not found, redirect to empty
+                console.log(question, topic, subject, "NOT FOUND", qID)
+                return res.status(400).json({
+                    success: false,
+                    redirect: `/create`
+                })
+            }
+
+            if (question.published) { //if question is published, send to actual question page
+                return res.status(400).json({
+                    success: false,
+                    redirect: `/question/${qID}`
+                })
+            }
+
+            if (question.user_tag != userTag) { //if question is not by user, then dont show it to them
+                return res.status(400).json({
+                    success: false,
+                    redirect: `/create`
+                })
+            } 
+            
+            let tag
+            if (question.tag == "1") {
+                tag = "user"
+            }
+            else if (question.tag == "2") {
+                tag = "solution"
+            }
+
+            let data = {
+                stage: subject.study_stage,
+                subject:subject.full_name,
+                topic:topic.name,
+                tag:tag,
+                qname:question.name,
+                qtext:question.content,
+                mstext:question.mark_scheme
+            }
+
+            return res.json(data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
     app.get("/question/get/:id", async (req, res) => {
-        const qID = Number(req.params.id)
-        const userTag = req.user.user_tag
-        let question = await Question.findOne( //query question
-            {question_id:qID},
-            {name:1, topic_id:1, user_tag:1, content:1, tag:1, mark_scheme:1, published:1, _id:0})
+        try {
+            const qID = Number(req.params.id)
+            const userTag = req.user.user_tag
 
-        let topic = await Topic.findOne( //query topic
-            {topic_id:question?.topic_id},
-            {_id:0, name:1, subject_id:1}
-        )
+            const question = await Question.findOne( //query question
+                {question_id:qID},
+                {name:1, topic_id:1, user_tag:1, content:1, tag:1, mark_scheme:1, published:1, _id:0,
+                    avg_rating:1, like_rating:1, paper_num:1, question_num:1, views:1
+                })
+            
+            //if doesn't exist or private, but not owned by the user, then redirect to home
+            if (!question || (!question.published && question.user_tag != userTag)) { 
+                return res.status(500).json({
+                    success: false,
+                    redirect: `/home`
+                })
+            }
 
-        let subject = await Subject.findOne( //query subject
-            {subject_id:topic?.subject_id},
-            {_id:0, full_name:1, study_stage:1}
-        )
+            //if private, and owned by the user, redirect to question creation
+            if (!question.published && question.user_tag == userTag) {
+                return res.status(500).json({
+                    success: false,
+                    redirect: `/create/${qID}`
+                })
+            }
 
-        if (!question || !topic || !subject) { //if any are not found, redirect to empty
-            return res.status(400).json({
-                success: false,
-                redirect: `/create`
-            })
+            const topic = await Topic.findOne( //query topic
+                {topic_id:question?.topic_id},
+                {_id:0, name:1, subject_id:1}
+            )
+
+            const subject = await Subject.findOne( //query subject
+                {subject_id:topic?.subject_id},
+                {_id:0, full_name:1, study_stage:1, spec:1, formulas:1}
+            )
+
+            if (!question || !topic || !subject) { //if any are not found, redirect to empty
+                return res.status(500).json({
+                    success: false,
+                    redirect: `/home`
+                })
+            }
+
+            //count how many collections question is in
+            const numCollections = await QuestionCollection.countDocuments({question_id:qID}) 
+
+            //count watches
+            const numWatches = await Watch.countDocuments({question_id:qID})
+
+            //count solves
+            const numSolves = await Solve.countDocuments({question_id:qID})
+
+            //count ratings
+            const numRatings = await Rate.countDocuments({question_id:qID})
+
+            //count comments
+            const numComments = await Comment.countDocuments({question_id:qID})
+
+            let stage = convertStudyStage(subject.study_stage)
+            let tag = convertTag(question.tag)
+
+            let data = {
+                stage: stage,
+                subject: subject.full_name,
+                paper: question.paper_num || "",
+                question: question.question_num || "",
+                topic: topic.name,
+                name: question.name,
+                user_tag: "@" + question.user_tag,
+                rating: question.avg_rating,
+                views: question.views,
+                qtext: question.content,
+                mstext: question.mark_scheme,
+                formula: subject.formulas,
+                spec: subject.spec,
+                likes: question.like_rating,
+                watches: numWatches,
+                solves: numSolves,
+                ratings: numRatings,
+                comments: numComments,
+                collections: numCollections, 
+                tag:tag,
+            }
+
+            return res.json(data)
         }
-
-        if (question.published) { //if quesiton is published, send to actual question page
-            return res.status(400).json({
-                success: false,
-                redirect: `/question/${qID}`
-            })
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
         }
-
-        if (!question || !topic || !subject) { //if question is not by user, then dont show it to them
-            return res.status(400).json({
-                success: false,
-                redirect: `/create`
-            })
-        } 
-        
-        let tag
-        if (question.tag == "1") {
-            tag = "user"
-        }
-        else if (question.tag == "2") {
-            tag = "solution"
-        }
-
-        let data = {
-            stage: subject.study_stage,
-            subject:subject.full_name,
-            topic:topic.name,
-            tag:tag,
-            qname:question.name,
-            qtext:question.content,
-            mstext:question.mark_scheme
-        }
-
-        return res.json(data)
     })
 
     //POST REQUESTS
@@ -504,13 +642,13 @@ module.exports = function(app) {
                 //subject check
                 const subjectID = await Subject.findOne({full_name:data.subject, study_stage:data.stage}, {subject_id:1})
                 if (!subjectID) {
-                    return res.status(409).json({ error: "Subject does not exist!" })
+                    return res.status(409).json({ error: "Subject does not exist or is invalid!" })
                 }
 
                 //topic check
                 const topicID = (await Topic.findOne({subject_id:subjectID.subject_id, name:data.topic}, {topic_id:1}))?.topic_id
                 if (!topicID) {
-                    return res.status(409).json({ error: "Topic does not exist!" })
+                    return res.status(409).json({ error: "Topic does not exist or is invalid!" })
                 }
 
                 if (data.tag == "user") {

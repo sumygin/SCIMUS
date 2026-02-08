@@ -86,13 +86,14 @@ class Timer {
         if (this.mode == "work") {
             this.mode = "rest"
             this.targetTime = this.restTime
-            modeBtn.innerText = "🛏️"
+            modeBtn.innerHTML = '<img src="/resources/rest.PNG" alt="" class="icon">'
             
         }
         else if (this.mode == "rest") {
+            console.log("test")
             this.mode = "work"
             this.targetTime = this.workTime
-            modeBtn.innerText = "📖"
+            modeBtn.innerHTML = "<img src='/resources/work.PNG' alt='' class='icon'>"
         }
     }
 
@@ -120,15 +121,15 @@ function setTimerText(bool) {
 function updatePlayButton(update) { 
     switch (update) {
         case "play":
-            playBtn.innerHTML = "▶"
+            playBtn.innerHTML = "<img src='/resources/play.PNG' alt='' class='icon' id='play'>"
             playBtn.style.fontSize = "1rem"
             break
         case "pause":
-            playBtn.innerHTML = "❚❚"
+            playBtn.innerHTML = "<img src='/resources/pause.PNG' alt='' class='icon' id='pause'>"
             playBtn.style.fontSize = "1rem"
             break
         case "replay":
-            playBtn.innerText = "⟲"
+            playBtn.innerHTML = "<img src='/resources/replay.PNG' alt='' class='icon' id='replay'>"
             playBtn.style.fontSize = "1rem"
             break
     }

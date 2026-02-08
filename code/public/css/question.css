@@ -50,6 +50,7 @@ main {
 .action-item button {
     width: 2em;
     text-align: right;
+    background: none;
 }
 
 .action-item .val {
@@ -189,6 +190,7 @@ main {
 .c-top {
     display: flex;
     flex-direction:row;
+    justify-content: space-between;
     font-size: 0.65rem;
     padding-bottom: 0.67em;
 }
@@ -216,4 +218,17 @@ main {
 
 .mark-scheme {
     width: 20em;
+}
+
+#view {
+    height: 25px;
+    top: 6.666px;
+}
+
+.comment .icon {
+    height: 15px;
+}
+
+#user_tag {
+    padding-top: 0.5em;
 }

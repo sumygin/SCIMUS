@@ -32,6 +32,7 @@ body {
     right:1rem;
     top: 2rem;
     font-family: monospace;
+    display: flex;
 }
 
 .header-item { 
@@ -144,7 +145,7 @@ button:active {
     flex-direction: column;
     align-items: right;
     gap: 1.3rem;
-    width: 9vw;
+    width: 10vw;
     text-align: right;
 }
 
@@ -246,4 +247,36 @@ a:hover {
     font-weight: bolder;
     padding: 0.3em;
     background: rgb(237, 234, 234)
+}
+
+.icon {
+    position: relative;
+    top: 5px;
+    height: 20px;
+    background: none
+}
+
+#pfp {
+    position: relative;
+    top: -12.5px;
+    height: 40px;
+}
+
+#inbox {
+    height: 25px;
+    top: 6.7px;
+}
+
+#pause {
+    height: 17.5px;
+    top: 6.5px;
+}
+
+#play {
+    height: 20px;
+    top: 6.5px;
+}
+
+#replay {
+    height: 15px;
 }

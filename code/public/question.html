@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/question.css">
-    <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/question.css">
+    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
     <header id="header">
@@ -16,44 +16,38 @@
 
     <main>
         <div class="pagecontainer">
-                <img class="arr1" src="resources/arrow.png" alt="" srcset="">
-                <img class="arr2" src="resources/arrow.png" alt="" srcset="">
+                <img class="arr1" src="/resources/arrow.png" alt="" srcset="">
+                <img class="arr2" src="/resources/arrow.png" alt="" srcset="">
             <div class="metadata">
-                <a class="meta-item"href="">
-                    Official</a>
-                <a class="meta-item" id="stage" href="">
-                    A-level</a>
-                <a class="meta-item" id="subject"href="">
-                    OCR Physics</a>
-                <a class="meta-item" id="paper"href="">
-                    Paper 2
-                </a>
-                <a class="meta-item" id="question" href="">
-                    Question 2</a>
-                <a class="meta-item" id="topic" href="">
-                    Forces</a>
+                <a class="meta-item" id="tag" href=""></a>
+                <a class="meta-item" id="stage" href=""></a>
+                <a class="meta-item" id="subject"href=""></a>
+                <a class="meta-item" id="topic" href=""></a>
+                <a class="meta-item" id="paper"href=""></a>
+                <a class="meta-item" id="question" href=""></a>
+                
                 
             </div>
             <div class="content">
                 <div class="titles">
                     <div class="title" id="name">
-                        Two forces
                     </div>
+                    
+                    <div class="rating" id="rating"></div>
                     <div class="creator" id="user_tag">
                     </div>
-                    <div class="rating" id="rating">
-                        ★★★★★
+                        
+                    
+                    <div>
+                        <img src="/resources/view.PNG" alt="" class="icon">
+                        <span class="views" id="views"></span>
                     </div>
                 </div>
                 <div class="middle-container">
                     <div class="question">
                         <div class="question-text" id="qtext">
-                            There is a 5N force acting upwards and a 10N force acting left. What is the combined resultant force upwards, and the 
-                            angle between them?
                         </div>
                         <div class="mark-scheme-text" id="mstext">
-                            1 mark: Resultant force = root(5^2 + 10^2) 11.18N (2sf) <br>
-                            1 mark: Angle = 90 degrees
                         </div>
                     </div>
                     <div class="maincwrapper">
@@ -71,12 +65,14 @@
                                                     @capedcrusader
                                                 </div>
                                             </div>
+                                            <div class="icons">
                                             <button class="c-like">
-                                                😀
+                                                <img src="/resources/neutral.PNG" alt="" class="icon comment-face"></button>
                                             </button>
                                             <button class="reply">
-                                                reply
+                                                <img src="/resources/comments.PNG" alt="" class="icon comment-icon"></button>
                                             </button>
+                                            </div>
                                         </div>
                                         <div class="c-text">
                                             This is an amazing question! It changed my life.
@@ -97,38 +93,47 @@
                 </div>
 
                 <div class="bottom-bar">
-                    <a href="" id="formula">
-                    <button class="formula-sheet">f(x)</button></a>
+                    <a href="" id="formula" target="_blank"><button class="formula-sheet">f(x)</button></a>
                     <button class="mark-scheme">Mark scheme</button>
-                    <a href="" id="spec">
-                    <button class="spec">Spec</button></a>
+                    <a href="" id="spec" target="_blank"><button class="spec">Spec</button></a>
                 </div>
             </div>
             <div class="actions">
                 <div class="action-item">
-                    <span class="val" id="likes">180</span><button class="like-ic">🙂</button>
+                    <span class="val" id="likes"></span><button class="like-ic">
+                        <img id="face" src="/resources/neutral.PNG" alt="" class="icon"></button>
                 </div>
                 <div class="action-item">
-                    <span class="val" id="watches">56</span><button class="watch-ic">👁️</button>
+                    <span class="val" id="watches"></span><button class="watch-ic">
+                        <img src="/resources/watch_empty.PNG" alt="" class="icon" id="watch">
+                    </button>
                 </div>
                 <div class="action-item">
-                    <span class="val" id="done">20</span><button class="solved-ic">✓</button>
+                    <span class="val" id="solves"></span><button class="solved-ic">
+                        <img src="/resources/check_empty.PNG" alt="" class="icon" id="check">
+                    </button>
                 </div>
                 <div class="action-item">
-                    <span class="val" id="ratings">101</span><button class="rate-ic">★</button>
+                    <span class="val" id="ratings"></span><button class="rate-ic">
+                        <img src="/resources/star_empty.PNG" alt="" class="icon" id="star">
+                    </button>
                 </div>
                 <div class="action-item">
-                    <span class="val" id="comments">20</span><button class="comment-ic">💬</button>
+                    <span class="val" id="comments"></span><button class="comment-ic">
+                        <img src="/resources/comments.PNG" alt="" class="icon">
+                    </button>
                 </div>
                 <div class="action-item">
-                    <span class="val" id="collections">11</span><button class="collection-ic">➕</button>
+                    <span class="val" id="collections"></span><button class="collection-ic">
+                        <img src="/resources/plus.PNG" alt="" class="icon">
+                    </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <script src="js/headerinsert.js"></script>
-    <script src="js/header.js"></script>
-    <script src="js/question.js"></script>
+    <script src="/js/headerinsert.js"></script>
+    <script src="/js/header.js"></script>
+    <script src="/js/question.js"></script>
 </body>
 </html>

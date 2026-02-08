@@ -949,6 +949,7 @@ async function addQuestions() {
     {user_tag: "@admin"},
     {$set: {user_tag:"admin"}}
   )
+  
   console.log("Inserted " + questions.length + " questions.");
 
 }

@@ -54,20 +54,20 @@ const schoolSchema = new mongoose.Schema({
 const questionSchema = new mongoose.Schema({
   question_id: { type: Number, unique: true },
   topic_id: { type: Number, ref: 'Topic', required: true },
-  user_tag: { type: String, ref: 'User', required: true },
+  user_tag: { type: String, ref: 'User'},
   name: { type: String, maxlength: 40 },
-  content: String,
+  content: {type:String, required:true},
   avg_rating: {type: Number, default:0},
-  num_ratings: {type: Number, default:0},
   like_rating: {type: Number, default:0},
-  images: { type: [Buffer], default: [] },
-  paper_num: Number,
-  question_num: Number,
-  tag: { type: Number, enum: [0, 1, 2] }, //0=official, 1 = user-made, 2 = looking for solution
-  scroll_data: { type: [Number], default: [] },
-  mark_scheme: String,
-  created_at: { type: Date, default: Date.now },
-  published: { type: Boolean, default: false }
+  images: {type: [Buffer], default: []},
+  paper_num: {type: Number, default:0},
+  question_num: {type:Number,default:0},
+  tag: {type: Number, enum: [0, 1, 2]}, //0=official, 1 = user-made, 2 = looking for solution
+  scroll_data: {type: [Number], default: [] },
+  mark_scheme: {type:String, required:true},
+  created_at: {type: Date, default: Date.now},
+  published: { type: Boolean, default: false},
+  views: {type:Number, default:0},
 })
 
 const collectionSchema = new mongoose.Schema({
@@ -90,12 +90,20 @@ const questionCollectionSchema = new mongoose.Schema({
 const likeSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User', required: true },
   item_id: { type: Number, required: true },
-  item_type: { type: Number, enum: [0, 1] },
-  value: { type: Number, enum: [1, -1] },
+  item_type: { type: Number, enum: [0, 1] }, //0 = question, 1 = comment
+  value: { type: Number, enum: [1, -1] }, 
   created_at: { type: Date, default: Date.now }
 }, {
   _id: false
 })
+
+const rateSchema = new mongoose.Schema({
+  user_tag: {type:String, ref:"User", required:true},
+  question_id:{type:Number, required:true},
+  value: {type:Number, enum:[1, 2, 3, 4, 5]},
+  created_at: {type:Date, default:Date.now}
+},
+{_id:false})
 
 const solveSchema = new mongoose.Schema({
   question_id: { type: Number, ref: 'Question', required: true },
@@ -119,7 +127,7 @@ const commentSchema = new mongoose.Schema({
   question_id: { type: Number, ref: 'Question', required: true },
   user_tag: { type: String, ref: 'User', required: true },
   content: { type: String, maxlength: 200 },
-  like_rating: Number,
+  like_rating: {type:Number, default:0},
   created_at: { type: Date, default: Date.now }
 })
 
@@ -145,5 +153,6 @@ module.exports = {
     Watch: mongoose.model('Watch', watchSchema),
     Comment: mongoose.model('Comment', commentSchema),
     Notification: mongoose.model('Notification', notificationSchema),
-    SubjectUser: mongoose.model("SubjectUser", subjectUserSchema)
+    SubjectUser: mongoose.model("SubjectUser", subjectUserSchema),
+    Rate: mongoose.model("Rate", rateSchema)
 }

@@ -230,5 +230,42 @@ Topic.insertMany([
   { topic_id: 10012, subject_id: 4, name: "Carbonyls and Carboxylic Acids" },
   { topic_id: 10013, subject_id: 4, name: "Nitrogen Compounds" },
   { topic_id: 10014, subject_id: 4, name: "Polymers and Synthesis" },
-  { topic_id: 10015, subject_id: 4, name: "Chemical Analysis" }
-]);
+  { topic_id: 10015, subject_id: 4, name: "Chemical Analysis" },
+
+  // ======================
+  // ADMISSION TESTS
+  // ======================
+
+    // PAT (subject_id: 14)
+  { topic_id: 13001, subject_id: 14, name: "Algebra" },
+  { topic_id: 13002, subject_id: 14, name: "Sequences" },
+  { topic_id: 13003, subject_id: 14, name: "Functions" },
+  { topic_id: 13004, subject_id: 14, name: "Calculus" },
+  { topic_id: 13005, subject_id: 14, name: "Trigonometry" },
+  { topic_id: 13006, subject_id: 14, name: "Mechanics" },
+  { topic_id: 13007, subject_id: 14, name: "Energy & Matter" },
+  { topic_id: 13008, subject_id: 14, name: "Waves & Optics" },
+  { topic_id: 13009, subject_id: 14, name: "Electricity" },
+  { topic_id: 13010, subject_id: 14, name: "Modern Physics" },
+
+  // TMUA (subject_id: 11)
+  { topic_id: 11001, subject_id: 11, name: "Algebra" },
+  { topic_id: 11002, subject_id: 11, name: "Graphs" },
+  { topic_id: 11003, subject_id: 11, name: "Sequences" },
+  { topic_id: 11004, subject_id: 11, name: "Trigonometry" },
+  { topic_id: 11005, subject_id: 11, name: "Calculus" },
+  { topic_id: 11006, subject_id: 11, name: "Geometry" },
+  { topic_id: 11007, subject_id: 11, name: "Logarithms" },
+  { topic_id: 11008, subject_id: 11, name: "Probability" },
+  { topic_id: 11009, subject_id: 11, name: "Logic & Proof" },
+
+  // ESAT (subject_id: 13)
+  { topic_id: 12001, subject_id: 13, name: "Maths 1" },
+  { topic_id: 12002, subject_id: 13, name: "Maths 2" },
+  { topic_id: 12003, subject_id: 13, name: "Physics" },
+  { topic_id: 12004, subject_id: 13, name: "Chemistry" },
+  { topic_id: 12005, subject_id: 13, name: "Biology" },
+])
+
+
+
