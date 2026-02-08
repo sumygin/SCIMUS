@@ -95,6 +95,10 @@ textarea:focus {
     width: 100%;
 }
 
+#topic {
+    width: 100%;
+}
+
 label {
     font-size: 0.75em;
     margin-bottom: 5em;

@@ -30,6 +30,26 @@ async function idGenerator(obj) {
     return id
 }
 
+function validate(field, res) {
+    if (field == "") {
+        res.status(400).json({ error: "Fields cannot be empty!"})
+        return true
+    }
+
+    const urls = field.match(/https?:\/\/[^\s]+/g) || [] //check for links
+    for (const url of urls) { //go through flagged urls and check them 
+        if (validator.isURL(url)) {
+            res.status(400).json({ error: "No links allowed!"})
+            return true
+        }
+    }
+
+    if (leo.check(field)) { //check for profanities
+        res.status(400).json({error: "Profanities are not allowed"})
+        return true
+    }
+}
+
 module.exports = function(app) {
     const {User, Subject, Topic, School, Question, Collection, QuestionCollection, 
     Like, Solve, Watch, Comment, Notification,
@@ -76,12 +96,9 @@ module.exports = function(app) {
 
                 const match = await bcrypt.compare(password_login, user.password_hash)
 
-                console.log(match)
                 if (!match) {
                     return done(null, false, { message: "Incorrect password" })
                 }
-
-                console.log("USER IS", user)
 
                 return done(null, user) // success
                 
@@ -175,6 +192,10 @@ module.exports = function(app) {
         res.sendFile(path.join(__dirname, "public", "create.html"))
     })
 
+    app.get("/create/:id", isLoggedIn, (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "create.html"))
+    })
+
     app.get("/leaderboards", isLoggedIn, (req, res) => {
         //process + return leaderboard filters in link as well
         res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
@@ -216,6 +237,65 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/question/get/:id", async (req, res) => {
+        const qID = Number(req.params.id)
+        const userTag = req.user.user_tag
+        let question = await Question.findOne( //query question
+            {question_id:qID},
+            {name:1, topic_id:1, user_tag:1, content:1, tag:1, mark_scheme:1, published:1, _id:0})
+
+        let topic = await Topic.findOne( //query topic
+            {topic_id:question?.topic_id},
+            {_id:0, name:1, subject_id:1}
+        )
+
+        let subject = await Subject.findOne( //query subject
+            {subject_id:topic?.subject_id},
+            {_id:0, full_name:1, study_stage:1}
+        )
+
+        if (!question || !topic || !subject) { //if any are not found, redirect to empty
+            return res.status(400).json({
+                success: false,
+                redirect: `/create`
+            })
+        }
+
+        if (question.published) { //if quesiton is published, send to actual question page
+            return res.status(400).json({
+                success: false,
+                redirect: `/question/${qID}`
+            })
+        }
+
+        if (!question || !topic || !subject) { //if question is not by user, then dont show it to them
+            return res.status(400).json({
+                success: false,
+                redirect: `/create`
+            })
+        } 
+        
+        let tag
+        if (question.tag == "1") {
+            tag = "user"
+        }
+        else if (question.tag == "2") {
+            tag = "solution"
+        }
+
+        let data = {
+            stage: subject.study_stage,
+            subject:subject.full_name,
+            topic:topic.name,
+            tag:tag,
+            qname:question.name,
+            qtext:question.content,
+            mstext:question.mark_scheme
+        }
+
+        return res.json(data)
+    })
+
     //POST REQUESTS
 
     app.post("/register", async (req, res) => {
@@ -235,19 +315,7 @@ module.exports = function(app) {
             //validation
 
             for (let field of Object.values(data)) { //check empty and profanities
-                field = field.trim()
-                if (field == "") return res.status(400).json({ error: "Fields cannot be empty!"})
-
-                const urls = field.match(/https?:\/\/[^\s]+/g) || [] //check for links
-                for (const url of urls) { //go through flagged urls and check them 
-                    if (validator.isURL(url)) {
-                        return res.status(400).json({ error: "No links allowed!"})
-                    }
-                }
-
-                if (leo.check(field)) { //check for profanities
-                    return res.status(400).json({error: "Profanities are not allowed"})
-                }
+                if (validate(field, res)) return
             }
 
             const countries = require("./public/resources/countries.json")
@@ -382,6 +450,127 @@ module.exports = function(app) {
         req.logout(() => {
             res.redirect("/")
         });
+    })
+
+    app.post("/question/save/:id/:publish", async (req, res) => {
+        const qID = req.params.id
+        const publish = req.params.publish == "true"
+        const clientTag = req.user.user_tag
+
+        //parsing data
+
+        const {stage, subject, topic, tag, mstext, qtext, qname} = req.body
+        let data = {stage, subject, topic, tag, mstext, qtext, qname}
+
+        for (const key in data) { //remove whitespaces
+            if (typeof data[key] == "string") {
+                data[key] = data[key].trim()
+            }
+        }
+
+        try{
+            //validation
+
+            for (let field of Object.values(data)) { //check empty and profanities
+                if (validate(field, res)) return
+            }
+
+            if (!["0", "1", "2"].includes(data.stage)) {
+                return res.status(400).json({error: "Please select a study stage"})
+            }
+            else if (!["user", "solution"].includes(data.tag)) {
+                return res.status(400).json({error: "Please select a question tag"})
+            }
+            else if (data.qname.length < 10) {
+                return res.status(400).json({error: "Name must be at least 10 characters"})
+            }
+            else if (data.mstext.length < 10) {
+                return res.status(400).json({error: "Mark scheme is too short"})
+            }
+            else if (data.qtext.length < 10) {
+                return res.status(400).json({error: "Question is too short"})
+            }
+            else if (data.qname.length > 40) {
+                return res.status(400).json({error: "Name must be maximum 40 characters!"})
+            }
+            else if (data.mstext.length > 5000) {
+                return res.status(400).json({error: "Mark scheme must be maximum 5k characters!"})
+            }
+            else if (data.qtext.length > 5000) {
+                return res.status(400).json({error: "Question must be maximum 5k characters!"})
+            }
+
+            else {
+                //subject check
+                const subjectID = await Subject.findOne({full_name:data.subject, study_stage:data.stage}, {subject_id:1})
+                if (!subjectID) {
+                    return res.status(409).json({ error: "Subject does not exist!" })
+                }
+
+                //topic check
+                const topicID = (await Topic.findOne({subject_id:subjectID.subject_id, name:data.topic}, {topic_id:1}))?.topic_id
+                if (!topicID) {
+                    return res.status(409).json({ error: "Topic does not exist!" })
+                }
+
+                if (data.tag == "user") {
+                    data.tag = 1
+                }
+                else {
+                    data.tag = 2
+                }
+
+                if (qID == -1 || !(await Question.exists({question_id:qID}))) { //if question doesn't exist, create new
+                    const question = new Question({
+                        question_id: await idGenerator(Question),
+                        topic_id: topicID,
+                        user_tag: clientTag,
+                        name: data.qname,
+                        content: data.qtext,
+                        tag: data.tag,
+                        mark_scheme: data.mstext,
+                        published:publish
+                    })
+                    await question.save()
+
+                    //update number user has created 
+
+                    await User.updateOne({user_tag: clientTag}, {$inc:{created_today:1, created_total:1}})
+
+                    if(publish) {
+                        return res.status(200).json({
+                            success: true,
+                            redirect: `/question/${question.question_id}`
+                        })
+                    }
+                    return res.status(200).json({
+                        success: true,
+                        redirect: `/create/${question.question_id}`
+                    })
+                }
+                else { //if question already exists
+                    await Question.updateOne({question_id: qID}, {$set: {
+                        topic_id: topicID,
+                        name: data.qname,
+                        content: data.qtext,
+                        tag: data.tag,
+                        mark_scheme: data.mstext,
+                        published:publish
+                    }})
+
+                    if (publish) {
+                        return res.status(200).json({
+                            success: true,
+                            redirect: `/question/${qID}`
+                        })
+                    }
+                    return res.status(200).json({success:true})
+                }
+            }
+        } catch(err) {
+            console.error(err)
+            return res.status(500).json({error:"Server error"}); 
+        }
     })
 
     // Auth middleware

@@ -63,7 +63,7 @@ const questionSchema = new mongoose.Schema({
   images: { type: [Buffer], default: [] },
   paper_num: Number,
   question_num: Number,
-  tag: { type: Number, enum: [0, 1, 2] },
+  tag: { type: Number, enum: [0, 1, 2] }, //0=official, 1 = user-made, 2 = looking for solution
   scroll_data: { type: [Number], default: [] },
   mark_scheme: String,
   created_at: { type: Date, default: Date.now },

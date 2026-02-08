@@ -5,10 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/question.css">
-    <link rel="stylesheet" href="css/create.css">
-    <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/question.css">
+    <link rel="stylesheet" href="/css/create.css">
+    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
     <header id="header">
@@ -16,10 +16,9 @@
     </header>
 
     <main>
-        <form class="pagecontainer" id="qform">
+        <form class="pagecontainer" id="qform" method="post">
             <div class="metadata">
 
-                
                 <div class="meta-item">
                     <label for="stage">Study stage</label>
                     <select name="stage" id="stage" required>
@@ -60,22 +59,23 @@
 
             <div class="content">
                 <div class="titles">
-                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" id="qname">
+                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" id="qname" name="qname">
                 </div>
                 <div class="question">
                     <div class="question-text">
-                        <textarea required type="text" placeholder="Enter question here..." id="qtext"></textarea>
+                        <textarea required type="text" placeholder="Enter question here..." id="qtext" name="qtext"></textarea>
                     </div>  
                 </div>
                 <div class="question">
                     <div class="question-text">
-                        <textarea required type="text" placeholder="Enter mark scheme here..." id="mstext" class="ms-text"></textarea>
+                        <textarea required type="text" placeholder="Enter mark scheme here..." id="mstext" class="ms-text" name="mstext"></textarea>
                     </div>                   
                 </div>
                 
                 <div class="bottom-bar">
                     <input type="submit" value="Save" id="save">
-                    <button class="mark-scheme" id="flip">Mark scheme</button>
+                    <div class="mark-scheme" id="flip">
+                    </div>
                     <input type="submit" value="Publish" id="pub">
                 </div>
             </div>
@@ -86,9 +86,9 @@
         <div class="error"></div>
     </main>
 
-    <script src="js/headerinsert.js"></script>
-    <script src="js/header.js"></script>
-    <script type="module" src="js/autocomplete.js"></script>
-    <script type="module" src="js/create.js"></script>
+    <script src="/js/headerinsert.js"></script>
+    <script src="/js/header.js"></script>
+    <script type="module" src="/js/autocomplete.js"></script>
+    <script type="module" src="/js/create.js"></script>
 </body>
 </html>

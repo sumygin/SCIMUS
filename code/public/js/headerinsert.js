@@ -1,4 +1,5 @@
-let headerHMTL = `<a href="/"><button><img id="headerIMG" src="resources/HEADER_logo.png" alt="SCIMUS" srcset=""></button></a> 
+let headerHMTL = `<header id="header">
+    <a href="/"><button><img id="headerIMG" src="/resources/HEADER_logo.png" alt="SCIMUS" srcset=""></button></a> 
     
     <div id="header-items">
       <a class="header-item" href="/search"><button>SEARCH</button></a>
@@ -38,6 +39,9 @@ let headerHMTL = `<a href="/"><button><img id="headerIMG" src="resources/HEADER_
           </span>
           <span class="profile-hover-item">
             <a href="/preferences"><button>Preferences</button></a>
+          </span>
+          <span class="profile-hover-item">
+            <a href="/logout"><button>Log out</button></a>
           </span>
         </div>
       </span> 

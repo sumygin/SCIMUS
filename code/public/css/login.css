@@ -9,7 +9,6 @@
     padding-right: 2em;
 }
 
-
 .log-forms-container {
     text-align: center;
     display: flex;
@@ -20,7 +19,6 @@
     font-size: 0.9rem;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
-
 
 .login {
     text-align: center;
@@ -107,3 +105,6 @@
     padding-right: 0.3em;
 }
 
+#regForm {
+    display: none;
+}

@@ -129,21 +129,13 @@ async function clientValidation() {
         console.log(res.ok, result)
 
         if (!res.ok) { //not successful
-            errbar.style.color = "red"
-            errbar.innerHTML = result.error
-            errbar.style.opacity = "1"
-            setTimeout(() => {
-                errbar.style.opacity = "0"
-            }, 3000)
+            warn(errbar, result.error)
             return
         }
         else {
-            errbar.innerHTML = "Register successful"
-            errbar.style.color = "green"
-            errbar.style.opacity = "1"
+            success(errbar, "Register successful")
             setTimeout(() => {
                 window.location.href = "/login"
-                errbar.style.opacity = "0"
             }, 1000)
         }
     })

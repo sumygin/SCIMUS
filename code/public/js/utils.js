@@ -20,15 +20,15 @@ export function upperCaseify(text) {
 }
 
 export async function getSubjectNames(val) {
-    return (await fetch(`api/subjects/names/${val}`)).json()
+    return (await fetch(`/api/subjects/names/${val}`)).json()
 }
 
 export async function getSchoolNames(){
-    return (await fetch(`api/schools/names`)).json()
+    return (await fetch(`/api/schools/names`)).json()
 }
 
 export async function getTopicNames(val){
-    return (await fetch(`api/topics/names/${val}`)).json()
+    return (await fetch(`/api/topics/names/${val}`)).json()
 }
 
 export function reportInvalid(el, message, e) {
@@ -36,3 +36,21 @@ export function reportInvalid(el, message, e) {
     el.reportValidity()
     e.preventDefault()
 }
+
+ export function success(errbar, message) {
+    errbar.innerHTML = message
+    errbar.style.color = "green"
+    errbar.style.opacity = "1"
+    setTimeout(() => {
+        errbar.style.opacity = "0"
+    }, 3000)
+ }
+
+ export function warn(errbar, message) {
+    errbar.style.color = "red"
+    errbar.innerHTML = message
+    errbar.style.opacity = "1"
+    setTimeout(() => {
+        errbar.style.opacity = "0"
+    }, 3000)
+ }
