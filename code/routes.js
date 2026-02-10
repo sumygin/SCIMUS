@@ -76,14 +76,26 @@ function convertStudyStage(val) {
 }
 
 function convertTag(val) {
-    if (val == "1") {
+    if (Number(val) == 1) {
         return "User-made"
     }
-    else if (val == "0") {
+    else if (Number(val) == 0) {
         return "Official"
     }
-    else if (val == "2") {
+    else if (Number(val) == 2) {
         return "Looking for solution"
+    }
+    else if (val == "solution"){
+        return 2
+    }
+    else if (val == "user") {
+        return 1
+    }
+    else if (val == "official") {
+        return 0
+    }
+    else{
+        console.log("TAG CONVERSION ERROR")
     }
 }
 
@@ -206,7 +218,7 @@ module.exports = function(app) {
     })
     
     app.get("/question", isLoggedIn, (req, res) => {
-        res.sendFile(path.join(__dirname, "public", "home.html"))
+        res.redirect("/home")
     })
 
     app.get("/question/:id", isLoggedIn, (req, res) => {
@@ -349,7 +361,8 @@ module.exports = function(app) {
             const question = await Question.findOne( //query question
                 {question_id:qID},
                 {name:1, topic_id:1, user_tag:1, content:1, tag:1, mark_scheme:1, published:1, _id:0,
-                    avg_rating:1, like_rating:1, paper_num:1, question_num:1, views:1
+                    num_diff_ratings:1, total_diff_rating:1, like_rating:1, paper_num:1, question_num:1, views:1,
+                    num_comments:1, num_collections:1, num_solves:1, num_watches:1
                 })
             
             //if doesn't exist or private, but not owned by the user, then redirect to home
@@ -385,23 +398,22 @@ module.exports = function(app) {
                 })
             }
 
-            //count how many collections question is in
-            const numCollections = await QuestionCollection.countDocuments({question_id:qID}) 
-
-            //count watches
-            const numWatches = await Watch.countDocuments({question_id:qID})
-
-            //count solves
-            const numSolves = await Solve.countDocuments({question_id:qID})
-
-            //count ratings
-            const numRatings = await Rate.countDocuments({question_id:qID})
-
-            //count comments
-            const numComments = await Comment.countDocuments({question_id:qID})
+            await Question.updateOne(
+                {question_id:qID},
+                {$inc: {views:1}}
+            )
 
             let stage = convertStudyStage(subject.study_stage)
             let tag = convertTag(question.tag)
+
+            let userLiked = (await Like.findOne({item_id:qID, user_tag:userTag, item_type:0}, {_id:0, value:1}))?.value
+
+            let extra = {
+                like: userLiked == undefined ? 0 : userLiked,
+                watch: !!(await Watch.exists({question_id:qID, user_tag:userTag})),
+                solve: !!(await Solve.exists({question_id:qID, user_tag:userTag})),
+                rate: !!(await Rate.exists({question_id:qID, user_tag:userTag})),
+            }
 
             let data = {
                 stage: stage,
@@ -411,22 +423,293 @@ module.exports = function(app) {
                 topic: topic.name,
                 name: question.name,
                 user_tag: "@" + question.user_tag,
-                rating: question.avg_rating,
+                rating: (question.total_diff_rating/question.num_diff_ratings),
                 views: question.views,
                 qtext: question.content,
                 mstext: question.mark_scheme,
                 formula: subject.formulas,
                 spec: subject.spec,
                 likes: question.like_rating,
-                watches: numWatches,
-                solves: numSolves,
-                ratings: numRatings,
-                comments: numComments,
-                collections: numCollections, 
+                watches: question.num_watches,
+                solves: question.num_solves,
+                ratings: question.num_diff_ratings,
+                comments: question.num_comments,
+                collections: question.num_collections, 
                 tag:tag,
+                extra:extra,
             }
 
             return res.json(data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/watch/add/:qid", async (req, res) => {
+        try {
+            const qID = req.params.qid
+            const userTag = req.user.user_tag
+
+            if (!await Question.exists({question_id:qID})) { //check question exists
+                res.status(409).json({ error: "Question does not exist!"})
+            }
+
+            if (await Watch.exists({question_id:qID, user_tag:userTag})) { //check there is not already a watch
+                res.status(409).json({ error: "Question already marked as watched!"})
+            }
+
+            await Watch.insertOne({
+                question_id:qID,
+                user_tag: userTag
+            })
+
+            await Question.updateOne({
+                question_id:qID},
+                {$inc:{num_watches:1}}
+            )
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/solve/add/:qid", async (req, res) => {
+        try {
+            const qID = req.params.qid
+            const userTag = req.user.user_tag
+
+            if (!await Question.exists({question_id:qID})) { //check question exists
+                res.status(409).json({ error: "Question does not exist!"})
+            }
+
+            if (await Solve.exists({question_id:qID, user_tag:userTag})) { //check there is not already a solve
+                res.status(409).json({ error: "Question already marked as solved!"})
+            }
+
+            await Solve.insertOne({
+                question_id:qID,
+                user_tag: userTag
+            })
+
+            await Question.updateOne({
+                question_id:qID},
+                {$inc:{num_solves:1}}
+            )
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/watch/remove/:qid", async (req, res) => {
+        try {
+            const qID = req.params.qid
+            const userTag = req.user.user_tag
+
+            if (!await Question.exists({question_id:qID})) { //check question exists
+                res.status(409).json({ error: "Question does not exist!"})
+            }
+
+            if (!(await Watch.exists({question_id:qID, user_tag:userTag}))) { //check there is  a watch
+                res.status(409).json({ error: "Question not already marked as watched!"})
+            }
+
+            await Watch.deleteOne({
+                question_id:qID,
+                user_tag: userTag
+            })
+
+            await Question.updateOne({
+                question_id:qID},
+                {$inc:{num_watches:-1}}
+            )
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/solve/remove/:qid", async (req, res) => {
+        try {
+            const qID = req.params.qid
+            const userTag = req.user.user_tag
+
+            if (!await Question.exists({question_id:qID})) { //check question exists
+                res.status(409).json({ error: "Question does not exist!"})
+            }
+
+            if (!(await Solve.exists({question_id:qID, user_tag:userTag}))) { //check there is not  a solve
+                res.status(409).json({ error: "Question not already marked as solved!"})
+            }
+
+            await Solve.deleteOne({
+                question_id:qID,
+                user_tag: userTag
+            })
+
+            await Question.updateOne({
+                question_id:qID},
+                {$inc:{num_solves:-1}}
+            )
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/like/:qid/:value", async (req, res) => {
+        const qID = req.params.qid
+        const val = Number(req.params.value)
+        const userTag = req.user.user_tag
+
+        try {
+            const question = await Question.findOne({question_id:qID}, {_id:0, like_rating:1, user_tag:1})
+
+            if (!question) { //check question exists
+                return res.status(409).json({ error: "Question does not exist!"})
+            }
+            if (![0, 1, -1].includes(val)) {
+                return res.status(409).json({ error: "Invalid like value"})
+            }
+
+            const like = await Like.findOne({item_id:qID, item_type:0, user_tag:userTag}, {value:1, _id:0})
+
+            const delta = val - (like ? like.value : 0)
+
+            if (delta == 0) {
+                return res.status(200).json({ success: true })
+            }
+
+            //UPDATE LIKES
+
+            if (!like && val !== 0) { //if like doesnt exist, create a new one
+                await Like.create({
+                    item_id: qID,
+                    user_tag: userTag,
+                    value: val,
+                    item_type: 0
+                })
+            }
+
+            else if (like && val == 0) { //delete existing like if unliking
+                await Like.deleteOne(
+                    {item_id:qID, 
+                        item_type:0, 
+                        user_tag:userTag}
+                )
+            }
+
+            else {
+                await Like.updateOne( //otherwise update existing like
+                    {
+                        item_id:qID, 
+                        item_type:0, 
+                        user_tag:userTag},
+                    {$set: {value: val}},
+                )
+            }
+
+            //UPDATE QUESTION
+
+            await Question.updateOne( //update question rating
+                {question_id: qID},
+                {$inc: {like_rating: delta}},
+            )
+
+            //update user total like rating
+            await User.updateOne(
+                {user_tag:question.user_tag},
+                {$inc: {total_likes:delta}},
+            )
+
+            return res.status(200).json({
+                success:true,
+                newLikes:question.like_rating+delta
+            })
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/rate/:qid/:value", async (req, res) => {
+        const qID = req.params.qid
+        const val = Number(req.params.value)
+        const userTag = req.user.user_tag
+
+        try {
+            const question = await Question.findOne(
+                {question_id:qID}, 
+                {_id:0, num_diff_ratings:1, total_diff_rating:1})
+
+            if (!question) { //check question exists
+                return res.status(409).json({ error: "Question does not exist!"})
+            }
+            if (![1, 2, 3, 4, 5].includes(val)) {
+                return res.status(409).json({ error: "Invalid rate value"})
+            }
+
+            const rate = await Rate.findOne({question_id:qID, user_tag:userTag}, {value:1, _id:0})
+
+            const delta = val - (rate ? rate.value : 0)
+            let deltaRateNum = 0
+
+            if (delta == 0) {
+                return res.status(409).json({ error: ""})
+            }
+
+            //UPDATE RATING
+
+            if (!rate) { //if rate doesnt exist, create a new one
+                await Rate.create({
+                    question_id:qID,
+                    user_tag:userTag,
+                    value:val
+                })
+                deltaRateNum = 1
+            }
+
+            //cannot unrate a question
+
+            else {
+                await Rate.updateOne( //otherwise update existing rate
+                    {
+                        question_id:qID, 
+                        user_tag:userTag},
+                    {$set: {value: val}},
+                )
+            }
+
+            //UPDATE QUESTION
+
+            await Question.updateOne( //update question rating
+                {question_id: qID},
+                {$inc: {
+                    total_diff_rating:delta,
+                    num_diff_ratings:deltaRateNum
+                }},
+            )
+
+            return res.status(200).json({
+                success:true,
+                newRate: +question.num_diff_ratings + deltaRateNum,
+                newAvg:(+question.total_diff_rating+delta)/(+question.num_diff_ratings+deltaRateNum)
+            })
         }
         catch (err) {
             console.error(err)
@@ -538,13 +821,13 @@ module.exports = function(app) {
                     full_name:name,
                     email:data.email,
                     
-                    average_like_rating:0,
                     created_total:0,
                     created_today:0,
                     studied_total:0,
                     studied_today:0,
                     completed_total:0,
                     completed_today:0,
+                    total_likes:0,
                 })
 
                 //let data = {name, password, password_1, school, stage, subjects, tag, username, country, email}
@@ -591,7 +874,7 @@ module.exports = function(app) {
     })
 
     app.post("/question/save/:id/:publish", async (req, res) => {
-        const qID = req.params.id
+        let qID = req.params.id
         const publish = req.params.publish == "true"
         const clientTag = req.user.user_tag
 
@@ -651,16 +934,13 @@ module.exports = function(app) {
                     return res.status(409).json({ error: "Topic does not exist or is invalid!" })
                 }
 
-                if (data.tag == "user") {
-                    data.tag = 1
-                }
-                else {
-                    data.tag = 2
-                }
+                data.tag = convertTag(data.tag)
 
                 if (qID == -1 || !(await Question.exists({question_id:qID}))) { //if question doesn't exist, create new
+                    qID = await idGenerator(Question)
+                    
                     const question = new Question({
-                        question_id: await idGenerator(Question),
+                        question_id: qID,
                         topic_id: topicID,
                         user_tag: clientTag,
                         name: data.qname,
@@ -669,22 +949,8 @@ module.exports = function(app) {
                         mark_scheme: data.mstext,
                         published:publish
                     })
+
                     await question.save()
-
-                    //update number user has created 
-
-                    await User.updateOne({user_tag: clientTag}, {$inc:{created_today:1, created_total:1}})
-
-                    if(publish) {
-                        return res.status(200).json({
-                            success: true,
-                            redirect: `/question/${question.question_id}`
-                        })
-                    }
-                    return res.status(200).json({
-                        success: true,
-                        redirect: `/create/${question.question_id}`
-                    })
                 }
                 else { //if question already exists
                     await Question.updateOne({question_id: qID}, {$set: {
@@ -695,15 +961,29 @@ module.exports = function(app) {
                         mark_scheme: data.mstext,
                         published:publish
                     }})
-
-                    if (publish) {
-                        return res.status(200).json({
-                            success: true,
-                            redirect: `/question/${qID}`
-                        })
-                    }
-                    return res.status(200).json({success:true})
                 }
+
+                if(publish) { //if published, update user question num and redirect to question page
+
+                    //update number user has created 
+
+                    await User.updateOne(
+                        {user_tag: clientTag},
+                        {$inc:{created_today:1, created_total:1, }}
+                    )
+
+                    return res.status(200).json({
+                        success: true,
+                        redirect: `/question/${qID}`
+                    })
+                }
+
+                //otherwise if question still private, redirect to create page
+
+                return res.status(200).json({
+                    success: true,
+                    redirect: `/create/${qID}`
+                })
             }
         } catch(err) {
             console.error(err)
@@ -713,7 +993,7 @@ module.exports = function(app) {
 
     // Auth middleware
     
-
+//at the end of every day, set 
 
     //delete all notifications that are older than 60 days
 }

@@ -1,4 +1,4 @@
-import {loadData, reportInvalid} from './utils.js'
+import {loadData, reportInvalid, success, warn, sendFormData} from './utils.js'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function passwordCheck(pw) {
@@ -18,7 +18,7 @@ regForm.style.display = "none"
 let formElementList = ["name", "username", "tag", "email", "password", "password_1", "school", "country", "stage", "subject"]
 let formData = {}
 
-for (el of formElementList) {
+for (const el of formElementList) {
     formData[el] = document.getElementById(el)
 }
 
@@ -113,31 +113,13 @@ async function clientValidation() {
 
         //processing form data
 
-        const formdata = new FormData(regForm)
-        const data = Object.fromEntries(formdata.entries())
+        sendFormData(regForm.action, regForm, errbar, window, "Register successful")
 
-        const res = await fetch(regForm.action, { //send data
-            method:regForm.method,
-            headers: {"Content-Type": "application/json"},
-            body:JSON.stringify(data),
-        })
+        setTimeout(() => {
+            window.location.href = "/login"
+        }, 1000)
 
-        const result = await res.json()
-
-        //display response
-
-        console.log(res.ok, result)
-
-        if (!res.ok) { //not successful
-            warn(errbar, result.error)
-            return
-        }
-        else {
-            success(errbar, "Register successful")
-            setTimeout(() => {
-                window.location.href = "/login"
-            }, 1000)
-        }
+        return
     })
 
     logForm.addEventListener("submit", async (e) => {
@@ -145,39 +127,11 @@ async function clientValidation() {
 
         //processing form data
 
-        const formdata = new FormData(logForm)
-        const data = Object.fromEntries(formdata.entries())
+        sendFormData(logForm.action, logForm, errbar, window, "Log-in successful")
 
-        const res = await fetch(logForm.action, { //send data
-            method:logForm.method,
-            headers: {"Content-Type": "application/json"},
-            body:JSON.stringify(data),
-        })
-
-        const result = await res.json()
-
-        //display response
-
-        console.log(res.ok, result)
-
-        if (!res.ok) { //not successful
-            errbar.style.color = "red"
-            errbar.innerHTML = result.error
-            errbar.style.opacity = "1"
-            setTimeout(() => {
-                errbar.style.opacity = "0"
-            }, 3000)
-            return
-        }
-        else {
-            errbar.innerHTML = "Log-in successful"
-            errbar.style.color = "green"
-            errbar.style.opacity = "1"
-            setTimeout(() => {
-                window.location.href = "/home"
-                errbar.style.opacity = "0"
-            }, 1000)
-        }
+        setTimeout(() => {
+            window.location.href = "/home"
+        }, 1000)
     })
 }
 

@@ -34,8 +34,8 @@
                     </div>
                     
                     <div class="rating" id="rating"></div>
-                    <div class="creator" id="user_tag">
-                    </div>
+                    <div id="creator_link" class="creatorin"><a href="" id="user_tag">
+                    </a></div>
                         
                     
                     <div>
@@ -44,13 +44,13 @@
                     </div>
                 </div>
                 <div class="middle-container">
-                    <div class="question">
+                    <div class="question" id="question">
                         <div class="question-text" id="qtext">
                         </div>
                         <div class="mark-scheme-text" id="mstext">
                         </div>
                     </div>
-                    <div class="maincwrapper">
+                    <div class="maincwrapper" id="comments-tab">
                         <div class="commentWrapper">
                             <div class="comments">
                                 <div class="c-container">
@@ -94,14 +94,22 @@
 
                 <div class="bottom-bar">
                     <a href="" id="formula" target="_blank"><button class="formula-sheet">f(x)</button></a>
-                    <button class="mark-scheme">Mark scheme</button>
+                    <button class="mark-scheme" id="msBtn">Mark scheme</button>
                     <a href="" id="spec" target="_blank"><button class="spec">Spec</button></a>
                 </div>
             </div>
             <div class="actions">
                 <div class="action-item">
                     <span class="val" id="likes"></span><button class="like-ic">
-                        <img id="face" src="/resources/neutral.PNG" alt="" class="icon"></button>
+                        <span class="facewrap">
+                            <img id="face" src="/resources/neutral.PNG" alt="" class="icon"></button>
+                            
+                            <span class="like-bar" id="likebar">
+                                <img src="/resources/smile.PNG" class="icon" id="1">
+                                <img src="/resources/neutral.PNG" class="icon" id="0">
+                                <img src="/resources/frown.PNG" class="icon" id="-1">
+                            </span>
+                        </span>
                 </div>
                 <div class="action-item">
                     <span class="val" id="watches"></span><button class="watch-ic">
@@ -115,25 +123,38 @@
                 </div>
                 <div class="action-item">
                     <span class="val" id="ratings"></span><button class="rate-ic">
-                        <img src="/resources/star_empty.PNG" alt="" class="icon" id="star">
-                    </button>
+                        <span class="ratewrap">
+                            <img src="/resources/star_empty.PNG" alt="" class="icon" id="star"></button>
+
+                            <span class="rate-bar" id="ratebar">
+                                <img src="/resources/star_empty.PNG" class="icon" id="05">
+                                <img src="/resources/star_empty.PNG" class="icon" id="04">
+                                <img src="/resources/star_full.PNG" class="icon" id="03">
+                                <img src="/resources/star_full.PNG" class="icon" id="02">
+                                <img src="/resources/star_full.PNG" class="icon" id="01">
+                            </span>
+                        </span>
                 </div>
+
                 <div class="action-item">
                     <span class="val" id="comments"></span><button class="comment-ic">
-                        <img src="/resources/comments.PNG" alt="" class="icon">
+                        <img src="/resources/comments.PNG" alt="" class="icon" id="commentBtn">
                     </button>
                 </div>
                 <div class="action-item">
                     <span class="val" id="collections"></span><button class="collection-ic">
-                        <img src="/resources/plus.PNG" alt="" class="icon">
+                        <img src="/resources/plus.PNG" alt="" class="icon ">
                     </button>
                 </div>
             </div>
         </div>
+
+        </div>
+        <div class="error"></div>
     </main>
 
-    <script src="/js/headerinsert.js"></script>
-    <script src="/js/header.js"></script>
-    <script src="/js/question.js"></script>
+    <script src="/js/headerinsert.js" type="module"></script>
+    <script src="/js/header.js" type="module"></script>
+    <script src="/js/question.js" type="module"></script>
 </body>
 </html>

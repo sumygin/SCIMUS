@@ -280,3 +280,8 @@ a:hover {
 #replay {
     height: 15px;
 }
+
+img {
+    -webkit-user-drag: none;
+    user-select: none;
+}

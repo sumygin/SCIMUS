@@ -1,4 +1,4 @@
-import { upperCaseify, reportInvalid, success, warn} from "./utils.js"
+import { upperCaseify, reportInvalid, success, warn, sendDataRequest, sendFormData} from "./utils.js"
 
 document.documentElement.style.visibility = "hidden"
 
@@ -19,7 +19,7 @@ if (qID == "") qID = 0
 let formElementList = ["stage", "subject", "topic", "tag", "qname", "qtext", "mstext"]
 let formData = {}
 
-for (el of formElementList) {
+for (let el of formElementList) {
     formData[el] = document.getElementById(el)
 }
 
@@ -106,55 +106,29 @@ let saveForm = async (e, publish) => { //validates then sends form values
 
     //processing form data
 
-    const formdata = new FormData(qForm)
-    const data = Object.fromEntries(formdata.entries())
-
-    const res = await fetch(`/question/save/${qID}/${publish}`, { //send data
-        method:qForm.method,
-        headers: {"Content-Type": "application/json"},
-        body:JSON.stringify(data),
-    })
-
-    const result = await res.json()
-
-    //display response
-
-    if (!res.ok) { //not successful
-        warn(errbar, result.error)
-        return
-    }
-    else {
-        success(errbar, "Question saved")
-        if (result.redirect) { //redirect if a ilnk sent back
-            window.location.href = result.redirect
-        }
-    }
+    sendFormData(`/question/save/${qID}/${publish}`, qForm, errbar, window, "Question saved")
 }
 
 async function fetchData() {
-    if (qID == 0) return
+    if (qID == 0) {
+        document.title = `Editing new question - SCIMUS`
+        return
+    }
     if (qID == -1) {
         window.location.href = "/create"
         return
     }
 
-    const res = await fetch(`/create/get/${qID}`)
-    const result = await res.json()
+    const result = await sendDataRequest(`/create/get/${qID}`, errbar, window, "Question data retrieved successfully")
 
-    if (!res.ok) { //not successful
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
-        }
-        return
+    if (!result) return
+    
+    for (let item in result) {
+        formData[item].value = result[item]
     }
-    else {
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
-        }
-        for (let item in result) {
-            formData[item].value = result[item]
-        }
-    }
+
+    document.title = `Editing ${result.name} - SCIMUS`
+
 }
 
 async function showPage() {

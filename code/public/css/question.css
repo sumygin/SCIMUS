@@ -91,7 +91,7 @@ main {
     border-radius: 1em;
     padding-left: 1em;
     padding-right: 2em;
-    width: 70%;
+    width:100%;
 }
 
 .question-text, .mark-scheme-text {
@@ -231,4 +231,65 @@ main {
 
 #user_tag {
     padding-top: 0.5em;
+    width: min-content;
+}
+
+button.reply, button.c-like {
+    background: none;
+}
+
+#comments-tab {
+    display: none;
+}
+
+.like-bar {
+    display: none;
+    flex-direction: column;
+    width: 24px;
+    height: 72px;
+    position: absolute;
+    right: 16.5px;
+    top: calc(6.5vh - 6px);
+    z-index: 2;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 2px;
+    background: white;
+}
+
+.like-bar img, .rate-bar img {
+    height: 24px;
+    width: 24px;
+    top: 0px;
+    background: none;
+}
+
+.facewrap, .rate-wrap {
+    position: relative;
+}
+
+.like-bar img:hover, .rate-bar img:hover {
+    transform: scale(1.2);
+    z-index: 3;
+}
+
+.rate-bar {
+    display: none;
+    flex-direction: column;
+    width: 24px;
+    height: 120px;
+    position: absolute;
+    top: calc(6.5vh + 51px);
+    right: 16.5px;
+    z-index: 2;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 2px;
+    background: white;
+}
+
+.creatorin {
+    text-align: center;
+    display: flex;
+    justify-content: center;
 }

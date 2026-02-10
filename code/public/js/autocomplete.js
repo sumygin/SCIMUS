@@ -38,7 +38,7 @@ class AutoHandler {
             let query = this.input.value.toLowerCase()
             let result = []
 
-            for (item of this.list) {
+            for (const item of this.list) {
                 if (item.toLowerCase().includes(query)) {
                     result.push(item)
                     if (result.length >= 10) break
@@ -65,7 +65,7 @@ class AutoHandler {
             this.showSpace()
 
             //render html
-            for (item of result) { //ADD MATCHING RESULTS
+            for (const item of result) { //ADD MATCHING RESULTS
                 let newEl = document.createElement("div")
                 newEl.classList.add("auto-item")
                 newEl.innerText = item
@@ -140,7 +140,7 @@ class AutoHandler {
 
 async function createHandlers() {
 
-    for (el of elements) {
+    for (const el of elements) {
         let inplist = []
         let creatable = false
         let type = ""

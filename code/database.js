@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   studied_total: Number,
   created_today: Number,
   created_total: Number, 
-  average_like_rating: Number
+  total_likes:Number,
 });
 
 const subjectSchema = new mongoose.Schema({
@@ -36,8 +36,6 @@ const subjectSchema = new mongoose.Schema({
 const subjectUserSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User', required: true },
   subject_id: { type: Number, ref: 'Subject', required: true }
-}, {
-  _id: false
 })
 
 const topicSchema = new mongoose.Schema({
@@ -57,7 +55,7 @@ const questionSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User'},
   name: { type: String, maxlength: 40 },
   content: {type:String, required:true},
-  avg_rating: {type: Number, default:0},
+  total_diff_rating: {type: Number, default:0},
   like_rating: {type: Number, default:0},
   images: {type: [Buffer], default: []},
   paper_num: {type: Number, default:0},
@@ -68,6 +66,12 @@ const questionSchema = new mongoose.Schema({
   created_at: {type: Date, default: Date.now},
   published: { type: Boolean, default: false},
   views: {type:Number, default:0},
+  
+  num_comments: {type:Number, default:0},
+  num_collections: {type:Number, default:0},
+  num_watches: {type:Number, default:0},
+  num_solves:{type:Number, default:0},
+  num_diff_ratings: {type: Number,  default:0},
 })
 
 const collectionSchema = new mongoose.Schema({
@@ -83,8 +87,6 @@ const collectionSchema = new mongoose.Schema({
 const questionCollectionSchema = new mongoose.Schema({
   question_id: { type: Number, ref: 'Question', required: true },
   collection_id: { type: Number, ref: 'Collection', required: true }
-}, {
-  _id: false
 })
 
 const likeSchema = new mongoose.Schema({
@@ -93,8 +95,6 @@ const likeSchema = new mongoose.Schema({
   item_type: { type: Number, enum: [0, 1] }, //0 = question, 1 = comment
   value: { type: Number, enum: [1, -1] }, 
   created_at: { type: Date, default: Date.now }
-}, {
-  _id: false
 })
 
 const rateSchema = new mongoose.Schema({
@@ -103,22 +103,18 @@ const rateSchema = new mongoose.Schema({
   value: {type:Number, enum:[1, 2, 3, 4, 5]},
   created_at: {type:Date, default:Date.now}
 },
-{_id:false})
+)
 
 const solveSchema = new mongoose.Schema({
   question_id: { type: Number, ref: 'Question', required: true },
   user_tag: { type: String, ref: 'User', required: true },
   created_at: { type: Date, default: Date.now }
-}, {
-  _id: false
 })
 
 const watchSchema = new mongoose.Schema({
   question_id: { type: Number, ref: 'Question', required: true },
   user_tag: { type: String, ref: 'User', required: true },
   created_at: { type: Date, default: Date.now }
-}, {
-  _id: false
 })
 
 const commentSchema = new mongoose.Schema({
@@ -133,7 +129,7 @@ const commentSchema = new mongoose.Schema({
 
 const notificationSchema = new mongoose.Schema({
   notif_id: { type: Number, unique: true },
-  user_id: { type: String, ref: 'User', required: true },
+  user_tag: { type: String, ref: 'User', required: true },
   question_id: { type: Number, ref: 'Question', required: false },
   message: String,
   viewed: { type: Boolean, default: false },

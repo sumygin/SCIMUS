@@ -1,68 +1,239 @@
+import {generateStarHTML, warn, success, sendDataRequest} from "./utils.js"
+
 document.documentElement.style.visibility = "hidden"
 
-const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views",
-    "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag"]
-let elData = {}
-
-const starEmpty = `<img src="/resources/star_empty.PNG" alt="" class="icon">`
-const starFull = `<img src="/resources/star_full.PNG" alt="" class="icon">`
-
-function generateStarHTML(val) {
-    val = Math.floor(val)
-    let result = ``
-    for (let i = 0; i<val; i++) {
-        result += starFull   
-    }
-    for (let i = 0; i<(5-val); i++) {
-        result += starEmpty
-    }
-    return result
+let BtnValues = { //values of the sidebar (for animation purposes)
+    like:0,
+    watch:false,
+    solve:false,
+    rate:false,
 }
 
+const errbar = document.getElementsByClassName("error")[0]
 
-for (el of qElementList) {
+const msBtn = document.getElementById("msBtn")
+let flipped = false
+
+const commentsTab = document.getElementById("comments-tab")
+const commentsBtn = document.getElementById("commentBtn")
+const questionSpace = document.getElementById("question")
+let cOpen = false
+
+const likeBarImgs = document.querySelectorAll(".like-bar img")
+const rateBarImgs = document.querySelectorAll(".rate-bar img")
+
+const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert els
+    "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag",
+    "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check"
+]
+let elData = {}
+
+for (let el of qElementList) {
     elData[el] = document.getElementById(el)
 }
 
+//MARK SCHEME TOGGLE
+
+msBtn.addEventListener("click", async () => { //ms show/hide
+    if (!flipped) {
+        elData.qtext.style.display = "none" //show ms
+        elData.mstext.style.display = "block"
+        msBtn.innerHTML = "Question"
+
+        if (!BtnValues.solve) {
+            elData.check.src = "/resources/check_full.PNG"
+            elData.solves.innerHTML = +elData.solves.innerHTML + 1
+            await sendDataRequest(`/solve/add/${qID}`, errbar, window, "")
+            BtnValues.solve = true
+        }
+    }
+    else {
+        elData.qtext.style.display = "block" //show question
+        elData.mstext.style.display = "none"
+        msBtn.innerHTML = "Mark scheme"
+    }
+    flipped = !flipped
+})
+
+
+//COMMENT TOGGLE
+
+commentsBtn.addEventListener("click", () => { //comment show/hide
+    if (!cOpen) {
+        commentsTab.style.display = "block" //show comments
+        questionSpace.style.width = '70%'
+    }
+    else {
+        commentsTab.style.display = "none" //hide comments
+        questionSpace.style.width = '100%'
+    }
+    cOpen = !cOpen
+})
+
+
+//  =================
+//  LIKES AND RATINGS
+//  =================
+
+let curLike
+let lastLikeValue
+
+elData.face.addEventListener("pointerdown", () => {
+    elData.likebar.style.display = "flex"
+})
+
+elData.likebar.addEventListener("pointerup", async () => {
+    elData.likebar.style.display = "none"
+    if(lastLikeValue == curLike.id || BtnValues.like == Number(curLike.id)) { return}
+
+    lastLikeValue = curLike.id
+    elData.face.src = curLike.src
+    BtnValues.like = Number(curLike.id)
+
+    //send like to server using curLike
+
+    elData.likes.innerHTML = (await sendDataRequest(`/like/${qID}/${curLike.id}`, errbar, window, "")).newLikes
+})
+
+//add like/dislike detection
+for (const img of likeBarImgs) {
+    img.addEventListener("pointerover", () => {
+        curLike = img
+    })
+}
+
+let curStar
+let lastRateVal
+
+elData.star.addEventListener("pointerdown", () => {
+    elData.ratebar.style.display = "flex"
+})
+
+elData.ratebar.addEventListener("pointerup", async () => {
+    elData.ratebar.style.display = "none"
+
+    if (!BtnValues.rate) {
+        BtnValues.rate = true
+        elData.star.src = "/resources/star_full.PNG"
+        elData.ratings.innerText = +elData.ratings.innerText + 1
+    }
+
+    if (lastRateVal == curStar.id) {return}
+    lastRateVal = curStar.id
+
+    //send rate to server using curStara
+    const result = (await sendDataRequest(`/rate/${qID}/${Number(curStar.id)}`, errbar, window, ""))
+    if (!result) return
+    elData.ratings.innerHTML = result.newRate
+    elData.rating.innerHTML = generateStarHTML(Number(result.newAvg))
+})
+
+//add rating detection
+for (const img of rateBarImgs) {
+    img.addEventListener("pointerover", () => {
+        curStar = img
+        
+        for (const item of rateBarImgs) {
+            if (Number(item.id) > Number(img.id)) { //stars above
+                item.src = "/resources/star_empty.PNG"
+            }
+            else {
+                item.src = "/resources/star_full.PNG" //star below
+            }
+        }
+    })
+}
+
+//watch and check animations
+elData.watch.addEventListener("click", async () => {
+    if (!BtnValues.watch) {
+        elData.watch.src = "/resources/watch_full.PNG"
+        elData.watches.innerHTML = +elData.watches.innerHTML + 1
+        await sendDataRequest(`/watch/add/${qID}`, errbar, window, "")
+    }
+    else {
+        elData.watch.src = "/resources/watch_empty.PNG"
+        elData.watches.innerHTML = +elData.watches.innerHTML - 1
+        await sendDataRequest(`/watch/remove/${qID}`, errbar, window, "")
+    }
+    BtnValues.watch = !BtnValues.watch
+
+    //send appropriate server request
+})
+
+elData.check.addEventListener("click",  async() => {
+    if (!BtnValues.solve) {
+        elData.check.src = "/resources/check_full.PNG"
+        elData.solves.innerHTML = +elData.solves.innerHTML + 1
+        await sendDataRequest(`/solve/add/${qID}`, errbar, window, "")
+    }
+    else {
+        elData.check.src = "/resources/check_empty.PNG"
+        elData.solves.innerHTML = +elData.solves.innerHTML - 1
+        await sendDataRequest(`/solve/remove/${qID}`, errbar, window, "")
+    }
+    BtnValues.solve = !BtnValues.solve
+})
+
+//  =================
+//  IDS AND FETCHING
+//  =================
+
+
+//fetch ID and check if valid
 let qID = window.location.href.split("/question")[1].substring(1)
 if (isNaN(Number(qID))) qID = -1
 if (qID == "") qID = -1
 
-
+//fetch question data corresponding to that id
 async function fetchData() {
     if (qID == -1) {
         window.location.href = "/home"
         return
     }
 
-    const res = await fetch(`/question/get/${qID}`)
-    const result = await res.json()
+    const result = await sendDataRequest(`/question/get/${qID}`, errbar, window, "")
 
-    if (!res.ok) { //not successful
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
+    for (const item in result) {
+        if (item == "spec" || item == "formula") { //spec and formulas need their links to be changed
+            elData[item].href = result[item]
         }
-        return
-    }
-    else {
-        for (let item in result) {
-            if (item == "spec" || item == "formula") {
-                elData[item].href = result[item]
-            }
-            else if (item == "rating") {
-                elData[item].innerHTML = generateStarHTML(Number(result[item]))
-            }
-            else {
-                elData[item].innerText = result[item]
-            }
+        else if (item == "rating") { //custom star generation for rating
+            elData[item].innerHTML = generateStarHTML(Number(result[item]))
         }
+        else if (item == "extra") { //detect additional user/question data and intercept
+            BtnValues = result[item]
+
+            if (BtnValues.like == -1) { //set like image
+                elData.face.src = "/resources/frown.PNG"
+            }
+            else if (BtnValues.like == 1) {
+                elData.face.src = "/resources/smile.PNG"
+            }
+
+            if (BtnValues.rate == 1) {
+                elData.star.src = "/resources/star_full.PNG"
+            }
+
+            if (BtnValues.watch == 1) {
+                elData.watch.src = "/resources/watch_full.PNG"
+            }
+
+            if (BtnValues.solve == 1) {
+                elData.check.src = "/resources/check_full.PNG"
+            }
+
+        }
+        else {
+            elData[item].innerText = result[item]
+        }
+
+        document.title = `${result.name} - SCIMUS`
     }
 }
 
 async function showPage() {
-    await Promise.all([
-        fetchData(), 
-    ])
+    await fetchData()
     await Promise.all(
       [...document.images].map(img =>
           img.complete ? Promise.resolve() : new Promise(r => img.onload = r)

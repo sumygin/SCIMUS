@@ -19,7 +19,9 @@ const timerSound = new Audio("/resources/timersound.wav")
 
 document.getElementsByTagName("main")[0].scroll = true
 
-user = {
+document.addEventListener("dragstart", e => e.preventDefault())
+
+let user = {
     workTime:600,
     restTime:60,
     timeStudiedToday:0,
@@ -113,7 +115,7 @@ class Timer {
 }
 
 function setTimerText(bool) {
-    for (el of timeInputs) {
+    for (let el of timeInputs) {
         el.contentEditable = bool
     }
 }
@@ -179,13 +181,13 @@ modeBtn.addEventListener("click", function() {
 
 let timeInputSelected = false
 
-for (el of timeInputs) {
+for (const el of timeInputs) {
     el.addEventListener("focus", function() {
         timeInputSelected = true
     })
 }
 
-for (el of timeInputs) {
+for (const el of timeInputs) {
     el.addEventListener("blur", function(){
         timeInputSelected = false
 
@@ -251,7 +253,7 @@ function mainLoop() {
     }
 
     let renderArc = false
-    for (item of tHover) {//thover has 2 elements - if any of them are hovered we need to render arc
+    for (const item of tHover) {//thover has 2 elements - if any of them are hovered we need to render arc
         if (item.matches(":hover")) {
             renderArc = true
         }
