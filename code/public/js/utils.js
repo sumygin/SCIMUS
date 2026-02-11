@@ -58,6 +58,8 @@ export function reportInvalid(el, message, e) {
  export function generateStarHTML(val) {
     const starEmpty = `<img src="/resources/star_empty.PNG" alt="" class="icon">`
     const starFull = `<img src="/resources/star_full.PNG" alt="" class="icon">`
+
+    if (isNaN(val)) val = 0
     
     val = Math.floor(val)
     let result = ``
@@ -89,12 +91,12 @@ export async function sendDataRequest(route, errbar, window, successMsg) {
         return
     }
 
-    success(errbar, successMsg)
+    if (successMsg != "") success(errbar, successMsg)
 
     return result
 }
 
-export async function sendFormData(route, form, errbar, window, successMsg) {
+export async function sendFormData(route, form, errbar, window, successMsg, send_result) {
     const formdata = new FormData(form)
     const data = Object.fromEntries(formdata.entries())
 
@@ -113,11 +115,77 @@ export async function sendFormData(route, form, errbar, window, successMsg) {
         return
     }
     
-    success(errbar, successMsg)
+    if (successMsg != "") success(errbar, successMsg)
 
     setTimeout(() => {    
         if (result.redirect) { //redirect if a link sent back
             window.location.href = result.redirect
         }
     }, 1000)
+
+    if (send_result) return result
+}
+
+export function convertStudyStage(val) {
+    if (!isNaN(Number(val))) {
+        if (val == 0 || val == "0") {
+            return "GCSE"
+        }
+        if (val == 1 || val == "1") {
+            return "A-level"
+        }
+        if (val == 2 || val == "2") {
+            return "University+"
+        }
+    }
+    else {
+        if (val == "GCSE") {
+            return 0
+        }
+        if (val == "A-level") {
+            return 1
+        }
+        if (val == "University+") {
+            return 2
+        }
+    }
+}
+
+export function convertTag(val) {
+    if (Number(val) == 1) {
+        return "User-made"
+    }
+    else if (Number(val) == 0) {
+        return "Official"
+    }
+    else if (Number(val) == 2) {
+        return "Looking for solution"
+    }
+    else if (val == "solution"){
+        return 2
+    }
+    else if (val == "user") {
+        return 1
+    }
+    else if (val == "official") {
+        return 0
+    }
+    else{
+        console.log("TAG CONVERSION ERROR")
+    }
+}
+
+export function likeConverter(val) { //convert overall like consensus from value
+    val = Number(val)
+    let src
+    if (val > 10) {
+        src = "/resources/smile.PNG"
+    }
+    if (val < -10) {
+        src =  "/resources/frown.PNG"
+    }
+    else {
+        src =  "/resources/neutral.PNG"
+    }
+    return `<img src=${src} class="icon" id="-1">`
 }

@@ -285,3 +285,11 @@ img {
     -webkit-user-drag: none;
     user-select: none;
 }
+
+select {
+    color: rgba(0,0,0,0.6);
+}
+
+select:has(option:checked:not([value="-1"])) {
+    color: black;
+}

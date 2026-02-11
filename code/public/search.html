@@ -18,48 +18,68 @@
         <button id="qc-switch"> <span>Questions</span> | <span>Collections</span></button><br><br>
         <div class="searchwrapper">
         <div id="questionSearch" >
-            <form class="searchbar">
-                <input type="text" placeholder="search" name="search" id="search" class="searchbar-item">
-                <input type="text" placeholder="subject" name="subject" id="subject"class="searchbar-item">
-                <select name="los" id="los" class="searchbar-item">
+            <form class="searchbar" id="questionForm" method="post">
+
+                <select name="stage" id="stage" class="searchbar-item">
+                    <option value="-1" style="display: none;" selected>study stage</option>
                     <option value="0">GCSE</option> 
                     <option value="1">A-level</option>
                     <option value="2">University+</option>
                 </select>
+
+                <div class="autocomplete-input subject">
+                    <input type="text" id="subject" name="subject" placeholder="subject" class="searchbar-item">
+                    <div class="space">
+                    </div>
+                </div>
+
                 <select name="paper" id="paper" class="searchbar-item">
-                    <option value="">Paper 1</option> 
-                    <option value="">Paper 2</option>
-                    <option value="">Paper 3</option>
+                    <option value="-1" style="display: none;" selected>paper number</option>
                 </select>
+
                 <input type="text" placeholder="year" name="year" id="year" class="searchbar-item">
+
                 <select name="tag" id="tag" class="searchbar-item">
-                    <option value="">Past paper</option> 
-                    <option value="">User-made</option>
-                    <option value="">Looking for solution</option>
+                    <option value="-1" style="display: none;" selected>question type</option>
+                    <option value="0">Past paper</option> 
+                    <option value="1">User-made</option>
+                    <option value="2">Looking for solution</option>
                 </select>
+
                 <input type="text" placeholder="@creator" name="creator" id="creator" class="searchbar-item">
-                <select name="topic" id="topic" class="searchbar-item">
-                    <option value="">placeholder1</option> 
-                    <option value="">placeholder1</option>
-                    <option value="">placeholder1</option>
-                </select>
                 
-            
+                <div class="autocomplete-input topic">
+                    <input type="text" id="topic" name="topic" placeholder="topic" class="searchbar-item">
+                    <div class="space">
+                    </div>
+                </div>
+
+                <input type="text" placeholder="contains" name="search" id="search" class="searchbar-item">
+                
                 <select name="sort" id="sort" class="searchbar-item">
-                    <option value="">Difficulty</option>
-                    <option value="">Likes</option>
-                    <option value="">Comments</option>
-                    <option value="">Ratings</option>
-                    <option value="">Question number</option>
+                    <option value="views">Views</option>
+                    <option value="easy">Easiest</option>
+                    <option value="hard">Hardest</option>
+                    <option value="likes">Like rating</option>
+                    <option value="commments">Number of comments</option>
+                    <option value="rates">Number of ratings</option>
+                    <option value="num">Question number</option>
+                    <option value="time">Recent</option>
                 </select>
+
+                <input type="submit" id="qSubmit" value="Search" class="searchbar-item">
+
+                <input type="text" style="display:none;" id="page" value="1">
             </form>
         </div>
 
         <div id="collectionSearch">
-            <form class="searchbar">
+            <form class="searchbar" id="collectionForm">
                 <input type="text" placeholder="search" name="search" id="search1" class="searchbar-item">
+                
                 <input type="text" placeholder="subject" name="subject" id="subject1"class="searchbar-item">
-                <select name="los" id="los1" class="searchbar-item">
+
+                <select name="stage" id="stage1" class="searchbar-item">
                     <option value="0">GCSE</option> 
                     <option value="1">A-level</option>
                     <option value="2">University+</option>
@@ -83,34 +103,24 @@
             </form>
         </div>
     </div>
-    <div class="displaywrapper">
 
-        <div id="displaySpace">
-            <a href="/question">
-                <div class="s-q">
-                    <div class="s-q-text">
-                        <div class="s-q-name">Two Forces</div>
-                        <div class="s-q-content">There is a 10N force acting up and a 5N force acting right...</div>
-                    </div>
-                    <div class="s-q-metadata">
-                        <div class="s-q-exb s-q-item">OCR</div>
-                        <div class="s-q-los s-q-item">A-level</div>
-                        <div class="s-q-subject s-q-item">Physics</div>
-                        <div class="s-q-topic s-q-item">Forces</div>
-                        <div class="s-q-rating s-q-item">★★★☆☆</div>
-                        <div class="s-q-paper s-q-item">Paper 2</div>
-                        <div class="s-q-questionNo s-q-item">Q12</div>
-                        <div class="s-q-comments s-q-item">💬 10</div>
-                        <div class="s-q-likes s-q-item">☺︎ 100</div>
-                        <div class="s-q-tag s-q-item-last">Official</div>
-                    </div>
-                </div>
-            </a>
+    <div class="displayWrapperCenter">
+        <div class="displaywrapper">
+
+            <div id="displaySpace">
+                
+            </div>
+
+            
         </div>
+    </div>
+    
+        <div class="error"></div>
     </main>
 
-    <script src="js/headerinsert.js"></script>
-    <script src="js/header.js"></script>
-    <script src="js/search.js"></script>
+    <script src="/js/headerinsert.js" type="module"></script>
+    <script src="/js/header.js" type="module"></script>
+    <script src="/js/search.js" type="module"></script>
+    <script type="module" src="/js/autocomplete.js"></script>
 </body>
 </html>

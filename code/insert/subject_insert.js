@@ -33,7 +33,7 @@ Subject.insertMany([
     exam_board: "OCR MEI",
     full_name: "OCR MEI Further Maths",
     colour: "purple",
-    papers: 3,
+    papers: 4,
     formulas: "https://www.ocr.org.uk/Images/643243-formulae-booklet.pdf",
     spec: "https://www.ocr.org.uk/images/308768-specification-accredited-a-level-gce-further-mathematics-b-mei-h645.pdf"
   },
@@ -44,7 +44,7 @@ Subject.insertMany([
     exam_board: "EDEXCEL A",
     full_name: "EDEXCEL A Biology",
     colour: "green",
-    papers: 2,
+    papers: 3,
     formulas: "",
     spec: "https://qualifications.pearson.com/content/dam/pdf/A%20Level/biology-a/2015/specification-and-sample-assessment-materials/9781446930885-gce2015-a-bioa-spec.pdf"
   },
@@ -55,7 +55,7 @@ Subject.insertMany([
     exam_board: "OCR A",
     full_name: "OCR A Chemistry",
     colour: "orange",
-    papers: 2,
+    papers: 3,
     formulas: "https://www.ocr.org.uk/Images/363792-unit-h032-and-h432-data-sheet.pdf",
     spec: "https://www.ocr.org.uk/images/171720-specification-accredited-a-level-gce-chemistry-a-h432.pdf"
   },

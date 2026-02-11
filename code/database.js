@@ -66,12 +66,16 @@ const questionSchema = new mongoose.Schema({
   created_at: {type: Date, default: Date.now},
   published: { type: Boolean, default: false},
   views: {type:Number, default:0},
+  year: {type:Number, default:0},
   
   num_comments: {type:Number, default:0},
   num_collections: {type:Number, default:0},
   num_watches: {type:Number, default:0},
   num_solves:{type:Number, default:0},
   num_diff_ratings: {type: Number,  default:0},
+
+  study_stage:{type:Number, required:true},
+  subject_id:{type:Number, required:true}
 })
 
 const collectionSchema = new mongoose.Schema({

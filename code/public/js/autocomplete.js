@@ -1,8 +1,12 @@
-import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames} from './utils.js'
+import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, sendDataRequest} from './utils.js'
+
+const errbar = document.getElementsByClassName("error")[0]
 
 const elements = document.getElementsByClassName('autocomplete-input')
 const stageSelect = document.getElementById("stage")
 const subjectSelect = document.getElementById("subject")
+
+const paper_field = document.getElementById("paper")
 
 let topicList
 let subjectList
@@ -124,6 +128,10 @@ class AutoHandler {
                 updateTopicList(this.input.value)
             }
         }
+
+        if (this.type == "subject" && paper_field) {
+            updatePaperNum(this.input.value)
+        }
     }
 
     hideSpace () {
@@ -142,11 +150,10 @@ async function createHandlers() {
 
     for (const el of elements) {
         let inplist = []
-        let creatable = false
+        let creatable = el.classList.contains("creatable")
         let type = ""
         if (el.classList.contains("school")) {
             inplist = await getSchoolNames()
-            creatable = true
             type = "school"
         }
         else if (el.classList.contains("subject")) {
@@ -163,7 +170,7 @@ async function createHandlers() {
         }
         else if (el.classList.contains("topic")) {
             if (!subjectSelect) {
-                throw SyntaxError("topic selector undefined")
+                throw SyntaxError("subject selector undefined")
             }
             topicList = []
             inplist = topicList
@@ -202,6 +209,14 @@ async function updateTopicList(value) {
         topicList.length = 0
         topicList.push(...await getTopicNames(value))
         window.topicList = topicList
+    }
+}
+
+async function updatePaperNum(value) {
+    const paperNum = Number(await sendDataRequest(`/subject/papers/${value}`, errbar, window, ""))
+    paper_field.innerHTML = '<option value="-1" style="display: none;" selected>paper number</option>'
+    for (let i = 1; i<paperNum+1; i++) {
+        paper_field.innerHTML += `<option value="${i}" >Paper ${i}</option>`
     }
 }
 

@@ -14,6 +14,26 @@ const leo = require("leo-profanity")
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
 
+/*<option value="views">Views</option>
+<option value="easy">Easiest</option>
+<option value="hard">Hardest</option>
+<option value="likes">Like rating</option>
+<option value="commments">Number of comments</option>
+<option value="rates">Number of ratings</option>
+<option value="num">Question number</option>
+<option value="time">Recent</option>*/
+
+const sortMap = { //quickly maps value of sort to a sort object
+    "views":{views:-1}, //lowest views first
+    "easy":{total_diff_rating:1}, //lowest difficulty first
+    "hard":{total_diff_rating:-1}, //highest difficulty first
+    "likes":{like_rating:-1}, //highest likes first
+    "comments":{num_comments:-1}, //highest comments first
+    "rates":{num_diff_ratings:-1}, //highest number of ratings first
+    "num":{question_number:1}, //ascending by question number
+    "time":{created_at:-1}, //largest date (youngest) first
+}
+
 function passwordCheck(pw) {
     const hasNumber = /[0-9]/.test(pw)
     const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};:'",.<>/?\\|~]/.test(pw)
@@ -420,7 +440,8 @@ module.exports = function(app) {
                 subject: subject.full_name,
                 paper: question.paper_num || "",
                 question: question.question_num || "",
-                topic: topic.name,
+                topic: topic.name || "",
+                year: question.year,
                 name: question.name,
                 user_tag: "@" + question.user_tag,
                 rating: (question.total_diff_rating/question.num_diff_ratings),
@@ -717,6 +738,21 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/subject/papers/:name", async (req, res) => { //get paper number from subject name
+        try {
+            const name = req.params.name
+            const subject = await Subject.findOne({full_name:name}, {papers:1, _id:0})
+            if (!subject) {
+                return res.status(409).json({ error: "Invalid subject"})
+            }
+            return res.json(subject.papers)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
     //POST REQUESTS
 
     app.post("/register", async (req, res) => {
@@ -923,7 +959,7 @@ module.exports = function(app) {
 
             else {
                 //subject check
-                const subjectID = await Subject.findOne({full_name:data.subject, study_stage:data.stage}, {subject_id:1})
+                const subjectID = await Subject.findOne({full_name:data.subject, study_stage:data.stage}, {subject_id:1, study_stage:1})
                 if (!subjectID) {
                     return res.status(409).json({ error: "Subject does not exist or is invalid!" })
                 }
@@ -947,7 +983,9 @@ module.exports = function(app) {
                         content: data.qtext,
                         tag: data.tag,
                         mark_scheme: data.mstext,
-                        published:publish
+                        published:publish,
+                        study_stage:subjectID.study_stage,
+                        subject_id:subjectID.subject_id,
                     })
 
                     await question.save()
@@ -959,7 +997,9 @@ module.exports = function(app) {
                         content: data.qtext,
                         tag: data.tag,
                         mark_scheme: data.mstext,
-                        published:publish
+                        published:publish,
+                        study_stage:subjectID.study_stage,
+                        subject_id:subjectID.subject_id,
                     }})
                 }
 
@@ -991,9 +1031,108 @@ module.exports = function(app) {
         }
     })
 
+    app.post("/search/question/:page", async (req, res) => { //respond to question searches
+        try{
+            let data = req.body
+            const userTag = req.user.user_tag
+            
+            let filter = {}
+
+            if(data.creator.startsWith("@")) data.creator = data.creator.slice(1) //remove @ at the start
+            
+            data.page = req.params.page
+            !data.page ? data.page = 1 : data.page = Number(data.page)
+            const skip = (data.page-1)*20 //calculate total number to skip
+            console.log(data.page, skip)
+
+            let published = true
+
+            if (data.creator == userTag) {
+                published = false
+            }
+
+            let subject, topic
+
+            //find subject
+            if (data.subject != "") { //check subject exists
+                subject = await Subject.findOne({full_name:data.subject}, {subject_id:1, _id:0})
+                if (!subject) {
+                    return res.status(400).json({error:"No such subject found"}) //if subject is invalid
+                }
+            }
+
+            //find topic
+            if (data.topic != "") { //check topic exists
+                topic = await Topic.findOne({name:data.topic}, {topic_id:1, _id:0})
+                if (!topic) {
+                    return res.status(400).json({error:"No such topic found"}) //if topic is invalid
+                }
+            }
+
+
+            if (data.creator){filter.user_tag = data.creator} 
+            if (data.paper != "-1"){filter.paper = Number(data.paper)}
+            if (data.stage != "-1"){filter.study_stage = Number(data.stage)}
+            if (data.subject){filter.subject_id = subject.subject_id}
+            if (data.tag != "-1"){filter.tag = Number(data.tag)}
+            if (data.topic){filter.topic_id = topic.topic_id}
+            if (data.year){filter.year = Number(data.year)}
+
+            filter.published = published
+
+            if (data.search){
+                filter.$or = [ //check matches in any of mark scheme, title, content
+                    {name:{$regex: data.search, $options: "i"}},
+                    {content:{$regex: data.search, $options: "i"}},
+                    {mark_scheme:{$regex: data.search, $options: "i"}}
+                ]
+            }
+
+            let sortVal = sortMap[data.sort] || {views:-1} //default sort is views
+            sortVal._id = 1 //enforces specific order
+
+            let result = await Question.find(filter) //find specified questions
+            .sort(sortVal)
+            .skip(skip)
+            .limit(20)
+            .lean()
+
+            //collect topic ids
+            const topicIDs = [...new Set(result.map(q => q.topic_id))]
+
+            //fetch topic ids, names, subject_ids
+            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+            //create object of {topic_id:{topic_id, subject_id, name}}
+            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+            //collect subject ids from topics
+            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+            //fetch subject names
+            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+            //create object of {subject_id:name}
+            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+            //add to questions in result
+            for (let q of result) {
+                const topic = topicObj[q.topic_id]
+                q.topic = topic.name
+                q.subject = subjObj[topic.subject_id]
+            }
+
+            return res.json(result)
+        }
+        catch (err) {
+            console.error(err)
+            return res.status(500).json({error:"Server error"})
+        }
+    })
+
     // Auth middleware
     
-//at the end of every day, set 
+//at the end of every day, set stats to 0
 
     //delete all notifications that are older than 60 days
 }

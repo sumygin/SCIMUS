@@ -67,6 +67,8 @@ select.searchbar-item {
     border-radius: 0.8em;
     height: 67vh;
     width: inherit;
+    min-width: 80vw;
+    max-width: 80vw;
 }
 
 .s-q {
@@ -84,13 +86,18 @@ select.searchbar-item {
     flex-direction: column;
     align-content: left;
     text-align: left;
-    width: 50%;
+    width:35%;
     font-family: monospace;
     padding: 1.3em;
     padding-left: 3em;
     padding-top: 2em;
     padding-bottom: 1.5em;
 
+}
+.displayWrapperCenter {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
 .s-q-name {
@@ -101,6 +108,7 @@ select.searchbar-item {
 .s-q-content {
     font-style: italic;
     font-size: 1.2em;
+    padding-top: 1em;
 }
 
 .s-q-metadata {
@@ -111,22 +119,37 @@ select.searchbar-item {
     justify-content:flex-start;
     padding: 1em;
     right: 0px;
+    width: 65%;
 }
 
-.s-q-item {
-    border-right: 1px solid gray;
+.row{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.s-q-item, .s-q-item-last {
     padding-right: 1em;
+    text-align: left;
     padding-left:1em;
-    min-width: 6em;
     box-sizing: border-box;
     margin-top: 0.5em;
 }
 
-.s-q-item-last {
-    border-right: none;
-    padding-right: 1em;
-    padding-left:1em;
-    min-width: 6em;
-    box-sizing: border-box;
-    margin-top: 0.5em;
+#qSubmit {
+    background-color: white;
+    border: 1px solid gray;
+    text-align: left;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+#qSubmit:hover {
+    background-color: white;
+}
+
+#displaySpace img {
+    height: 15px;
+    margin-bottom: 2.5px;
 }

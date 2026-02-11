@@ -1,14 +1,33 @@
-let qcbtn = document.getElementById("qc-switch")
-let t1 = qcbtn.children[0]
-let t2 = qcbtn.children[1]
-let qs = document.getElementById("questionSearch")
-let cs = document.getElementById("collectionSearch")
+import { sendFormData, convertStudyStage, generateStarHTML, likeConverter, convertTag } from "./utils.js"
+
+const errbar = document.getElementsByClassName("error")[0]
+
+const qFormList = ["stage", "subject", "paper", "year", "tag", "creator", "topic", "search", "sort", "page"]
+let qFormData = {}
+
+for (let el of qFormList) {
+    qFormData[el] = document.getElementById(el)
+}
+
+const qcbtn = document.getElementById("qc-switch")
+const t1 = qcbtn.children[0]
+const t2 = qcbtn.children[1]
+const qs = document.getElementById("questionSearch")
+const cs = document.getElementById("collectionSearch")
 let state = true
 cs.style.display = "none"
 
 t2.style.opacity = 0.25
 
-qcbtn.addEventListener("click",() => {
+const qForm = document.getElementById("questionForm")
+const qBtn = document.getElementById("qSubmit")
+
+const displaySpace = document.getElementById("displaySpace")
+
+let isLoading = false
+let hasMore = true
+
+qcbtn.addEventListener("click",() => { //switch between questions/collections
     if (state) {
         t1.style.opacity = 0.25
         t2.style.opacity = 1
@@ -24,3 +43,126 @@ qcbtn.addEventListener("click",() => {
 
     state = !state
 })
+
+function questionTemplate(question){ 
+    let insertData = ""
+    if (question.tag == 0) {
+        insertData = 
+        `<div class="s-q-year s-q-item">${
+            question.year != 0 ? question.year : ""}</div>
+        <div class="s-q-paper s-q-item">${
+            question.paper_num != 0 ? "Paper " + question.paper_num : ""}</div>
+        <div class="s-q-questionNo s-q-item">${
+            question.question_num != 0 ? "Q" + question.question_num : ""}</div>`
+    }
+
+    return `<a href="/question/${question.question_id}">
+        <div class="s-q">
+            <div class="s-q-text">
+                <div class="s-q-name">${question.name}</div>
+                <div class="s-q-content">${question.content.substring(0, 61).trim() + (question.content.length > 61 ? "..." : "")}</div>
+            </div>
+            <div class="s-q-metadata">
+                <div class="row">
+                    <div class="s-q-los s-q-item">${convertStudyStage(question.study_stage)}</div>
+                    <div class="s-q-subject s-q-item">${question.subject}</div>
+                    <div class="s-q-topic s-q-item">${question.topic}</div>
+                    <div class="s-q-tag s-q-item-last">${convertTag(question.tag)}</div>
+
+                    
+                </div>
+                    
+                <div class="row">
+                    <div class="s-q-views s-q-item"><img src="/resources/view.PNG" alt="" class="icon"> ${question.views}</div>
+                    
+                    
+                    <div class="s-q-comments s-q-item"><img src="/resources/comments.PNG" alt="" class="icon"> ${question.num_comments}</div>
+
+                    <div class="s-q-likes s-q-item">${likeConverter(question.like_rating)} ${question.like_rating}</div>
+                    
+                    <div class="s-q-rating s-q-item">${generateStarHTML(Number(question.total_diff_rating)/Number(question.num_diff_ratings))} ${question.num_diff_ratings}</div>
+
+                    ${insertData}
+
+                </div>
+            </div>
+        </div>
+    </a>`
+}
+
+//changing stage clears subject, paper number, topic
+
+qFormData.stage.addEventListener("change", ()=>{
+    qFormData.subject.value = ""
+    qFormData.paper.value = -1
+    qFormData.topic.value = ""
+})
+
+qFormData.subject.addEventListener("keyup", ()=>{
+    qFormData.paper.value = -1
+    qFormData.topic.value = ""
+})
+
+qForm.addEventListener("submit", async (e)=>{
+    e.preventDefault()
+    sendFilters(true)
+})
+
+async function sendFilters (deleteOld) {
+    if (deleteOld) {
+        qFormData.page.value = "1"
+        displaySpace.innerHTML = ""
+        hasMore = true
+        isLoading = false
+    }
+
+    const oldBottomEl = document.getElementById("bottomDetect")
+    if (oldBottomEl){
+        observer.unobserve(oldBottomEl)
+        oldBottomEl.remove() //remove old bottom detector
+    }
+
+    let result = await sendFormData(`/search/question/${qFormData.page.value}`, qForm, errbar, window, "", true)
+
+    if (!result) return
+
+    for (const question of result) { //append new data
+        displaySpace.innerHTML += questionTemplate(question)
+    }
+
+    if (result.length >= 20) { //if tehre is potential for more data to be loaded later
+        displaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
+        const bottomEl = document.getElementById("bottomDetect")
+        observer.observe(bottomEl)
+    }
+    else {
+        hasMore = false //tehre is no more data to load
+    }
+
+    
+}
+
+async function loadMoreItems() {
+    if (!isLoading && hasMore) { //if its already loading or there are no more to be loaded
+        isLoading = true
+
+        qFormData.page.value = Number(qFormData.page.value) + 1 //increment page
+
+        await sendFilters(false)
+
+        isLoading = false
+    }
+}
+
+const observer = new IntersectionObserver((entries) => {
+    
+    if (entries[0].isIntersecting) { //if on screen
+        loadMoreItems()
+    }
+}, {
+    root: null, 
+    rootMargin: '1000px', //data load from 100px from bottom
+    threshold: 0.1
+})
+
+sendFilters(true)
