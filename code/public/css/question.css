@@ -39,7 +39,7 @@ main {
 
 .metadata {
     text-align: left;
-   
+    gap: 1em;
 }
 
 .actions { 
@@ -313,6 +313,7 @@ button.reply, button.c-like {
     height: 10em;
     overflow-y: auto;
     overflow-x: hidden;
+    display: none;
 }
 
 .col-item {
@@ -323,8 +324,8 @@ button.reply, button.c-like {
     justify-content: space-between;
     gap: 0.7em;
     align-items: center;
-    padding-bottom: 0.45em;
-    padding-top:  0.45em;
+    padding-bottom: 0.6em;
+    padding-top:  0.6em;
     border-bottom: 1px solid grey;
 }
 
@@ -335,6 +336,11 @@ button.reply, button.c-like {
 .publish-btn {
     font-size: 0.7em;
     color: darkred;
+    width: 2.5em;
+}
+
+.publish-btn:hover {
+    opacity: 0.6;
 }
 
 .col-optns {
@@ -342,4 +348,33 @@ button.reply, button.c-like {
     flex-direction: row;
     gap: 0.7em;
     align-items: center;
+}
+
+input[type="text"] {
+    line-height: 1;
+}
+
+.col-item input   {
+    border:none;
+    border-bottom: 1px dashed gray;
+    outline: none;
+    align-items: right;
+    font-size: 1em;
+    width: 60%;
+}
+
+.col-item input:hover {
+    opacity: 0.67;
+}
+
+.col-check {
+    background: white;
+}
+
+.col-check :hover {
+    opacity: 0.6;
+}
+
+#addcol:hover {
+    opacity: 0.6;
 }

@@ -83,9 +83,15 @@ const collectionSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User', required: true },
   name: { type: String, maxlength: 40 },
   tag: { type: Number, enum: [0, 1] }, //0 = past paper, 1 = user-made
-  paper_num: { type: Number , default: 0 },
   created_at: { type: Date, default: Date.now },
-  published: { type: Boolean, default: false }
+  published: { type: Boolean, default: false },
+
+  subject_ids: { type: [Number], ref: 'Subject',  default:[]},
+  topic_ids: { type: [Number], ref: 'Topic',  default:[]},
+  stages: { type: [Number],  default:[]},
+  
+  paper:{type:Number, default:0},
+  year:{type:Number, default:0},
 })
 
 const questionCollectionSchema = new mongoose.Schema({

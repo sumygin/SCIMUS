@@ -75,6 +75,7 @@ export function reportInvalid(el, message, e) {
 
 export async function sendDataRequest(route, errbar, window, successMsg) {
     const res = await fetch(route)
+
     const result = await res.json()
 
     if (result.redirect) { //redirect if a link sent back
@@ -197,6 +198,24 @@ export function convertTag(val) {
     }
     else if (val == "official" || val == "Official") {
         return 0
+    }
+    else{
+        console.log("TAG CONVERSION ERROR")
+    }
+}
+
+export function convertCollectionTag(val) {
+    if (Number(val) == 1) {
+        return "User-made"
+    }
+    else if (Number(val) == 0) {
+        return "Past paper"
+    }
+    else if (val == "paper" || val == "Past paper") {
+        return 0
+    }
+    else if (val == "user" || val == "User-made") {
+        return 1
     }
     else{
         console.log("TAG CONVERSION ERROR")

@@ -119,6 +119,24 @@ function convertTag(val) {
     }
 }
 
+function convertCollectionTag(val) {
+    if (Number(val) == 1) {
+        return "User-made"
+    }
+    else if (Number(val) == 0) {
+        return "Past paper"
+    }
+    else if (val == "paper" || val == "Past paper") {
+        return 0
+    }
+    else if (val == "user" || val == "User-made") {
+        return 1
+    }
+    else{
+        console.log("TAG CONVERSION ERROR")
+    }
+}
+
 module.exports = function(app) {
     const {User, Subject, Topic, School, Question, Collection, QuestionCollection, 
     Like, Solve, Watch, Comment, Notification, Rate,
@@ -255,6 +273,13 @@ module.exports = function(app) {
         //process id in link as well
         //if collection is private, check that it belongs to user
         //if collection is not accesible or doesnt exist, return error page
+        res.redirect("/home")
+    })
+
+    app.get("/collection/:id", isLoggedIn, (req, res) => {
+        //process id in link as well
+        //if collection is private, check that it belongs to user
+        //if collection is not accesible or doesnt exist, return error page
         res.sendFile(path.join(__dirname, "public", "collection.html"))
     })
 
@@ -332,7 +357,6 @@ module.exports = function(app) {
             )
 
             if (!question || !topic || !subject) { //if any are not found, redirect to empty
-                console.log(question, topic, subject, "NOT FOUND", qID)
                 return res.status(400).json({
                     success: false,
                     redirect: `/create`
@@ -780,7 +804,6 @@ module.exports = function(app) {
             let subject, topic
 
             if (data.paper !="-1"  && data.subject == "") { //if paper without subject
-                console.log("p", data.paper, "s",data.subject)
                 return res.status(400).json({error:"Cannot search paper without subject!"})
             }
 
@@ -831,7 +854,7 @@ module.exports = function(app) {
             sortVal._id = 1 //enforces specific order
 
             let result = await Question.find(filter, {
-                question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, subject_id:1, topic:1, subject:1, topic_id:1, subject_id:1
+                question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, topic_id:1, subject_id:1
             }) //find specified questions
             .sort(sortVal)
             .skip(skip)
@@ -868,6 +891,313 @@ module.exports = function(app) {
         catch (err) {
             console.error(err)
             return res.status(500).json({error:"Server error"})
+        }
+    })
+
+    app.get("/collections/get/:id", async (req, res) => { //respond to collection requests
+        try {
+            const userTag = req.user.user_tag
+            const qID = Number(req.params.id)
+
+            //find collections
+            const collections = await Collection.find({user_tag:userTag}, {collection_id:1, name:1, published:1, _id:0}).lean()
+
+            const cIDS = collections.map(c => c.collection_id)
+
+            //check questionCollection - return list of collection objects which contain the question
+            const collectionsWithQuestion = await QuestionCollection.find({collection_id:{$in:cIDS}, question_id:qID},{collection_id:1})
+
+            const collectionArray = collectionsWithQuestion.map(c => c.collection_id)
+
+            for (const c of collections) { //insert true into all collections that contain the question
+                if (collectionArray.includes(c.collection_id)) {
+                    c.includesQuestion = true
+                }
+                else {
+                    c.includesQuestion = false
+                }
+            }
+
+            return res.json(collections)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/collection/create", async (req, res) => {
+         try {
+            const userTag = req.user.user_tag
+
+            if (await Collection.exists({user_tag:userTag, name:"New collection"})) {
+                return res.status(409).json({ error: "You have already created a collection recently!" })
+            }
+
+            const newID = await idGenerator(Collection)
+            
+            await Collection.insertOne({
+                collection_id: newID,
+                user_tag:userTag,
+                name:"New collection",
+                tag:1, //usermade
+                published:false
+            })
+
+            return res.status(200).json({success:true, id:newID})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/collection/rename/:name/:id", async (req, res) => {
+         try {
+            const userTag = req.user.user_tag
+            const newName = req.params.name
+            const cID = Number(req.params.id)
+
+            const collection = await Collection.findOne({collection_id:cID})
+
+            if (!collection) {//if collection doesnt exist
+                return res.status(409).json({ error: "Collection does not exist" })
+            }
+
+            if (collection.user_tag != userTag) { //if collection not user's
+                return res.status(409).json({ error: "This collection does not belong to you!" })
+            }
+
+            //validate name
+            if (validate(newName)) {
+                return
+            }
+
+            await Collection.updateOne({collection_id:cID}, { //set new name
+                $set:{name:newName}
+            })
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/collection/visibility/:id", async (req, res) => {
+         try {
+            const userTag = req.user.user_tag
+            const cID = Number(req.params.id)
+
+            const collection = await Collection.findOne({collection_id:cID})
+
+            if (!collection) {//if collection doesnt exist
+                return res.status(409).json({ error: "Collection does not exist" })
+            }
+
+            if (collection.user_tag != userTag) { //if collection not user's
+                return res.status(409).json({ error: "This collection does not belong to you!" })
+            }
+
+            await Collection.updateOne({collection_id:cID}, { //set new name
+                $set:{published:!collection.published}
+            })
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/collection/question/:qID/:id", async (req, res) => { //add/remove question to collection
+         try {
+            const userTag = req.user.user_tag
+            const cID = Number(req.params.id)
+            const qID = Number(req.params.qID)
+
+            const collection = await Collection.findOne({collection_id:cID})
+
+            if (!collection) {//if collection doesnt exist
+                return res.status(409).json({ error: "Collection does not exist" })
+            }
+
+            if (collection.user_tag != userTag) { //if collection not user's
+                return res.status(409).json({ error: "This collection does not belong to you!" })
+            }
+
+            const question = await Question.findOne({question_id:qID})
+
+            if (!(question)) {
+                return res.status(409).json({ error: "Question does not exist!" })
+            }
+
+            //find questionCollection entry
+            const questionCollectionEntry = await QuestionCollection.findOne({
+                question_id:qID,
+                collection_id:cID
+            })
+
+            let newColNum = question.num_collections
+
+            if (!questionCollectionEntry) { //if question not in collection, add it
+                await QuestionCollection.insertOne({
+                    question_id:qID,
+                    collection_id:cID
+                })
+
+                await question.updateOne({ //update number of collections question is in
+                    $inc:{num_collections:1}
+                })
+                newColNum++ //update counter to send to user
+
+                //add subjectID to collection
+                await collection.updateOne(
+                    {$addToSet:{subject_ids:question.subject_id}}
+                )
+
+                //add topicID to collection
+                await collection.updateOne(
+                    {$addToSet:{topic_ids:question.topic_id}}
+                )
+
+                //add stage to collection
+                await collection.updateOne(
+                    {$addToSet:{stages:question.study_stage}}
+                )
+            }
+            else { //if question in collection, delete
+                await questionCollectionEntry.deleteOne()
+
+                const remainingQuestionIDs = await QuestionCollection.find( //get all ids in collection
+                    {collection_id:cID},
+                    {question_id:1,_id:0}
+                ).lean()
+
+                const ids = remainingQuestionIDs.map(q => q.question_id)
+
+                //count how many match each of stage, subject, topic
+
+                const stageCount = await Question.countDocuments({ 
+                    question_id:{$in:ids},
+                    study_stage:question.study_stage
+                })
+
+                const subjectCount = await Question.countDocuments({ 
+                    question_id:{$in:ids},
+                    subject_id:question.subject_id
+                })
+
+                const topicCount = await Question.countDocuments({
+                    question_id:{$in:ids},
+                    topic_id:question.topic_id
+                })
+
+                if(stageCount === 0){ //if there are none left wiht the study stage, delete 
+                    await collection.updateOne({$pull:{stages:question.study_stage}})
+                }
+
+                if(subjectCount === 0){ //if there are none left with subject, delete subject
+                    await collection.updateOne({$pull:{subject_ids:question.subject_id}})
+                }
+
+                if(topicCount === 0){//if there are none left with topic, delete topic
+                    await collection.updateOne({$pull:{topic_ids:question.topic_id}})
+                }
+
+                //remove topicID 
+                
+
+                await question.updateOne({ //update number of collections question is in
+                    $inc:{num_collections:-1}
+                })
+                newColNum--
+            }
+
+            return res.status(200).json({success:true, newColnum:newColNum})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/collection/get/:id", async (req, res) => {
+        try {
+            const cID = Number(req.params.id)
+            const userTag = req.user.user_tag
+
+            const collection = await Collection.findOne( //query collection
+                {collection_id:cID},
+                {name:1, user_tag:1, tag:1, published:1, _id:0,
+                    paper:1, year:1,
+                })
+            
+            //if doesn't exist or private, but not owned by the user, then redirect to home
+            if (!collection || (!collection.published && collection.user_tag != userTag)) { 
+                return res.status(500).json({
+                    success: false,
+                    redirect: `/home`
+                })
+            }
+
+            //find questionIDS in collection
+            const questionIDs = await QuestionCollection.find({collection_id:cID}, {question_id:1, _id:0}).lean()
+            const questionIDArray = questionIDs.map(q => q.question_id)
+
+            //get data from questions
+
+            let questions = await Question.find({ //find specified questions from ID list
+                question_id: {$in:questionIDArray}
+            }, {
+                question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, subject_id:1, topic:1, subject:1, topic_id:1, subject_id:1
+            }) 
+            .sort({created_at:-1})
+            .lean()
+
+            //collect topic ids
+            const topicIDs = [...new Set(questions.map(q => q.topic_id))]
+
+            //fetch topic ids, names, subject_ids
+            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+            //create object of {topic_id:{topic_id, subject_id, name}}
+            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+            //collect subject ids from topics
+            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+            //fetch subject names
+            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+            //create object of {subject_id:name}
+            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+            //add to questions in result
+            for (let q of questions) {
+                const topic = topicObj[q.topic_id]
+                q.topic = topic.name
+                q.subject = subjObj[topic.subject_id]
+            }
+
+            let tag = convertCollectionTag(collection.tag)
+
+            let data = {
+                tag:tag,
+                paper:collection.paper == 0 ? "" : collection.paper,
+                year:collection.year == 0 ? "" : collection.year,
+                name:collection.name,
+                user_tag:collection.user_tag,
+                question_data:questions
+            }
+
+            return res.json(data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
         }
     })
 

@@ -52,12 +52,17 @@ select.searchbar-item {
     background-repeat: no-repeat;
 }
 
-#displaySpace {
+#QdisplaySpace {
     overflow-y:scroll;
     position: absolute;
     height: inherit;
     width: 100%;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+#QdisplaySpace img {
+    height: 15px;
+    margin-bottom: 2.5px;
 }
 
 .displaywrapper {
@@ -151,7 +156,3 @@ select.searchbar-item {
     background-color: white;
 }
 
-#displaySpace img {
-    height: 15px;
-    margin-bottom: 2.5px;
-}

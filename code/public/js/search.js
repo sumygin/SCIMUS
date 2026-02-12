@@ -10,6 +10,7 @@ for (let el of qFormList) {
 }
 
 const qcbtn = document.getElementById("qc-switch")
+
 const t1 = qcbtn.children[0]
 const t2 = qcbtn.children[1]
 const qs = document.getElementById("questionSearch")
@@ -22,7 +23,9 @@ t2.style.opacity = 0.25
 const qForm = document.getElementById("questionForm")
 const qBtn = document.getElementById("qSubmit")
 
-const displaySpace = document.getElementById("displaySpace")
+const QdisplaySpace = document.getElementById("QdisplaySpace")
+const CdisplaySpace = document.getElementById("CdisplaySpace")
+CdisplaySpace.style.display = "none"
 
 let isLoading = false
 let hasMore = true
@@ -35,12 +38,16 @@ qcbtn.addEventListener("click",() => { //switch between questions/collections
         t2.style.opacity = 1
         qs.style.display = "none"
         cs.style.display = "block"
+        CdisplaySpace.style.display = "block"
+        QdisplaySpace.style.display = "none"
     }
     else {
         t2.style.opacity = 0.25
         t1.style.opacity = 1
         qs.style.display = "block"
         cs.style.display = "none"
+        CdisplaySpace.style.display = "none"
+        QdisplaySpace.style.display = "block"
     }
 
     state = !state
@@ -123,7 +130,7 @@ qForm.addEventListener("submit", async (e)=>{
 async function sendFilters (deleteOld) {
     if (deleteOld) {
         qFormData.page.value = "1"
-        displaySpace.innerHTML = ""
+        QdisplaySpace.innerHTML = ""
         hasMore = true
         isLoading = false
         qIDList = []
@@ -145,11 +152,11 @@ async function sendFilters (deleteOld) {
 
 
     for (const question of result) { //append new data
-        displaySpace.appendChild(questionTemplate(question))
+        QdisplaySpace.appendChild(questionTemplate(question))
     }
 
     if (result.length >= 20) { //if tehre is potential for more data to be loaded later
-        displaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
+        QdisplaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
         const bottomEl = document.getElementById("bottomDetect")
         observer.observe(bottomEl)
     }
@@ -188,8 +195,12 @@ async function fillForm() { //update filters according to URL data
             
             if (key == "paper") { //modify paper manually
                 await updatePaperNum(qForm.subject.value, qForm.paper, errbar, window)
-                qForm.paper.value = value
             }
+
+            if (key == "page") {
+                continue
+            }
+
             
             qForm[key].value = value
 

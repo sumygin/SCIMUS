@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const {Question, Watch, Solve, Rate, Like} = require("../database")
+const {Question, Watch, Solve, Rate, Like, QuestionCollection} = require("../database")
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 mongoose.connect(hostUrl)
         .then(() => {
@@ -9,8 +9,6 @@ mongoose.connect(hostUrl)
 async function del() {
   await Question.deleteMany({})
 }
-
-del()
 
 async function addQuestions() {
   const questions = [
@@ -943,6 +941,8 @@ async function addQuestions() {
     }
   ];
 
+  await del()
+
   await Question.insertMany(questions).then(() => {})
 
   await Question.updateMany(
@@ -961,6 +961,7 @@ async function addQuestions() {
   await Solve.deleteMany({})
   await Rate.deleteMany({})
   await Like.deleteMany({})
+  await QuestionCollection.deleteMany({})
 }
 
 addQuestions()

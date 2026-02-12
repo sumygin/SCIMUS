@@ -76,35 +76,56 @@
         <div id="collectionSearch">
             <form class="searchbar" id="collectionForm">
 
-                <input type="text" placeholder="search" name="search1" id="search1" class="searchbar-item">
-                
-                <input type="text" placeholder="subject" name="subject1" id="subject1"class="searchbar-item">
-
                 <select name="stage1" id="stage1" class="searchbar-item">
+                    <option value="-1" style="display: none;" selected>study stage</option>
                     <option value="0">GCSE</option> 
                     <option value="1">A-level</option>
                     <option value="2">University+</option>
                 </select>
 
-                <select name="paper1" id="paper1" class="searchbar-item">
-                    <option value="">Paper 1</option> 
-                    <option value="">Paper 2</option>
-                    <option value="">Paper 3</option>
+                <div class="autocomplete-input subject">
+                    <input type="text" id="subject1" name="subject1" placeholder="subject" class="searchbar-item">
+                    <div class="space">
+                    </div>
+                </div>
+
+                <select name="paper" id="paper" class="searchbar-item">
+                    <option value="-1" style="display: none;" selected>paper number</option>
                 </select>
 
-                <input type="text" placeholder="year" name="year1" id="year1" class="searchbar-item">
+                <input type="text" placeholder="year" name="year" id="year" class="searchbar-item">
 
-                <select name="tag1" id="tag1" class="searchbar-item">
-                    <option value="">Past paper</option> 
-                    <option value="">User-made</option>
+                <select name="tag" id="tag" class="searchbar-item">
+                    <option value="-1" style="display: none;" selected>question type</option>
+                    <option value="0">Past paper</option> 
+                    <option value="1">User-made</option>
+                    <option value="2">Looking for solution</option>
                 </select>
-                <input type="text" placeholder="@creator" name="creator1" id="creator1" class="searchbar-item">
 
-                <select name="topic1" id="topic1" class="searchbar-item">
-                    <option value="">topicplaceholderlongname1</option> 
-                    <option value="">placeholder1</option>
-                    <option value="">placeholder1</option>
+                <input type="text" placeholder="@creator" name="creator" id="creator" class="searchbar-item">
+                
+                <div class="autocomplete-input topic">
+                    <input type="text" id="topic" name="topic" placeholder="topic" class="searchbar-item">
+                    <div class="space">
+                    </div>
+                </div>
+
+                <input type="text" placeholder="contains" name="search" id="search" class="searchbar-item">
+                
+                <select name="sort" id="sort" class="searchbar-item">
+                    <option value="views">Views</option>
+                    <option value="easy">Easiest</option>
+                    <option value="hard">Hardest</option>
+                    <option value="likes">Like rating</option>
+                    <option value="comments">Number of comments</option>
+                    <option value="rates">Number of ratings</option>
+                    <option value="num">Question number</option>
+                    <option value="time">Recent</option>
                 </select>
+
+                <input type="submit" id="qSubmit" value="Search" class="searchbar-item">
+
+                <input type="text" style="display:none;" id="page" value="1" name="page">
             </form>
         </div>
     </div>
@@ -112,7 +133,11 @@
     <div class="displayWrapperCenter">
         <div class="displaywrapper">
 
-            <div id="displaySpace">
+            <div id="QdisplaySpace">
+                
+            </div>
+
+            <div id="CdisplaySpace">
                 
             </div>
 

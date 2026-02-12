@@ -22,9 +22,13 @@ let cOpen = false
 const likeBarImgs = document.querySelectorAll(".like-bar img")
 const rateBarImgs = document.querySelectorAll(".rate-bar img")
 
+const collectionMenu = document.getElementsByClassName("col-bar")[0]
+const collectionSpace = document.getElementsByClassName("collection-wrapper")[0]
+
 const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert els
     "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag",
-    "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check", "arr1", "arr2"
+    "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check", "arr1", "arr2", "plus", "addcol",
+
 ]
 let elData = {}
 
@@ -55,6 +59,86 @@ msBtn.addEventListener("click", async () => { //ms show/hide
     flipped = !flipped
 })
 
+//private/public collection button toggle
+async function buttonToggle(btn) {
+    if (!(await sendDataRequest(`/collection/visibility/${btn.parentNode.parentNode.id}`, errbar, window, ""))) return
+
+    if (btn.innerHTML == "Private") {
+        btn.innerHTML = "Public"
+        btn.style.color = "darkgreen"
+    }
+    else {
+        btn.innerHTML = "Private"
+        btn.style.color = "darkred"
+    }
+}
+
+//checked/unchecked collection button toggle
+async function checkedTogle(btn) {
+    const request = await sendDataRequest(`/collection/question/${qID}/${btn.parentNode.parentNode.id}`, errbar, window, "")
+    if (!request) return
+
+    elData.collections.innerHTML = request.newColnum
+
+    if (btn.classList.contains("checked")) {
+        btn.src = "/resources/check_empty.PNG"
+    }
+    else {
+        btn.src = "/resources/check_full.PNG"
+    }
+    btn.classList.toggle("checked")
+
+    //send data to server
+}
+
+async function collectionNameEdit(e, inp) { //send name change to server
+    if (!(await sendDataRequest(`/collection/rename/${inp.value}/${inp.parentNode.id}`, errbar, window, ""))) {
+        e.preventDefault() //if request failed, prevent edit
+    }
+}
+
+//COLLECTION MENU TOGGLE
+
+elData.plus.addEventListener("click", () =>{
+    if (collectionMenu.style.display == "block") {
+        collectionMenu.style.display = "none"
+    }
+    else {
+        collectionMenu.style.display = "block"
+    }
+})
+
+//add collection
+elData.addcol.addEventListener("click", async () =>{
+    const newCol = document.createElement("div")
+    newCol.classList.add("col-item")
+    newCol.innerHTML =
+    `
+        <input type="text" value="New collection">
+        <div class="col-optns">
+            <div class="publish-btn">Private</div>
+            <img src="/resources/check_empty.PNG" alt="" class="icon col-check">
+        </div>
+    `
+    const pBtn = newCol.querySelector(".publish-btn") //add functionality to publish button
+    pBtn.addEventListener("click", () => buttonToggle(pBtn))
+
+    const addbtn = newCol.querySelector(".col-check")//add functionality to check button
+    addbtn.addEventListener("click", () => checkedTogle(addbtn))
+
+    const inp = newCol.querySelector("input") //detect name change
+    inp.addEventListener("change", (e) => collectionNameEdit(e, inp))
+
+    
+    //create collection on server
+    let newID = await sendDataRequest("/api/collection/create", errbar, window, "")
+    console.log(newID)
+    if (newID) {
+        newCol.id = newID.id
+        collectionSpace.appendChild(newCol)
+    }
+    
+})
 
 //COMMENT TOGGLE
 
@@ -78,11 +162,11 @@ commentsBtn.addEventListener("click", () => { //comment show/hide
 let curLike
 let lastLikeValue
 
-elData.face.addEventListener("pointerdown", () => {
+elData.face.addEventListener("pointerdown", () => { //when like pressed, show likebar
     elData.likebar.style.display = "flex"
 })
 
-elData.likebar.addEventListener("pointerup", async () => {
+elData.likebar.addEventListener("pointerup", async () => { //when mouse released, send like to server
     elData.likebar.style.display = "none"
     if(lastLikeValue == curLike.id || BtnValues.like == Number(curLike.id)) { return}
 
@@ -109,7 +193,7 @@ elData.star.addEventListener("pointerdown", () => {
     elData.ratebar.style.display = "flex"
 })
 
-elData.ratebar.addEventListener("pointerup", async () => {
+elData.ratebar.addEventListener("pointerup", async () => { //handle ratings
     elData.ratebar.style.display = "none"
 
     if (!BtnValues.rate) {
@@ -129,7 +213,7 @@ elData.ratebar.addEventListener("pointerup", async () => {
 })
 
 //add rating detection
-for (const img of rateBarImgs) {
+for (const img of rateBarImgs) { //if star pointed over, save it as last rate value curStar
     img.addEventListener("pointerover", () => {
         curStar = img
         
@@ -176,9 +260,8 @@ elData.check.addEventListener("click",  async() => {
 })
 
 //  =================
-//  IDS AND FETCHING
+//  IDS AND FETCHING 
 //  =================
-
 
 //fetch ID and check if valid
 let qID = window.location.href.split("/question")[1].substring(1)
@@ -209,6 +292,8 @@ async function fetchData() {
         }
     }
 
+    elData.user_tag.href = `/user/${result.user_tag.substring(1)}`
+
     if (BtnValues.like == -1) { //set like image and other images (in action sidebar)
             elData.face.src = "/resources/frown.PNG"
     }
@@ -228,7 +313,7 @@ async function fetchData() {
         elData.check.src = "/resources/check_full.PNG"
     }
 
-    elData.tag.href =
+    elData.tag.href = //encode links into the left-hand metadata
     `/search/?tag=${encodeURIComponent(convertTag(result.tag))}`
 
     elData.stage.href =
@@ -240,12 +325,61 @@ async function fetchData() {
     elData.topic.href =
     `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&topic=${encodeURIComponent(result.topic)}`
 
-    //http://localhost:3000/search/?stage=1%26subject=OCR%20Computer%20Science 
-    //http://localhost:3000/search/?stage=1&subject=OCR+Computer+Science&paper=-1&year=&tag=-1&creator=&topic=&search=&sort=views&page=1
-    //http://localhost:3000/search/?stage=1%26subject=OCR%20Computer%20Science%26topic=Legislation
-
-
     document.title = `${result.name} - SCIMUS`
+
+    //fetch collection data
+    const collections = await sendDataRequest(`/collections/get/${qID}`, errbar, window, "")
+
+    //insert collection data
+    for (const c of collections) {
+        const newCol = document.createElement("div")
+        newCol.classList.add("col-item")
+        newCol.id = c.collection_id
+        newCol.innerHTML = `
+            <input type="text" value="${c.name}">
+            <div class="col-optns">
+                <div class="publish-btn">Private</div>
+                <img src="/resources/check_empty.PNG" alt="" class="icon col-check">
+            </div>
+        `
+
+        const pBtn = newCol.querySelector(".publish-btn") //edit publish button according to collection published
+        if (c.published) {
+            pBtn.innerHTML = "Public"
+            pBtn.style.color = "darkgreen"
+        }
+        else {
+            pBtn.innerHTML = "Private"
+            pBtn.style.color = "darkred"
+        }
+
+        const cBtn = newCol.querySelector(".col-check") //edit publish button according to collection published
+        if (c.includesQuestion) {
+            cBtn.classList.add("checked")
+            cBtn.src = "/resources/check_full.PNG"
+        }
+        else {
+            cBtn.src = "/resources/check_empty.PNG"
+        }
+
+        collectionSpace.appendChild(newCol)
+    }
+    
+    //add event listeners
+    const ppButtons = document.getElementsByClassName("publish-btn")
+    for (const btn of ppButtons) {
+        btn.addEventListener("click", () => buttonToggle(btn))
+    }
+
+    const cButtons = document.getElementsByClassName("col-check")
+    for (const btn of cButtons) {
+        btn.addEventListener("click", () => checkedTogle(btn))
+    }
+
+    const inputs = document.querySelectorAll(".col-item input")
+    for (const inp of inputs) {
+        inp.addEventListener("change", (e) => collectionNameEdit(e, inp))
+    }
 }
 
 async function showPage() {
