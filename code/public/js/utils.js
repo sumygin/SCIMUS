@@ -126,6 +126,34 @@ export async function sendFormData(route, form, errbar, window, successMsg, send
     if (send_result) return result
 }
 
+export async function submitSearchData(form, errbar, window, successMsg, send_result,  history) {
+    const formdata = new FormData(form)
+
+    const params = new URLSearchParams(formdata)
+    history.replaceState(null, "", `/search/?${params.toString()}`)
+
+    const res = await fetch(`/search/question/?${params.toString()}`)
+
+    const result = await res.json()
+
+    //display response
+
+    if (!res.ok) { //not successful
+        warn(errbar, result.error)
+        return
+    }
+    
+    if (successMsg != "") success(errbar, successMsg)
+
+    setTimeout(() => {    
+        if (result.redirect) { //redirect if a link sent back
+            window.location.href = result.redirect
+        }
+    }, 1000)
+
+    if (send_result) return result
+}
+
 export function convertStudyStage(val) {
     if (!isNaN(Number(val))) {
         if (val == 0 || val == "0") {
@@ -161,13 +189,13 @@ export function convertTag(val) {
     else if (Number(val) == 2) {
         return "Looking for solution"
     }
-    else if (val == "solution"){
+    else if (val == "solution" || val == "Looking for solution"){
         return 2
     }
-    else if (val == "user") {
+    else if (val == "user" || val == "User-made") {
         return 1
     }
-    else if (val == "official") {
+    else if (val == "official" || val == "Official") {
         return 0
     }
     else{
@@ -189,3 +217,13 @@ export function likeConverter(val) { //convert overall like consensus from value
     }
     return `<img src=${src} class="icon" id="-1">`
 }
+
+export async function updatePaperNum(value, paper_field, errbar, window) { //generate HTML for paper number selects
+    if (!value) return
+    const paperNum = Number(await sendDataRequest(`/subject/papers/${value}`, errbar, window, ""))
+    paper_field.innerHTML = '<option value="-1" style="display: none;" selected>paper number</option>'
+    for (let i = 1; i<paperNum+1; i++) {
+        paper_field.innerHTML += `<option value="${i}" >Paper ${i}</option>`
+    }
+}
+

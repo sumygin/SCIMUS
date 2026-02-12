@@ -124,6 +124,12 @@ async function fetchData() {
     if (!result) return
     
     for (let item in result) {
+        if (item == "stage") {
+            formData.stage.dispatchEvent(new Event("change"))
+        }
+        if (item == "subject") {
+            formData.subject.dispatchEvent(new CustomEvent("subjectLoaded"))
+        }
         formData[item].value = result[item]
     }
 

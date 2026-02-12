@@ -120,6 +120,8 @@ select.searchbar-item {
     padding: 1em;
     right: 0px;
     width: 65%;
+    z-index: 3;
+    background: white;
 }
 
 .row{

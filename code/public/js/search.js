@@ -1,4 +1,4 @@
-import { sendFormData, convertStudyStage, generateStarHTML, likeConverter, convertTag } from "./utils.js"
+import { sendFormData, convertStudyStage, generateStarHTML, likeConverter, convertTag, submitSearchData, updatePaperNum} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -26,6 +26,8 @@ const displaySpace = document.getElementById("displaySpace")
 
 let isLoading = false
 let hasMore = true
+
+let qIDList = []
 
 qcbtn.addEventListener("click",() => { //switch between questions/collections
     if (state) {
@@ -56,7 +58,9 @@ function questionTemplate(question){
             question.question_num != 0 ? "Q" + question.question_num : ""}</div>`
     }
 
-    return `<a href="/question/${question.question_id}">
+    let newQuestion = document.createElement("div")
+
+    newQuestion.innerHTML =`<a href="/question/${question.question_id}">
         <div class="s-q">
             <div class="s-q-text">
                 <div class="s-q-name">${question.name}</div>
@@ -68,8 +72,6 @@ function questionTemplate(question){
                     <div class="s-q-subject s-q-item">${question.subject}</div>
                     <div class="s-q-topic s-q-item">${question.topic}</div>
                     <div class="s-q-tag s-q-item-last">${convertTag(question.tag)}</div>
-
-                    
                 </div>
                     
                 <div class="row">
@@ -88,6 +90,16 @@ function questionTemplate(question){
             </div>
         </div>
     </a>`
+
+    newQuestion.id = question.question_id
+
+    newQuestion.addEventListener("click", (e)=>{
+        let index = qIDList.indexOf(Number(newQuestion.id))
+        sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
+        sessionStorage.setItem("qIndex", index)
+    })
+
+    return newQuestion
 }
 
 //changing stage clears subject, paper number, topic
@@ -114,20 +126,26 @@ async function sendFilters (deleteOld) {
         displaySpace.innerHTML = ""
         hasMore = true
         isLoading = false
+        qIDList = []
+        sessionStorage.removeItem("search_ids")
     }
 
     const oldBottomEl = document.getElementById("bottomDetect")
+
     if (oldBottomEl){
         observer.unobserve(oldBottomEl)
         oldBottomEl.remove() //remove old bottom detector
     }
 
-    let result = await sendFormData(`/search/question/${qFormData.page.value}`, qForm, errbar, window, "", true)
+    let result = await submitSearchData(qForm, errbar, window, "", true, history)
 
     if (!result) return
 
+    qIDList.push(...result.map(q => q.question_id)) //generate list of questoin ids
+
+
     for (const question of result) { //append new data
-        displaySpace.innerHTML += questionTemplate(question)
+        displaySpace.appendChild(questionTemplate(question))
     }
 
     if (result.length >= 20) { //if tehre is potential for more data to be loaded later
@@ -138,8 +156,6 @@ async function sendFilters (deleteOld) {
     else {
         hasMore = false //tehre is no more data to load
     }
-
-    
 }
 
 async function loadMoreItems() {
@@ -155,7 +171,6 @@ async function loadMoreItems() {
 }
 
 const observer = new IntersectionObserver((entries) => {
-    
     if (entries[0].isIntersecting) { //if on screen
         loadMoreItems()
     }
@@ -165,4 +180,33 @@ const observer = new IntersectionObserver((entries) => {
     threshold: 0.1
 })
 
-sendFilters(true)
+async function fillForm() { //update filters according to URL data
+    const URLdata = new URLSearchParams(window.location.search) //get URL data
+    for (const [key, value] of URLdata.entries()) {
+        if (!qForm[key]) continue
+        else {
+            
+            if (key == "paper") { //modify paper manually
+                await updatePaperNum(qForm.subject.value, qForm.paper, errbar, window)
+                qForm.paper.value = value
+            }
+            
+            qForm[key].value = value
+
+            if (key == "stage") {
+                qForm.stage.dispatchEvent(new Event("change"))
+            }
+
+            if (key == "subject") {
+                qForm.subject.dispatchEvent(new CustomEvent("subjectLoaded"))
+            }
+        }
+    }
+}
+
+async function loadPage () {
+    await fillForm()
+    await sendFilters()
+}
+
+loadPage()

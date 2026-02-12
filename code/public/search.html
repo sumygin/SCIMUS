@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search - SCIMUS</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/search.css">
-    <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/search.css">
+    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
     <header id="header">
@@ -18,7 +18,7 @@
         <button id="qc-switch"> <span>Questions</span> | <span>Collections</span></button><br><br>
         <div class="searchwrapper">
         <div id="questionSearch" >
-            <form class="searchbar" id="questionForm" method="post">
+            <form class="searchbar" id="questionForm" method="GET">
 
                 <select name="stage" id="stage" class="searchbar-item">
                     <option value="-1" style="display: none;" selected>study stage</option>
@@ -61,7 +61,7 @@
                     <option value="easy">Easiest</option>
                     <option value="hard">Hardest</option>
                     <option value="likes">Like rating</option>
-                    <option value="commments">Number of comments</option>
+                    <option value="comments">Number of comments</option>
                     <option value="rates">Number of ratings</option>
                     <option value="num">Question number</option>
                     <option value="time">Recent</option>
@@ -69,33 +69,38 @@
 
                 <input type="submit" id="qSubmit" value="Search" class="searchbar-item">
 
-                <input type="text" style="display:none;" id="page" value="1">
+                <input type="text" style="display:none;" id="page" value="1" name="page">
             </form>
         </div>
 
         <div id="collectionSearch">
             <form class="searchbar" id="collectionForm">
-                <input type="text" placeholder="search" name="search" id="search1" class="searchbar-item">
-                
-                <input type="text" placeholder="subject" name="subject" id="subject1"class="searchbar-item">
 
-                <select name="stage" id="stage1" class="searchbar-item">
+                <input type="text" placeholder="search" name="search1" id="search1" class="searchbar-item">
+                
+                <input type="text" placeholder="subject" name="subject1" id="subject1"class="searchbar-item">
+
+                <select name="stage1" id="stage1" class="searchbar-item">
                     <option value="0">GCSE</option> 
                     <option value="1">A-level</option>
                     <option value="2">University+</option>
                 </select>
-                <select name="paper" id="paper1" class="searchbar-item">
+
+                <select name="paper1" id="paper1" class="searchbar-item">
                     <option value="">Paper 1</option> 
                     <option value="">Paper 2</option>
                     <option value="">Paper 3</option>
                 </select>
-                <input type="text" placeholder="year" name="year" id="year1" class="searchbar-item">
-                <select name="tag" id="tag1" class="searchbar-item">
+
+                <input type="text" placeholder="year" name="year1" id="year1" class="searchbar-item">
+
+                <select name="tag1" id="tag1" class="searchbar-item">
                     <option value="">Past paper</option> 
                     <option value="">User-made</option>
                 </select>
-                <input type="text" placeholder="@creator" name="creator" id="creator1" class="searchbar-item">
-                <select name="topic" id="topic1" class="searchbar-item">
+                <input type="text" placeholder="@creator" name="creator1" id="creator1" class="searchbar-item">
+
+                <select name="topic1" id="topic1" class="searchbar-item">
                     <option value="">topicplaceholderlongname1</option> 
                     <option value="">placeholder1</option>
                     <option value="">placeholder1</option>
@@ -120,7 +125,6 @@
 
     <script src="/js/headerinsert.js" type="module"></script>
     <script src="/js/header.js" type="module"></script>
-    <script src="/js/search.js" type="module"></script>
-    <script type="module" src="/js/autocomplete.js"></script>
+    <script src="/js/searchlaunch.js" type="module"></script>
 </body>
 </html>

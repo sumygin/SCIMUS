@@ -1,4 +1,4 @@
-import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, sendDataRequest} from './utils.js'
+import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, sendDataRequest, updatePaperNum} from './utils.js'
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -104,6 +104,11 @@ class AutoHandler {
             }
         })
 
+        this.input.addEventListener("subjectLoaded", (e) => {
+            if (this.type != "subject") return
+            updateTopicList(this.input.value)
+        })
+
         
     }
 
@@ -124,13 +129,14 @@ class AutoHandler {
             }
         } else {
             this.input.value = text
-            if (this.type == "subject") {
+
+            if (this.type == "subject") { //if this is a subject handler, then update the possible topic list
                 updateTopicList(this.input.value)
             }
-        }
 
-        if (this.type == "subject" && paper_field) {
-            updatePaperNum(this.input.value)
+            if (this.type == "subject" && paper_field) { //if there is a field to enter paper number, update its HTML
+                updatePaperNum(this.input.value, paper_field, errbar, window)
+            }
         }
     }
 
@@ -146,7 +152,7 @@ class AutoHandler {
 
 
 
-async function createHandlers() {
+async function createHandlers() { //create all handlers depending on their class
 
     for (const el of elements) {
         let inplist = []
@@ -189,7 +195,7 @@ if (stageSelect) {
             if (stageSelect.value == -1) {
                 subjectList.length = 0
             }
-            else {
+            else if (["0", "1", "2", 0, 1, 2].includes(stageSelect.value)){
                 for (const handler of allHandlers) {
                     if (handler.type == "subject" && handler.selectMultiple) {
                         handler.multiSpace.innerHTML = ""
@@ -199,24 +205,19 @@ if (stageSelect) {
                 subjectList.push(...await getSubjectNames(stageSelect.value))
                 window.subjectList = subjectList
             }
+            else {
+                console.log("fail", stageSelect.value)
+            }
         }
     })
-    }
+}
 
 
 async function updateTopicList(value) {
-    if (topicList != undefined) {
+    if (topicList != undefined && value != "" && value) {
         topicList.length = 0
         topicList.push(...await getTopicNames(value))
         window.topicList = topicList
-    }
-}
-
-async function updatePaperNum(value) {
-    const paperNum = Number(await sendDataRequest(`/subject/papers/${value}`, errbar, window, ""))
-    paper_field.innerHTML = '<option value="-1" style="display: none;" selected>paper number</option>'
-    for (let i = 1; i<paperNum+1; i++) {
-        paper_field.innerHTML += `<option value="${i}" >Paper ${i}</option>`
     }
 }
 

@@ -1,4 +1,4 @@
-import {generateStarHTML, warn, success, sendDataRequest} from "./utils.js"
+import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage} from "./utils.js"
 
 document.documentElement.style.visibility = "hidden"
 
@@ -24,7 +24,7 @@ const rateBarImgs = document.querySelectorAll(".rate-bar img")
 
 const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert els
     "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag",
-    "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check"
+    "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check", "arr1", "arr2"
 ]
 let elData = {}
 
@@ -203,33 +203,49 @@ async function fetchData() {
         }
         else if (item == "extra") { //detect additional user/question data and intercept
             BtnValues = result[item]
-
-            if (BtnValues.like == -1) { //set like image
-                elData.face.src = "/resources/frown.PNG"
-            }
-            else if (BtnValues.like == 1) {
-                elData.face.src = "/resources/smile.PNG"
-            }
-
-            if (BtnValues.rate == 1) {
-                elData.star.src = "/resources/star_full.PNG"
-            }
-
-            if (BtnValues.watch == 1) {
-                elData.watch.src = "/resources/watch_full.PNG"
-            }
-
-            if (BtnValues.solve == 1) {
-                elData.check.src = "/resources/check_full.PNG"
-            }
-
         }
         else {
             elData[item].innerText = result[item]
         }
-
-        document.title = `${result.name} - SCIMUS`
     }
+
+    if (BtnValues.like == -1) { //set like image and other images (in action sidebar)
+            elData.face.src = "/resources/frown.PNG"
+    }
+    else if (BtnValues.like == 1) {
+        elData.face.src = "/resources/smile.PNG"
+    }
+
+    if (BtnValues.rate == 1) {
+        elData.star.src = "/resources/star_full.PNG"
+    }
+
+    if (BtnValues.watch == 1) {
+        elData.watch.src = "/resources/watch_full.PNG"
+    }
+
+    if (BtnValues.solve == 1) {
+        elData.check.src = "/resources/check_full.PNG"
+    }
+
+    elData.tag.href =
+    `/search/?tag=${encodeURIComponent(convertTag(result.tag))}`
+
+    elData.stage.href =
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}`
+
+    elData.subject.href =
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}`
+
+    elData.topic.href =
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&topic=${encodeURIComponent(result.topic)}`
+
+    //http://localhost:3000/search/?stage=1%26subject=OCR%20Computer%20Science 
+    //http://localhost:3000/search/?stage=1&subject=OCR+Computer+Science&paper=-1&year=&tag=-1&creator=&topic=&search=&sort=views&page=1
+    //http://localhost:3000/search/?stage=1%26subject=OCR%20Computer%20Science%26topic=Legislation
+
+
+    document.title = `${result.name} - SCIMUS`
 }
 
 async function showPage() {
@@ -241,5 +257,50 @@ async function showPage() {
     )
     document.documentElement.style.visibility = "visible"
 }
+
+const qIDS = JSON.parse(sessionStorage.getItem("qIDS"))
+const index = JSON.parse(sessionStorage.getItem("qIndex"))
+let clear = true
+
+if (!qIDS) { //check there is 
+    elData.arr1.style.display = "none"
+    elData.arr2.style.display = "none"
+}
+else {
+    if (index == 0) {//first in list = hide arrow
+        elData.arr1.style.display = "none"
+    }
+    if (index == qIDS.length-1) { //last in list = hide arrow
+        elData.arr2.style.display = "none"
+    }
+}
+
+//HORIZONTAL SCROLL
+elData.arr1.addEventListener("click", () => { //left
+    sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
+    sessionStorage.setItem("qIndex", index-1)
+    window.location.href = qIDS[index-1]
+    clear = false
+})
+
+elData.arr2.addEventListener("click", () => { //right
+    sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
+    sessionStorage.setItem("qIndex", index+1)
+    window.location.href = qIDS[index+1]
+    clear = false
+})
+
+window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
+    if(clear) {
+        sessionStorage.removeItem("qIDS")
+        sessionStorage.removeItem("qIndex")
+    }
+    
+})
+
+
+
+
+//VERTICAL SCROLL
 
 showPage()

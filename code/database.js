@@ -82,8 +82,8 @@ const collectionSchema = new mongoose.Schema({
   collection_id: { type: Number, unique: true },
   user_tag: { type: String, ref: 'User', required: true },
   name: { type: String, maxlength: 40 },
-  tag: { type: Number, enum: [0, 1] },
-  paper_num: Number,
+  tag: { type: Number, enum: [0, 1] }, //0 = past paper, 1 = user-made
+  paper_num: { type: Number , default: 0 },
   created_at: { type: Date, default: Date.now },
   published: { type: Boolean, default: false }
 })

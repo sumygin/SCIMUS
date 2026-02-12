@@ -293,3 +293,53 @@ button.reply, button.c-like {
     display: flex;
     justify-content: center;
 }
+
+.colwrap {
+    position: relative;
+}
+
+.col-bar {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 25vw;
+    right: 15px;
+    top: 270px;
+    padding: 0.5em;
+    background: white;
+    z-index: 5;
+    border: 2px solid black;
+    box-shadow: 0 1px 4px black;
+    height: 10em;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.col-item {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.7em;
+    align-items: center;
+    padding-bottom: 0.45em;
+    padding-top:  0.45em;
+    border-bottom: 1px solid grey;
+}
+
+.col-item .icon {
+    top: 0px;
+}
+
+.publish-btn {
+    font-size: 0.7em;
+    color: darkred;
+}
+
+.col-optns {
+    display: flex;
+    flex-direction: row;
+    gap: 0.7em;
+    align-items: center;
+}
