@@ -3,27 +3,32 @@ import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, 
 const errbar = document.getElementsByClassName("error")[0]
 
 const elements = document.getElementsByClassName('autocomplete-input')
-const stageSelect = document.getElementById("stage")
-const subjectSelect = document.getElementById("subject")
+const stageSelects = document.getElementsByClassName("stageFIELD")
+const subjectSelects = document.getElementsByClassName("subjectFIELD")
+const topicSelects = document.getElementsByClassName("topicFIELD")
 
-const paper_field = document.getElementById("paper")
+const paperFields = document.getElementsByClassName("paperFIELD")
 
-let topicList
-let subjectList
+let dependencies = []
+let counters = {subject:0, topic:0}
 
 let allHandlers = []
 
 
 class AutoHandler {
-    constructor(element, inputList, creatable, type) {
-        this.element = element
-        this.input = element.children[0]
-        this.space = element.children[1]
-        this.list = inputList
-        this.selected = false
-        this.creatable = creatable
-        this.type = type
-        this.selectMultiple = this.element.classList.contains("multiple")
+    constructor(element, inputList, creatable, type, fields) {
+        this.element = element //link to original html element
+        this.input = element.children[0] //input field
+        this.space = element.children[1] //space in which to display autocomplete options
+        this.list = inputList //input list to use
+
+        this.selected = false //whether the field has been clicked on
+
+        this.creatable = creatable //whether the field can have new options added
+        this.type = type //type of field
+        this.selectMultiple = this.element.classList.contains("multiple") //whether you can select multiple (subjects on register page)
+
+        this.fields = fields //additional fields to update subject/topic/paper number
 
         if (this.selectMultiple) {
             this.multiSpace = document.getElementById("multispace")
@@ -104,15 +109,41 @@ class AutoHandler {
             }
         })
 
-        this.input.addEventListener("subjectLoaded", (e) => {
-            if (this.type != "subject") return
-            updateTopicList(this.input.value)
-        })
+        if (this.type == "subject") {
+            this.input.addEventListener("subjectLoaded", (e) => {
+                
+                this.updateTopicList(this.input.value)
+            })
+        }
 
-        
+        if (this.fields?.stageSelect) { //detect change in study stage and update
+            this.fields.stageSelect.addEventListener("change", async () => {
+                if (this.fields.stageSelect.value == -1) { //if invalid/not selected, delete subject list
+                    this.list.length = 0
+                }
+                else if (["0", "1", "2", 0, 1, 2].includes(this.fields.stageSelect.value)){
+                    if (this.selectMultiple) { //if this has a multispace (register page) clear it
+                        this.multiSpace.innerHTML = ""
+                    }
+
+                    this.list.length = 0
+                    this.list.push(...await getSubjectNames(this.fields.stageSelect.value))
+                }
+                else {
+                    console.log("fail", this.fields.stageSelect.value)
+                }
+            })
+        }
     }
 
-    collapse (text) { //response to an option being selected
+    async updateTopicList(value) { //function to update the topic list of the relevant topic field
+        if (this.fields?.topicList != undefined && value != "" && value) {
+            this.fields.topicList.length = 0
+            this.fields.topicList.push(...await getTopicNames(value))
+        }
+    }
+
+    collapse(text) { //response to an option being selected
         this.selected = true //mark on selected
         this.hideSpace()
 
@@ -131,11 +162,11 @@ class AutoHandler {
             this.input.value = text
 
             if (this.type == "subject") { //if this is a subject handler, then update the possible topic list
-                updateTopicList(this.input.value)
+                this.updateTopicList(this.input.value)
             }
 
-            if (this.type == "subject" && paper_field) { //if there is a field to enter paper number, update its HTML
-                updatePaperNum(this.input.value, paper_field, errbar, window)
+            if (this.type == "subject" && this.fields?.paper_field) { //if there is a field to enter paper number, update its HTML
+                updatePaperNum(this.input.value, this.fields?.paper_field, errbar, window)
             }
         }
     }
@@ -153,71 +184,87 @@ class AutoHandler {
 
 
 async function createHandlers() { //create all handlers depending on their class
+    if (stageSelects) {
+        for (const select of stageSelects) { //for each stage select push a new dictionary
+            dependencies.push({
+                stage:select,
+                subjectList:[],
+                topicList:[],
+                paper_field:undefined
+            })
+        }
+    }
+
+    if (subjectSelects) { //add subject fields to correct dictionary
+        for (let i = 0; i<subjectSelects.length; i++) {
+            dependencies[i].subjectList = []
+        }
+    }
+
+    if (topicSelects) { //add topic fields to correct dictionary
+        for (let i = 0; i<topicSelects.length; i++) {
+            dependencies[i].topicList = []
+        }
+    }
+
+    if (paperFields) { //add paper fields to correct dictionary
+        for (let i = 0; i<paperFields.length; i++) {
+            dependencies[i].paper_field = paperFields[i]
+        }
+    }
 
     for (const el of elements) {
+        //define variables
         let inplist = []
         let creatable = el.classList.contains("creatable")
         let type = ""
-        if (el.classList.contains("school")) {
+        let fields
+
+        if (el.classList.contains("school")) { //skls
             inplist = await getSchoolNames()
             type = "school"
         }
-        else if (el.classList.contains("subject")) {
-            if (!stageSelect) {
-                throw SyntaxError("stage selector undefined")
-            }
-            subjectList = []
-            inplist = subjectList
-            type = "subject"
-        }
-        else if (el.classList.contains("country")) {
+
+        else if (el.classList.contains("country")) { //countries
             inplist = await loadData("../resources/countries.json")
             type = "country"
         }
+
+        else if (el.classList.contains("subject")) {
+            if (!stageSelects) {
+                throw SyntaxError("stage selector undefined")
+            }
+
+            const curID = counters.subject //save which subject field this is (e.g. 0th, 1st, etc)
+            counters.subject++ //inc id
+
+            fields = { //prepare fields dict to be used inside the object
+                stageSelect:dependencies[curID].stage,
+                topicList:dependencies[curID].topicList,
+                paper_field:dependencies[curID].paper_field
+            }
+
+            inplist = dependencies[curID].subjectList
+            type = "subject"
+        }
+
         else if (el.classList.contains("topic")) {
-            if (!subjectSelect) {
+            if (!subjectSelects) {
                 throw SyntaxError("subject selector undefined")
             }
-            topicList = []
-            inplist = topicList
+
+            const curID = counters.topic //save which topic field this is (e.g. 0th, 1st, etc)
+            counters.topic++ //inc id
+
+            inplist = dependencies[curID].topicList
             type = "topic"
         }
-        allHandlers.push(new AutoHandler(el, inplist, creatable, type))
 
+        allHandlers.push(new AutoHandler(el, inplist, creatable, type, fields))
     }
 }
 
 createHandlers()
 
-if (stageSelect) {
-    stageSelect.addEventListener("change", async () => {
-        if (subjectList != undefined) {
-            if (stageSelect.value == -1) {
-                subjectList.length = 0
-            }
-            else if (["0", "1", "2", 0, 1, 2].includes(stageSelect.value)){
-                for (const handler of allHandlers) {
-                    if (handler.type == "subject" && handler.selectMultiple) {
-                        handler.multiSpace.innerHTML = ""
-                    }
-                }
-                subjectList.length = 0
-                subjectList.push(...await getSubjectNames(stageSelect.value))
-                window.subjectList = subjectList
-            }
-            else {
-                console.log("fail", stageSelect.value)
-            }
-        }
-    })
-}
 
-
-async function updateTopicList(value) {
-    if (topicList != undefined && value != "" && value) {
-        topicList.length = 0
-        topicList.push(...await getTopicNames(value))
-        window.topicList = topicList
-    }
-}
 

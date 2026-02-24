@@ -92,6 +92,9 @@ const collectionSchema = new mongoose.Schema({
   
   paper:{type:Number, default:0},
   year:{type:Number, default:0},
+
+  question_num:{type:Number, default:0},
+  preview:{type:[String], default:[]}
 })
 
 const questionCollectionSchema = new mongoose.Schema({

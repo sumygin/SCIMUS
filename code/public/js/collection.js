@@ -21,7 +21,7 @@ for (let el of qElementList) {
 //  IDS AND FETCHING
 //  =================
 
-function questionTemplate(question){  //template for inserting new question from data
+function questionTemplate(question){ 
     let insertData = ""
     if (question.tag == 0) {
         insertData = 
@@ -43,6 +43,7 @@ function questionTemplate(question){  //template for inserting new question from
             </div>
             <div class="s-q-metadata">
                 <div class="row">
+                    ${question.user_tag ? `<div class="s-q-los s-q-item">@${question.user_tag}</div>` : ""}
                     <div class="s-q-los s-q-item">${convertStudyStage(question.study_stage)}</div>
                     <div class="s-q-subject s-q-item">${question.subject}</div>
                     <div class="s-q-topic s-q-item">${question.topic}</div>
@@ -68,7 +69,7 @@ function questionTemplate(question){  //template for inserting new question from
 
     newQuestion.id = question.question_id
 
-    newQuestion.addEventListener("click", ()=>{
+    newQuestion.addEventListener("click", (e)=>{
         let index = qIDList.indexOf(Number(newQuestion.id))
         sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
         sessionStorage.setItem("qIndex", index)
@@ -134,6 +135,8 @@ const cIDS = JSON.parse(sessionStorage.getItem("cIDS"))
 const index = JSON.parse(sessionStorage.getItem("cIndex"))
 let clear = true
 
+console.log(cIDS, index)
+
 if (!cIDS) { //check there is 
     elData.arr1.style.display = "none"
     elData.arr2.style.display = "none"
@@ -149,14 +152,14 @@ else {
 
 //HORIZONTAL SCROLL
 elData.arr1.addEventListener("click", () => { //left
-    sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store question ids and index 
+    sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and index 
     sessionStorage.setItem("cIndex", index-1)
     window.location.href = cIDS[index-1]
     clear = false
 })
 
 elData.arr2.addEventListener("click", () => { //right
-    sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store question ids and index 
+    sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and index 
     sessionStorage.setItem("cIndex", index+1)
     window.location.href = cIDS[index+1]
     clear = false
@@ -164,8 +167,8 @@ elData.arr2.addEventListener("click", () => { //right
 
 window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
     if(clear) {
-        sessionStorage.removeItem("cIDS")
-        sessionStorage.removeItem("cIndex")
+        sessionStorage.removeItem("IDS")
+        sessionStorage.removeItem("Index")
     }
     
 })

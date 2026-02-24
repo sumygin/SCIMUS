@@ -20,7 +20,7 @@
         <div id="questionSearch" >
             <form class="searchbar" id="questionForm" method="GET">
 
-                <select name="stage" id="stage" class="searchbar-item">
+                <select name="stage" id="stage" class="stageFIELD searchbar-item">
                     <option value="-1" style="display: none;" selected>study stage</option>
                     <option value="0">GCSE</option> 
                     <option value="1">A-level</option>
@@ -28,12 +28,12 @@
                 </select>
 
                 <div class="autocomplete-input subject">
-                    <input type="text" id="subject" name="subject" placeholder="subject" class="searchbar-item">
+                    <input type="text" id="subject" name="subject" placeholder="subject" class="subjectFIELD searchbar-item">
                     <div class="space">
                     </div>
                 </div>
 
-                <select name="paper" id="paper" class="searchbar-item">
+                <select name="paper" id="paper" class="paperFIELD searchbar-item">
                     <option value="-1" style="display: none;" selected>paper number</option>
                 </select>
 
@@ -49,7 +49,7 @@
                 <input type="text" placeholder="@creator" name="creator" id="creator" class="searchbar-item">
                 
                 <div class="autocomplete-input topic">
-                    <input type="text" id="topic" name="topic" placeholder="topic" class="searchbar-item">
+                    <input type="text" id="topic" name="topic" placeholder="topic" class="topicFIELD searchbar-item">
                     <div class="space">
                     </div>
                 </div>
@@ -70,13 +70,14 @@
                 <input type="submit" id="qSubmit" value="Search" class="searchbar-item">
 
                 <input type="text" style="display:none;" id="page" value="1" name="page">
+                <input type="text" style="display:none;" id="searchType" value="q" name="searchType">
             </form>
         </div>
 
         <div id="collectionSearch">
-            <form class="searchbar" id="collectionForm">
+            <form class="searchbar" id="collectionForm" method="GET">
 
-                <select name="stage1" id="stage1" class="searchbar-item">
+                <select name="stage" id="stage1" class="stageFIELD searchbar-item">
                     <option value="-1" style="display: none;" selected>study stage</option>
                     <option value="0">GCSE</option> 
                     <option value="1">A-level</option>
@@ -84,48 +85,43 @@
                 </select>
 
                 <div class="autocomplete-input subject">
-                    <input type="text" id="subject1" name="subject1" placeholder="subject" class="searchbar-item">
+                    <input type="text" id="subject1" name="subject" placeholder="subject" class="subjectFIELD searchbar-item">
                     <div class="space">
                     </div>
                 </div>
 
-                <select name="paper" id="paper" class="searchbar-item">
+                <select name="paper" id="paper1" class="paperFIELD searchbar-item">
                     <option value="-1" style="display: none;" selected>paper number</option>
                 </select>
 
-                <input type="text" placeholder="year" name="year" id="year" class="searchbar-item">
+                <input type="text" placeholder="year" name="year" id="year1" class="searchbar-item">
 
-                <select name="tag" id="tag" class="searchbar-item">
-                    <option value="-1" style="display: none;" selected>question type</option>
+                <select name="tag" id="tag1" class="searchbar-item">
+                    <option value="-1" style="display: none;" selected>collection type</option>
                     <option value="0">Past paper</option> 
                     <option value="1">User-made</option>
-                    <option value="2">Looking for solution</option>
                 </select>
 
-                <input type="text" placeholder="@creator" name="creator" id="creator" class="searchbar-item">
+                <input type="text" placeholder="@creator" name="creator" id="creator1" class="searchbar-item">
                 
                 <div class="autocomplete-input topic">
-                    <input type="text" id="topic" name="topic" placeholder="topic" class="searchbar-item">
+                    <input type="text" id="topic1" name="topic" placeholder="topic" class="topicFIELD searchbar-item">
                     <div class="space">
                     </div>
                 </div>
 
-                <input type="text" placeholder="contains" name="search" id="search" class="searchbar-item">
+                <input type="text" placeholder="contains" name="search" id="search1" class="searchbar-item">
                 
-                <select name="sort" id="sort" class="searchbar-item">
-                    <option value="views">Views</option>
-                    <option value="easy">Easiest</option>
-                    <option value="hard">Hardest</option>
-                    <option value="likes">Like rating</option>
-                    <option value="comments">Number of comments</option>
-                    <option value="rates">Number of ratings</option>
-                    <option value="num">Question number</option>
+                <select name="sort" id="sort1" class="searchbar-item">
                     <option value="time">Recent</option>
+                    <option value="num">Number of questions</option>
+                    
                 </select>
 
-                <input type="submit" id="qSubmit" value="Search" class="searchbar-item">
+                <input type="submit" id="cSubmit" value="Search" class="searchbar-item">
 
-                <input type="text" style="display:none;" id="page" value="1" name="page">
+                <input type="text" style="display:none;" id="page1" value="1" name="page">
+                <input type="text" style="display:none;" id="searchType1" value="q" name="searchType">
             </form>
         </div>
     </div>

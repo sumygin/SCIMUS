@@ -23,7 +23,7 @@ const day = 1000 * 60 * 60 * 24
 <option value="num">Question number</option>
 <option value="time">Recent</option>*/
 
-const sortMap = { //quickly maps value of sort to a sort object
+const QsortMap = { //quickly maps value of sort to a sort object
     "views":{views:-1}, //lowest views first
     "easy":{total_diff_rating:1}, //lowest difficulty first
     "hard":{total_diff_rating:-1}, //highest difficulty first
@@ -31,6 +31,11 @@ const sortMap = { //quickly maps value of sort to a sort object
     "comments":{num_comments:-1}, //highest comments first
     "rates":{num_diff_ratings:-1}, //highest number of ratings first
     "num":{question_number:1}, //ascending by question number
+    "time":{created_at:-1}, //largest date (youngest) first
+}
+
+const CsortMap = { //quickly maps value of sort to a sort object
+    "num":{question_num:-1}, //descending by number of questions
     "time":{created_at:-1}, //largest date (youngest) first
 }
 
@@ -795,10 +800,8 @@ module.exports = function(app) {
             !data.page ? data.page = 1 : data.page = Number(data.page)
             const skip = (data.page-1)*20 //calculate total number to skip
 
-            let published = true
-
-            if (data.creator == userTag) {
-                published = false
+            if (data.creator != userTag) {
+                filter.published = true
             }
 
             let subject, topic
@@ -832,15 +835,13 @@ module.exports = function(app) {
             }
 
 
-            if (data.creator){filter.user_tag = data.creator} 
-            if (data.paper != "-1"){filter.paper = Number(data.paper)}
+            if (data.creator !=""){filter.user_tag = data.creator} 
+            if (data.paper != "-1"){filter.paper_num = Number(data.paper)}
             if (data.stage != "-1" && data.stage){filter.study_stage = Number(data.stage)}
-            if (data.subject){filter.subject_id = subject.subject_id}
+            if (data.subject !=""){filter.subject_id = subject.subject_id}
             if (data.tag != "-1"){filter.tag = Number(data.tag)}
-            if (data.topic){filter.topic_id = topic.topic_id}
-            if (data.year){filter.year = Number(data.year)}
-
-            filter.published = published
+            if (data.topic != ""){filter.topic_id = topic.topic_id}
+            if (data.year !=""){filter.year = Number(data.year)}
 
             if (data.search){
                 filter.$or = [ //check matches in any of mark scheme, title, content
@@ -850,7 +851,7 @@ module.exports = function(app) {
                 ]
             }
 
-            let sortVal = sortMap[data.sort] || {views:-1} //default sort is views
+            let sortVal = QsortMap[data.sort] || {views:-1} //default sort is views
             sortVal._id = 1 //enforces specific order
 
             let result = await Question.find(filter, {
@@ -885,6 +886,120 @@ module.exports = function(app) {
                 q.topic = topic.name
                 q.subject = subjObj[topic.subject_id]
             }
+
+            return res.json(result)
+        }
+        catch (err) {
+            console.error(err)
+            return res.status(500).json({error:"Server error"})
+        }
+    })
+
+    app.get("/search/collection/", async (req, res) => { //respond to collection searches
+        try{
+            let data = req.query
+            console.log(data)
+            const userTag = req.user.user_tag
+            
+            let filter = {}
+
+            if(data.creator.startsWith("@")) data.creator = data.creator.slice(1) //remove @ at the start
+            
+            !data.page ? data.page = 1 : data.page = Number(data.page)
+            const skip = (data.page-1)*20 //calculate total number to skip
+
+            if (data.creator != userTag) {
+                filter.published = true
+            }
+
+            let subject, topic
+
+            if (data.paper !="-1"  && data.subject == "") { //if paper without subject
+                return res.status(400).json({error:"Cannot search paper without subject!"})
+            }
+
+            if (data.stage =="-1" && (data.subject !="" || data.topic !="")) {//if subject/topic without study stage
+                return res.status(400).json({error:"Cannot search subject/topic without study stage!"}) 
+            }
+
+            if (data.topic !="" && data.subject == "") {
+                return res.status(400).json({error:"Cannot search topic without subject!"}) //if topic without subject
+            }
+
+            //find subject
+            if (data.subject != "") { //check subject exists
+                subject = await Subject.findOne({full_name:data.subject}, {subject_id:1, _id:0})
+                if (!subject) {
+                    return res.status(400).json({error:"No such subject found"}) //if subject is invalid
+                }
+            }
+
+            //find topic
+            if (data.topic != "") { //check topic exists
+                topic = await Topic.findOne({name:data.topic}, {topic_id:1, _id:0})
+                if (!topic) {
+                    return res.status(400).json({error:"No such topic found"}) //if topic is invalid
+                }
+            }
+
+
+            if (data.creator != ""){filter.user_tag = data.creator} 
+            if (data.paper != "-1"){filter.paper = Number(data.paper)}
+            if (data.stage != "-1" && data.stage){filter.stages = Number(data.stage)}
+            if (data.subject != ""){filter.subject_ids = subject.subject_id}
+            if (data.tag != "-1"){filter.tag = Number(data.tag)}
+            if (data.topic != ""){filter.topic_ids = topic.topic_id}
+            if (data.year != ""){filter.year = Number(data.year)}
+
+            filter.question_num = { $gt: 0 }
+
+            if (data.search){
+                filter.$or = [ //check matches in title
+                    {name:{$regex: data.search, $options: "i"}},
+                ]
+            }
+
+            let sortVal = CsortMap[data.sort] || {created_at:-1} //default sort is time
+            sortVal._id = 1 //enforces specific order for paging
+
+            let result = await Collection.find(filter, {
+                collection_id:1, user_tag:1, name:1, tag:1, stages:1, paper:1, year:1, question_num:1,
+                topic_ids:1, subject_ids:1, preview:1
+            }) //find specified collections
+            .sort(sortVal)
+            .skip(skip)
+            .limit(20)
+            .lean()
+
+            //collect topic ids
+            const topicIDs = [...new Set(result.map(c => c.topic_ids[0]))]
+
+            //fetch topic ids, names
+            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1})
+
+            //create object of {topic_id:{topic_id:name}}
+            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t.name]))
+
+            //collect subject ids
+            const subjectIDs = [...new Set(result.map(c => c.subject_ids[0]))]
+
+            //fetch subject ids, names
+            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, name:1}) 
+
+            //create object of {subject_id:{subject_id:name}}
+            const subjectObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.name]))
+
+            //add to collections in result
+            for (let c of result) {
+                const topics = Array(c.topic_ids.length)
+                topics[0] = topicObj[c.topic_ids[0]]
+                const subjects = Array(c.subject_ids.length)
+                subjects[0] = subjectObj[c.subject_ids[0]]
+                c.topics = topics
+                c.subjects = subjects
+            }
+
+            console.log(result)
 
             return res.json(result)
         }
@@ -985,7 +1100,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/collection/visibility/:id", async (req, res) => {
+    app.get("/collection/visibility/:id", async (req, res) => { //change collection visibility
          try {
             const userTag = req.user.user_tag
             const cID = Number(req.params.id)
@@ -1051,6 +1166,7 @@ module.exports = function(app) {
                 await question.updateOne({ //update number of collections question is in
                     $inc:{num_collections:1}
                 })
+
                 newColNum++ //update counter to send to user
 
                 //add subjectID to collection
@@ -1067,6 +1183,12 @@ module.exports = function(app) {
                 await collection.updateOne(
                     {$addToSet:{stages:question.study_stage}}
                 )
+
+                //update collection question number and preview
+                await collection.updateOne( {
+                    $inc: {question_num:1},
+                    $push: {preview:question.name}
+                })
             }
             else { //if question in collection, delete
                 await questionCollectionEntry.deleteOne()
@@ -1113,7 +1235,14 @@ module.exports = function(app) {
                 await question.updateOne({ //update number of collections question is in
                     $inc:{num_collections:-1}
                 })
-                newColNum--
+
+                newColNum-- //update question counter to send to user
+
+                //update collection question number and preview
+                await collection.updateOne( {
+                    $inc: {question_num:-1},
+                    $pull:{preview:question.name}
+                })
             }
 
             return res.status(200).json({success:true, newColnum:newColNum})

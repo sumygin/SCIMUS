@@ -52,7 +52,7 @@ select.searchbar-item {
     background-repeat: no-repeat;
 }
 
-#QdisplaySpace {
+#QdisplaySpace, #CdisplaySpace {
     overflow-y:scroll;
     position: absolute;
     height: inherit;
@@ -60,7 +60,7 @@ select.searchbar-item {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-#QdisplaySpace img {
+#QdisplaySpace img, #CdisplaySpace img {
     height: 15px;
     margin-bottom: 2.5px;
 }
@@ -135,6 +135,7 @@ select.searchbar-item {
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
+    padding-top: 2em;
 }
 
 .s-q-item, .s-q-item-last {
@@ -145,14 +146,14 @@ select.searchbar-item {
     margin-top: 0.5em;
 }
 
-#qSubmit {
+#qSubmit, #cSubmit {
     background-color: white;
     border: 1px solid gray;
     text-align: left;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-#qSubmit:hover {
+#qSubmit:hover, #cSubmit:hover {
     background-color: white;
 }
 

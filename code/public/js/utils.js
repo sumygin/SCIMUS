@@ -127,13 +127,20 @@ export async function sendFormData(route, form, errbar, window, successMsg, send
     if (send_result) return result
 }
 
-export async function submitSearchData(form, errbar, window, successMsg, send_result,  history) {
+export async function submitSearchData(form, errbar, window, successMsg, send_result,  history, type, deleteOld) {
     const formdata = new FormData(form)
 
     const params = new URLSearchParams(formdata)
-    history.replaceState(null, "", `/search/?${params.toString()}`)
+    if (deleteOld) history.replaceState(null, "", `/search/?${params.toString()}`) //only change url if new search has been done
 
-    const res = await fetch(`/search/question/?${params.toString()}`)
+    let res 
+
+    if (type == "q") {
+        res = await fetch(`/search/question/?${params.toString()}`)
+    }
+    else if (type == "c") {
+        res = await fetch(`/search/collection/?${params.toString()}`)
+    }
 
     const result = await res.json()
 
