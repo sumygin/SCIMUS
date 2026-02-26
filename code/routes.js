@@ -218,94 +218,7 @@ module.exports = function(app) {
 
     //ROUTES
 
-    app.get("/", (req, res) => {
-        //check if logged in first; redirect to home, otherwise welcome page
-        if (req.isAuthenticated()) {
-            return res.redirect("/home")
-        }
-
-        res.sendFile(path.join(__dirname, "public", "welcome.html"))
-    })
-
-    app.get("/home", isLoggedIn, (req, res) => {
-        res.sendFile(path.join(__dirname, "public", "home.html"))
-    })
     
-    app.get("/login", (req, res) => {
-        if (req.isAuthenticated()) {
-            return res.redirect("/home")
-        }
-
-        res.sendFile(path.join(__dirname, "public", "login.html"))
-    })
-
-    app.get("/settings", isLoggedIn, (req, res) => {
-        //check if logged in first; redirect to login if not
-        res.sendFile(path.join(__dirname, "public", "settings.html"))
-    })
-
-    app.get("/preferences", isLoggedIn, (req, res) => {
-        //check if logged in first; redirect to login if not
-        res.sendFile(path.join(__dirname, "public", "preferences.html"))
-    })
-
-    app.get("/inbox", isLoggedIn, (req, res) => {
-        //check if logged in first; redirect to login if not
-        res.sendFile(path.join(__dirname, "public", "inbox.html"))
-    })
-    
-    app.get("/search", isLoggedIn, (req, res) => {
-        //return filters that are to be applied as well
-        //if filters are invalid, return error page
-        res.sendFile(path.join(__dirname, "public", "search.html"))
-    })
-
-    app.get("/search/", isLoggedIn, (req, res) => {
-        //return filters that are to be applied as well
-        //if filters are invalid, return error page
-        res.sendFile(path.join(__dirname, "public", "search.html"))
-    })
-    
-    app.get("/question", isLoggedIn, (req, res) => {
-        res.redirect("/home")
-    })
-
-    app.get("/question/:id", isLoggedIn, (req, res) => {
-        res.sendFile(path.join(__dirname, "public", "question.html"))
-    })
-
-    app.get("/collection", isLoggedIn, (req, res) => {
-        //process id in link as well
-        //if collection is private, check that it belongs to user
-        //if collection is not accesible or doesnt exist, return error page
-        res.redirect("/home")
-    })
-
-    app.get("/collection/:id", isLoggedIn, (req, res) => {
-        //process id in link as well
-        //if collection is private, check that it belongs to user
-        //if collection is not accesible or doesnt exist, return error page
-        res.sendFile(path.join(__dirname, "public", "collection.html"))
-    })
-
-    app.get("/profile", isLoggedIn, (req, res) => {
-        //process id in link as well
-        //if profile doesnt exist, return error page
-        res.sendFile(path.join(__dirname, "public", "profile.html"))
-    })
-
-    app.get("/create", isLoggedIn, (req, res) => {
-        res.sendFile(path.join(__dirname, "public", "create.html"))
-    })
-
-    app.get("/create/:id", isLoggedIn, (req, res) => {
-        res.sendFile(path.join(__dirname, "public", "create.html"))
-    })
-
-    app.get("/leaderboards", isLoggedIn, (req, res) => {
-        //process + return leaderboard filters in link as well
-        res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
-    })
 
     app.get("/api/subjects/names/:stage", async (req, res) => {
         try {
@@ -343,7 +256,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/create/get/:id", async (req, res) => {
+    app.get("/api/create/get/:id", async (req, res) => {
         try {
             const qID = Number(req.params.id)
             const userTag = req.user.user_tag
@@ -408,7 +321,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/question/get/:id", async (req, res) => {
+    app.get("/api/question/get/:id", async (req, res) => {
         try {
             const qID = Number(req.params.id)
             const userTag = req.user.user_tag
@@ -503,7 +416,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/watch/add/:qid", async (req, res) => {
+    app.get("/api/watch/add/:qid", async (req, res) => {
         try {
             const qID = req.params.qid
             const userTag = req.user.user_tag
@@ -534,7 +447,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/solve/add/:qid", async (req, res) => {
+    app.get("/api/solve/add/:qid", async (req, res) => {
         try {
             const qID = req.params.qid
             const userTag = req.user.user_tag
@@ -565,7 +478,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/watch/remove/:qid", async (req, res) => {
+    app.get("/api/watch/remove/:qid", async (req, res) => {
         try {
             const qID = req.params.qid
             const userTag = req.user.user_tag
@@ -596,7 +509,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/solve/remove/:qid", async (req, res) => {
+    app.get("/api/solve/remove/:qid", async (req, res) => {
         try {
             const qID = req.params.qid
             const userTag = req.user.user_tag
@@ -627,7 +540,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/like/:qid/:value", async (req, res) => {
+    app.get("/api/like/:qid/:value", async (req, res) => {
         const qID = req.params.qid
         const val = Number(req.params.value)
         const userTag = req.user.user_tag
@@ -703,7 +616,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/rate/:qid/:value", async (req, res) => {
+    app.get("/api/rate/:qid/:value", async (req, res) => {
         const qID = req.params.qid
         const val = Number(req.params.value)
         const userTag = req.user.user_tag
@@ -773,7 +686,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/subject/papers/:name", async (req, res) => { //get paper number from subject name
+    app.get("/api/subject/papers/:name", async (req, res) => { //get paper number from subject name
         try {
             const name = req.params.name
             const subject = await Subject.findOne({full_name:name}, {papers:1, _id:0})
@@ -788,7 +701,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/search/question/", async (req, res) => { //respond to question searches
+    app.get("/api/search/question/", async (req, res) => { //respond to question searches
         try{
             let data = req.query
             const userTag = req.user.user_tag
@@ -895,10 +808,9 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/search/collection/", async (req, res) => { //respond to collection searches
+    app.get("/api/search/collection/", async (req, res) => { //respond to collection searches
         try{
             let data = req.query
-            console.log(data)
             const userTag = req.user.user_tag
             
             let filter = {}
@@ -999,7 +911,6 @@ module.exports = function(app) {
                 c.subjects = subjects
             }
 
-            console.log(result)
 
             return res.json(result)
         }
@@ -1009,7 +920,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/collections/get/:id", async (req, res) => { //respond to collection requests
+    app.get("/api/collections/get/:id", async (req, res) => { //respond to collection requests
         try {
             const userTag = req.user.user_tag
             const qID = Number(req.params.id)
@@ -1067,7 +978,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/collection/rename/:name/:id", async (req, res) => {
+    app.get("/api/collection/rename/:name/:id", async (req, res) => {
          try {
             const userTag = req.user.user_tag
             const newName = req.params.name
@@ -1100,7 +1011,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/collection/visibility/:id", async (req, res) => { //change collection visibility
+    app.get("/api/collection/visibility/:id", async (req, res) => { //change collection visibility
          try {
             const userTag = req.user.user_tag
             const cID = Number(req.params.id)
@@ -1127,7 +1038,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/collection/question/:qID/:id", async (req, res) => { //add/remove question to collection
+    app.get("/api/collection/question/:qID/:id", async (req, res) => { //add/remove question to collection
          try {
             const userTag = req.user.user_tag
             const cID = Number(req.params.id)
@@ -1253,7 +1164,7 @@ module.exports = function(app) {
         }
     })
 
-    app.get("/collection/get/:id", async (req, res) => {
+    app.get("/api/collection/get/:id", async (req, res) => {
         try {
             const cID = Number(req.params.id)
             const userTag = req.user.user_tag
@@ -1318,7 +1229,7 @@ module.exports = function(app) {
                 paper:collection.paper == 0 ? "" : collection.paper,
                 year:collection.year == 0 ? "" : collection.year,
                 name:collection.name,
-                user_tag:collection.user_tag,
+                user_tag:"@"+collection.user_tag,
                 question_data:questions
             }
 
@@ -1328,6 +1239,104 @@ module.exports = function(app) {
             console.error(err)
             res.status(500).json({ error: err.message })
         }
+    })
+
+
+
+
+
+
+
+    //SERVING FILES
+
+    app.get("/", (req, res) => {
+        //check if logged in first; redirect to home, otherwise welcome page
+        if (req.isAuthenticated()) {
+            return res.redirect("/home")
+        }
+
+        res.sendFile(path.join(__dirname, "public", "welcome.html"))
+    })
+
+    app.get("/home", isLoggedIn, (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "home.html"))
+    })
+    
+    app.get("/login", (req, res) => {
+        if (req.isAuthenticated()) {
+            return res.redirect("/home")
+        }
+
+        res.sendFile(path.join(__dirname, "public", "login.html"))
+    })
+
+    app.get("/settings", isLoggedIn, (req, res) => {
+        //check if logged in first; redirect to login if not
+        res.sendFile(path.join(__dirname, "public", "settings.html"))
+    })
+
+    app.get("/preferences", isLoggedIn, (req, res) => {
+        //check if logged in first; redirect to login if not
+        res.sendFile(path.join(__dirname, "public", "preferences.html"))
+    })
+
+    app.get("/inbox", isLoggedIn, (req, res) => {
+        //check if logged in first; redirect to login if not
+        res.sendFile(path.join(__dirname, "public", "inbox.html"))
+    })
+    
+    app.get("/search", isLoggedIn, (req, res) => {
+        //return filters that are to be applied as well
+        //if filters are invalid, return error page
+        res.sendFile(path.join(__dirname, "public", "search.html"))
+    })
+
+    app.get("/search/", isLoggedIn, (req, res) => {
+        //return filters that are to be applied as well
+        //if filters are invalid, return error page
+        res.sendFile(path.join(__dirname, "public", "search.html"))
+    })
+    
+    app.get("/question", isLoggedIn, (req, res) => {
+        res.redirect("/home")
+    })
+
+    app.get("/question/:id", isLoggedIn, (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "question.html"))
+    })
+
+    app.get("/collection", isLoggedIn, (req, res) => {
+        //process id in link as well
+        //if collection is private, check that it belongs to user
+        //if collection is not accesible or doesnt exist, return error page
+        res.redirect("/home")
+    })
+
+    app.get("/collection/:id", isLoggedIn, (req, res) => {
+        console.log("hit collection get, user:", req.user, "id:", req.params.id)
+        //process id in link as well
+        //if collection is private, check that it belongs to user
+        //if collection is not accesible or doesnt exist, return error page
+        res.sendFile(path.join(__dirname, "public", "collection.html"))
+    })
+
+    app.get("/profile", isLoggedIn, (req, res) => {
+        //process id in link as well
+        //if profile doesnt exist, return error page
+        res.sendFile(path.join(__dirname, "public", "profile.html"))
+    })
+
+    app.get("/create", isLoggedIn, (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "create.html"))
+    })
+
+    app.get("/create/:id", isLoggedIn, (req, res) => {
+        res.sendFile(path.join(__dirname, "public", "create.html"))
+    })
+
+    app.get("/leaderboards", isLoggedIn, (req, res) => {
+        //process + return leaderboard filters in link as well
+        res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
     })
 
     //POST REQUESTS
@@ -1482,12 +1491,6 @@ module.exports = function(app) {
         })(req, res, next)
     })
 
-
-    // Protected dashboard
-    app.get("/home", isLoggedIn, (req, res) => {
-        res.send(`<h2>Dashboard</h2><p>Welcome, ${req.user.username}!</p><a href="/logout">Logout</a>`)
-    })
-
     // Logout
     app.get("/logout", (req, res) => {
         req.logout(() => {
@@ -1495,7 +1498,7 @@ module.exports = function(app) {
         });
     })
 
-    app.post("/question/save/:id/:publish", async (req, res) => {
+    app.post("/api/question/save/:id/:publish", async (req, res) => {
         let qID = req.params.id
         const publish = req.params.publish == "true"
         const clientTag = req.user.user_tag

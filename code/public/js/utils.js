@@ -136,10 +136,10 @@ export async function submitSearchData(form, errbar, window, successMsg, send_re
     let res 
 
     if (type == "q") {
-        res = await fetch(`/search/question/?${params.toString()}`)
+        res = await fetch(`/api/search/question/?${params.toString()}`)
     }
     else if (type == "c") {
-        res = await fetch(`/search/collection/?${params.toString()}`)
+        res = await fetch(`/api/search/collection/?${params.toString()}`)
     }
 
     const result = await res.json()
@@ -246,7 +246,7 @@ export function likeConverter(val) { //convert overall like consensus from value
 
 export async function updatePaperNum(value, paper_field, errbar, window) { //generate HTML for paper number selects
     if (!value) return
-    const paperNum = Number(await sendDataRequest(`/subject/papers/${value}`, errbar, window, ""))
+    const paperNum = Number(await sendDataRequest(`/api/subject/papers/${value}`, errbar, window, ""))
     paper_field.innerHTML = '<option value="-1" style="display: none;" selected>paper number</option>'
     for (let i = 1; i<paperNum+1; i++) {
         paper_field.innerHTML += `<option value="${i}" >Paper ${i}</option>`

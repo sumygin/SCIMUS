@@ -106,7 +106,7 @@ let saveForm = async (e, publish) => { //validates then sends form values
 
     //processing form data
 
-    sendFormData(`/question/save/${qID}/${publish}`, qForm, errbar, window, "Question saved")
+    sendFormData(`/api/question/save/${qID}/${publish}`, qForm, errbar, window, "Question saved")
 }
 
 async function fetchData() {
@@ -119,7 +119,7 @@ async function fetchData() {
         return
     }
 
-    const result = await sendDataRequest(`/create/get/${qID}`, errbar, window, "Question data retrieved successfully")
+    const result = await sendDataRequest(`/api/create/get/${qID}`, errbar, window, "Question data retrieved successfully")
 
     if (!result) return
     

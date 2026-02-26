@@ -4,6 +4,11 @@ document.documentElement.style.visibility = "hidden"
 
 const errbar = document.getElementsByClassName("error")[0]
 
+console.log("URL:", window.location.href)
+console.log("cID will be:", window.location.href.split("/collection")[1]?.substring(1))
+console.log("cIDS:", sessionStorage.getItem("cIDS"))
+console.log("cIndex:", sessionStorage.getItem("cIndex"))
+
 
 const qElementList = [
     "arr1", "arr2", "tag", "paper", "year", "name", "user_tag"
@@ -78,19 +83,25 @@ function questionTemplate(question){
     return newQuestion
 }
 
-//fetch ID and check if valid
-let cID = window.location.href.split("/collection")[1].substring(1)
-if (isNaN(Number(cID))) cID = -1
-if (cID == "") cID = -1
+
 
 //fetch collection data corresponding to that id
 async function fetchData() {
+    //fetch ID and check if valid
+    let cID = window.location.href.split("/collection")[1].substring(1)
+    if (isNaN(Number(cID))) cID = -1
+    if (cID == "") cID = -1
+
     if (cID == -1) {
         window.location.href = "/home"
         return
     }
 
-    const result = await sendDataRequest(`/collection/get/${cID}`, errbar, window, "")
+    console.log(cID)
+
+    const result = await sendDataRequest(`/api/collection/get/${cID}`, errbar, window, "")
+
+    console.log("fetched result:", result)
 
     for (const item in result) {
         if (item == "question_data") { //detect if question data sent and intercept
@@ -98,31 +109,87 @@ async function fetchData() {
             for (const question of questions) { //append new data
                 displaySpace.appendChild(questionTemplate(question))
             }
-            
 
             qIDList.push(...result[item].map(q => q.question_id)) //generate list of questoin ids
         }
-        else {
+        else if (elData[item]) {
             elData[item].innerText = result[item]
         }
     }
 
-   
+    elData.user_tag.href = `/user/${result.user_tag.substring(1)}`
 
     elData.tag.href = //encode links into the left-hand metadata
-    ``
+    `/search/?tag=${encodeURIComponent(convertTag(result.tag))}&searchType=c`
 
     elData.paper.href =
-    ``
+    `/search/?paper=${encodeURIComponent(result.paper)}&searchType=c`
 
     elData.year.href =
-    ``
+    `/search/?year=${encodeURIComponent(result.year)}&searchType=c`
 
     document.title = `${result.name} - SCIMUS`
 }
 
+function setArrowListeners() {
+    const cIDS = JSON.parse(sessionStorage.getItem("cIDS"))
+    const Cindex = Number(JSON.parse(sessionStorage.getItem("cIndex")))
+    let clear = true
+
+    console.log(cIDS, Cindex)
+
+    if (!cIDS) { //check there is 
+        elData.arr1.style.display = "none"
+        elData.arr2.style.display = "none"
+    }
+    else {
+        if (Cindex == 0) {//first in list = hide arrow
+            elData.arr1.style.display = "none"
+        }
+        if (Cindex == cIDS.length-1) { //last in list = hide arrow
+            elData.arr2.style.display = "none"
+        }
+    }
+
+    //HORIZONTAL SCROLL
+    elData.arr1.addEventListener("click", (e) => { //left
+        
+        console.log(`/collection/${cIDS[Cindex-1]}`, Cindex-1)
+
+        sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and Cindex 
+        sessionStorage.setItem("cIndex", Cindex-1)
+        window.location.href = `/collection/${cIDS[Cindex-1]}`
+
+        clear = false
+
+        e.preventDefault()
+    })
+
+    elData.arr2.addEventListener("click", (e) => { //right
+        e.preventDefault()
+        console.log(`/collection/${cIDS[Cindex+1]}`, Cindex+1)
+
+        sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and index 
+        sessionStorage.setItem("cIndex", Cindex+1)
+        window.location.href = `/collection/${cIDS[Cindex+1]}`
+        
+        clear = false
+
+        e.preventDefault()
+    })
+
+    window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
+        if(clear) {
+            sessionStorage.removeItem("cIDS")
+            sessionStorage.removeItem("cIndex")
+        }
+        
+    })
+}
+
 async function showPage() {
     await fetchData()
+    setArrowListeners()
     await Promise.all(
       [...document.images].map(img =>
           img.complete ? Promise.resolve() : new Promise(r => img.onload = r)
@@ -131,51 +198,7 @@ async function showPage() {
     document.documentElement.style.visibility = "visible"
 }
 
-const cIDS = JSON.parse(sessionStorage.getItem("cIDS"))
-const index = JSON.parse(sessionStorage.getItem("cIndex"))
-let clear = true
-
-console.log(cIDS, index)
-
-if (!cIDS) { //check there is 
-    elData.arr1.style.display = "none"
-    elData.arr2.style.display = "none"
-}
-else {
-    if (index == 0) {//first in list = hide arrow
-        elData.arr1.style.display = "none"
-    }
-    if (index == cIDS.length-1) { //last in list = hide arrow
-        elData.arr2.style.display = "none"
-    }
-}
-
-//HORIZONTAL SCROLL
-elData.arr1.addEventListener("click", () => { //left
-    sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and index 
-    sessionStorage.setItem("cIndex", index-1)
-    window.location.href = cIDS[index-1]
-    clear = false
-})
-
-elData.arr2.addEventListener("click", () => { //right
-    sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and index 
-    sessionStorage.setItem("cIndex", index+1)
-    window.location.href = cIDS[index+1]
-    clear = false
-})
-
-window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
-    if(clear) {
-        sessionStorage.removeItem("IDS")
-        sessionStorage.removeItem("Index")
-    }
-    
-})
-
-
-
-
 //VERTICAL SCROLL
 
-showPage()
+await showPage()
+

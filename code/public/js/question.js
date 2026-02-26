@@ -47,7 +47,7 @@ msBtn.addEventListener("click", async () => { //ms show/hide
         if (!BtnValues.solve) {
             elData.check.src = "/resources/check_full.PNG"
             elData.solves.innerHTML = +elData.solves.innerHTML + 1
-            await sendDataRequest(`/solve/add/${qID}`, errbar, window, "")
+            await sendDataRequest(`/api/solve/add/${qID}`, errbar, window, "")
             BtnValues.solve = true
         }
     }
@@ -61,7 +61,7 @@ msBtn.addEventListener("click", async () => { //ms show/hide
 
 //private/public collection button toggle
 async function buttonToggle(btn) {
-    if (!(await sendDataRequest(`/collection/visibility/${btn.parentNode.parentNode.id}`, errbar, window, ""))) return
+    if (!(await sendDataRequest(`/api/collection/visibility/${btn.parentNode.parentNode.id}`, errbar, window, ""))) return
 
     if (btn.innerHTML == "Private") {
         btn.innerHTML = "Public"
@@ -75,7 +75,7 @@ async function buttonToggle(btn) {
 
 //checked/unchecked collection button toggle
 async function checkedTogle(btn) {
-    const request = await sendDataRequest(`/collection/question/${qID}/${btn.parentNode.parentNode.id}`, errbar, window, "")
+    const request = await sendDataRequest(`/api/collection/question/${qID}/${btn.parentNode.parentNode.id}`, errbar, window, "")
     if (!request) return
 
     elData.collections.innerHTML = request.newColnum
@@ -92,7 +92,7 @@ async function checkedTogle(btn) {
 }
 
 async function collectionNameEdit(e, inp) { //send name change to server
-    if (!(await sendDataRequest(`/collection/rename/${inp.value}/${inp.parentNode.id}`, errbar, window, ""))) {
+    if (!(await sendDataRequest(`/api/collection/rename/${inp.value}/${inp.parentNode.id}`, errbar, window, ""))) {
         e.preventDefault() //if request failed, prevent edit
     }
 }
@@ -176,7 +176,7 @@ elData.likebar.addEventListener("pointerup", async () => { //when mouse released
 
     //send like to server using curLike
 
-    elData.likes.innerHTML = (await sendDataRequest(`/like/${qID}/${curLike.id}`, errbar, window, "")).newLikes
+    elData.likes.innerHTML = (await sendDataRequest(`/api/like/${qID}/${curLike.id}`, errbar, window, "")).newLikes
 })
 
 //add like/dislike detection
@@ -206,7 +206,7 @@ elData.ratebar.addEventListener("pointerup", async () => { //handle ratings
     lastRateVal = curStar.id
 
     //send rate to server using curStara
-    const result = (await sendDataRequest(`/rate/${qID}/${Number(curStar.id)}`, errbar, window, ""))
+    const result = (await sendDataRequest(`/api/rate/${qID}/${Number(curStar.id)}`, errbar, window, ""))
     if (!result) return
     elData.ratings.innerHTML = result.newRate
     elData.rating.innerHTML = generateStarHTML(Number(result.newAvg))
@@ -233,12 +233,12 @@ elData.watch.addEventListener("click", async () => {
     if (!BtnValues.watch) {
         elData.watch.src = "/resources/watch_full.PNG"
         elData.watches.innerHTML = +elData.watches.innerHTML + 1
-        await sendDataRequest(`/watch/add/${qID}`, errbar, window, "")
+        await sendDataRequest(`/api/watch/add/${qID}`, errbar, window, "")
     }
     else {
         elData.watch.src = "/resources/watch_empty.PNG"
         elData.watches.innerHTML = +elData.watches.innerHTML - 1
-        await sendDataRequest(`/watch/remove/${qID}`, errbar, window, "")
+        await sendDataRequest(`/api/watch/remove/${qID}`, errbar, window, "")
     }
     BtnValues.watch = !BtnValues.watch
 
@@ -249,12 +249,12 @@ elData.check.addEventListener("click",  async() => {
     if (!BtnValues.solve) {
         elData.check.src = "/resources/check_full.PNG"
         elData.solves.innerHTML = +elData.solves.innerHTML + 1
-        await sendDataRequest(`/solve/add/${qID}`, errbar, window, "")
+        await sendDataRequest(`/api/solve/add/${qID}`, errbar, window, "")
     }
     else {
         elData.check.src = "/resources/check_empty.PNG"
         elData.solves.innerHTML = +elData.solves.innerHTML - 1
-        await sendDataRequest(`/solve/remove/${qID}`, errbar, window, "")
+        await sendDataRequest(`/api/solve/remove/${qID}`, errbar, window, "")
     }
     BtnValues.solve = !BtnValues.solve
 })
@@ -275,7 +275,9 @@ async function fetchData() {
         return
     }
 
-    const result = await sendDataRequest(`/question/get/${qID}`, errbar, window, "")
+    const result = await sendDataRequest(`/api/question/get/${qID}`, errbar, window, "")
+
+    console.log(result)
 
     for (const item in result) {
         if (item == "spec" || item == "formula") { //spec and formulas need their links to be changed
@@ -314,21 +316,21 @@ async function fetchData() {
     }
 
     elData.tag.href = //encode links into the left-hand metadata
-    `/search/?tag=${encodeURIComponent(convertTag(result.tag))}`
+    `/search/?tag=${encodeURIComponent(convertTag(result.tag))}&searchType=q`
 
     elData.stage.href =
-    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}`
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&searchType=q`
 
     elData.subject.href =
-    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}`
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&searchType=q`
 
     elData.topic.href =
-    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&topic=${encodeURIComponent(result.topic)}`
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&topic=${encodeURIComponent(result.topic)}&searchType=q`
 
     document.title = `${result.name} - SCIMUS`
 
     //fetch collection data
-    const collections = await sendDataRequest(`/collections/get/${qID}`, errbar, window, "")
+    const collections = await sendDataRequest(`/api/collections/get/${qID}`, errbar, window, "")
 
     //insert collection data
     for (const c of collections) {
@@ -382,8 +384,55 @@ async function fetchData() {
     }
 }
 
+const qIDS = JSON.parse(sessionStorage.getItem("qIDS"))
+const index = JSON.parse(sessionStorage.getItem("qIndex"))
+let clear = true
+
+async function setArrowListeners() {
+    
+
+    console.log(qIDS, index)
+
+    if (!qIDS) { //check there is 
+        elData.arr1.style.display = "none"
+        elData.arr2.style.display = "none"
+    }
+    else {
+        if (index == 0) {//first in list = hide arrow
+            elData.arr1.style.display = "none"
+        }
+        if (index == qIDS.length-1) { //last in list = hide arrow
+            elData.arr2.style.display = "none"
+        }
+    }
+
+    //HORIZONTAL SCROLL
+    elData.arr1.addEventListener("click", () => { //left
+        sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
+        sessionStorage.setItem("qIndex", index-1)
+        window.location.href = `/question/${qIDS[index-1]}`
+        clear = false
+    })
+
+    elData.arr2.addEventListener("click", () => { //right
+        sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
+        sessionStorage.setItem("qIndex", index+1)
+        window.location.href = `/question/${qIDS[index+1]}`
+        clear = false
+    })
+
+    window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
+        if(clear) {
+            sessionStorage.removeItem("qIDS")
+            sessionStorage.removeItem("qIndex")
+        }
+        
+    })
+}
+
 async function showPage() {
     await fetchData()
+    await setArrowListeners()
     await Promise.all(
       [...document.images].map(img =>
           img.complete ? Promise.resolve() : new Promise(r => img.onload = r)
@@ -391,48 +440,6 @@ async function showPage() {
     )
     document.documentElement.style.visibility = "visible"
 }
-
-const qIDS = JSON.parse(sessionStorage.getItem("qIDS"))
-const index = JSON.parse(sessionStorage.getItem("qIndex"))
-let clear = true
-
-if (!qIDS) { //check there is 
-    elData.arr1.style.display = "none"
-    elData.arr2.style.display = "none"
-}
-else {
-    if (index == 0) {//first in list = hide arrow
-        elData.arr1.style.display = "none"
-    }
-    if (index == qIDS.length-1) { //last in list = hide arrow
-        elData.arr2.style.display = "none"
-    }
-}
-
-//HORIZONTAL SCROLL
-elData.arr1.addEventListener("click", () => { //left
-    sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
-    sessionStorage.setItem("qIndex", index-1)
-    window.location.href = qIDS[index-1]
-    clear = false
-})
-
-elData.arr2.addEventListener("click", () => { //right
-    sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
-    sessionStorage.setItem("qIndex", index+1)
-    window.location.href = qIDS[index+1]
-    clear = false
-})
-
-window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
-    if(clear) {
-        sessionStorage.removeItem("qIDS")
-        sessionStorage.removeItem("qIndex")
-    }
-    
-})
-
-
 
 
 //VERTICAL SCROLL

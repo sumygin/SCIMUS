@@ -124,8 +124,8 @@ function questionTemplate(question){
 
     newQuestion.addEventListener("click", (e)=>{
         let index = qIDList.indexOf(Number(newQuestion.id))
-        sessionStorage.setItem("cIDS", JSON.stringify(qIDList)) //store question ids and index 
-        sessionStorage.setItem("cIndex", index)
+        sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
+        sessionStorage.setItem("qIndex", index)
     })
 
     return newQuestion
@@ -147,7 +147,7 @@ function collectionTemplate(collection){
         <div class="s-q">
             <div class="s-q-text">
                 <div class="s-q-name">${collection.name}</div>
-                <div class="s-q-content">${collection.preview.join(", ").substring(0, 61).trim() + (collection.preview.length > 61 ? "..." : "")}</div>
+                <div class="s-q-content">${collection.preview.join(", ").substring(0, 61).trim() + (collection.preview.join(", ").length >= 61 ? "..." : "")}</div>
             </div>
             <div class="s-q-metadata">
                 <div class="row">
@@ -174,6 +174,7 @@ function collectionTemplate(collection){
     newcollection.id = collection.collection_id
 
     newcollection.addEventListener("click", (e)=>{
+        
         let index = cIDList.indexOf(Number(newcollection.id))
         sessionStorage.setItem("cIDS", JSON.stringify(cIDList)) //store collection ids and index 
         sessionStorage.setItem("cIndex", index)
@@ -222,7 +223,6 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
         displayspace.innerHTML = ""
         formdata.hasMore = true
         formdata.isLoading = false
-        sessionStorage.removeItem("search_ids")
 
         if (qForm == form) {
             qIDList = []
@@ -251,13 +251,11 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
     if (!result) return "no data received"
 
     if (form == qForm) {
-        qIDList.push(...result.map(q => q.question_id)) //generate list of question ids
+        qIDList.push(...result.map(q => Number(q.question_id))) //generate list of question ids
     }
     else if (form == cForm) {
-        cIDList.push(...result.map(c => c.collection_id)) //generate list of col ids
+        cIDList.push(...result.map(c => Number(c.collection_id))) //generate list of col ids
     }
-
-    console.log(cIDList)
 
     for (const item of result) { //append new data
         if (form == qForm) {
@@ -318,9 +316,9 @@ async function fillForm() { //update filters according to URL data
     const URLdata = new URLSearchParams(window.location.search) //get URL data
 
     let form
-    if (URLdata.get("searchType") == "q") { //if url has question as what's being searched for
-        form = qFormData
-    } else { //if url is collection search, display collections
+    const st = URLdata.get("searchType")
+    if (st == "c") { 
+        //if url is collection search, display collections
         form = cFormData
 
         //update visibility instantly
@@ -335,6 +333,11 @@ async function fillForm() { //update filters according to URL data
         qFormData.searchType.value = "c"
         cFormData.searchType.value = "c"
         state = false
+        
+    } else { //if url has question as what's being searched for
+        form = qFormData
+        qFormData.searchType.value = "q"
+        cFormData.searchType.value = "q"
     }
 
     for (const [key, value] of URLdata.entries()) {
