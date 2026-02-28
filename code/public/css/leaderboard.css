@@ -74,7 +74,7 @@ select.searchbar-item {
 }
 
 .lb-info {
-    max-width: 15em;
+    width: 20%;
 }
 
 #headers {

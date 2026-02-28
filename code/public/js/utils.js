@@ -133,6 +133,7 @@ export async function submitSearchData(form, errbar, window, successMsg, send_re
     const params = new URLSearchParams(formdata)
     if (deleteOld) history.replaceState(null, "", `/search/?${params.toString()}`) //only change url if new search has been done
 
+
     let res 
 
     if (type == "q") {
@@ -140,6 +141,9 @@ export async function submitSearchData(form, errbar, window, successMsg, send_re
     }
     else if (type == "c") {
         res = await fetch(`/api/search/collection/?${params.toString()}`)
+    }
+    else if (type == "lb") {
+        res = await fetch(`/api/lb/?${params.toString()}`)
     }
 
     const result = await res.json()

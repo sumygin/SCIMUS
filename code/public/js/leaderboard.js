@@ -1,4 +1,7 @@
-const elList = ["time", "sort", "school", "country", "displaySpace"
+import { sendDataRequest, submitSearchData} from "./utils.js"
+const errbar = document.getElementsByClassName("error")[0]
+
+const elList = ["time", "sort", "school", "country", "displaySpace", "page"
 ]
 let elData = {}
 
@@ -17,90 +20,88 @@ const headerHTML = `<div class="lb-item" id="headers">
                     <div class="lb-info country">Country</div>
                 </div>`
 
-async function sendFilters (deleteOld, form, formdata, displayspace) {
-    if (deleteOld) { //if this is a new search and not scrolling down for more content, clear previous content and create a new bottom detector
-        formdata.page.value = "1"
-        displayspace.innerHTML = ""
-        formdata.hasMore = true
-        formdata.isLoading = false
+const lForm = document.getElementById("lForm")
+
+//check submit
+lForm.addEventListener("submit", async (e)=>{
+    e.preventDefault()
+    sendFilters(true)
+})
+
+let hasMore = true
+let isLoading = false
+
+function userTemplate(user) {
+    let newUser = document.createElement("div")
+    newUser.classList.add("lb-item")
+    newUser.innerHTML = `
+                            <div class="lb-info rank">${user.rank}</div>
+                            <a href="/user/${user.user_tag}">
+                                <div class="lb-info tag">@${user.user_tag}</div>
+                            </a>
+                            <div class="lb-info filter">${user.studied_total}</div>
+                            <div class="lb-info school">${user.school}</div>
+                            <div class="lb-info country">${user.country}</div>`
+    
+        return newUser
+}
+
+async function sendFilters (deleteOld) { //function to request user data
+    if (deleteOld) {
+        elData.page.value = "1"
+        elData.displaySpace.innerHTML = headerHTML
+        hasMore = true
+        isLoading = false
     }
 
-    let oldBottomEl //get old bottom detector for this form
-
-    if (form == qForm) {
-        oldBottomEl = document.getElementById("QbottomDetect")
-    }
-    else if (form == cForm) {
-        oldBottomEl = document.getElementById("CbottomDetect")
-    }
+    const oldBottomEl = document.getElementById("bottomDetect")
 
     if (oldBottomEl){
         observer.unobserve(oldBottomEl)
         oldBottomEl.remove() //remove old bottom detector
     }
 
-    let result = await submitSearchData(form, errbar, window, "", true, history, form == qForm ? "q" : "c", deleteOld)
+    let result = await submitSearchData(lForm, errbar, window, "", true, history, "lb", false)
 
-    if (!result) return "no data received"
+    if (!result) return
 
-    if (form == qForm) {
-        qIDList.push(...result.map(q => Number(q.question_id))) //generate list of question ids
-    }
-    else if (form == cForm) {
-        cIDList.push(...result.map(c => Number(c.collection_id))) //generate list of col ids
+    for (const user of result) { //append new data
+        elData.displaySpace.appendChild(userTemplate(user))
     }
 
-    for (const item of result) { //append new data
-        if (form == qForm) {
-            QdisplaySpace.appendChild(questionTemplate(item))
-        }
-        else if (form == cForm) {
-            CdisplaySpace.appendChild(collectionTemplate(item))
-        }
-    }
-
-    if (result.length >= 20) { //if there is potential for more data to be loaded later
-        let bottomEl
-        if (form == qForm) {
-            QdisplaySpace.insertAdjacentHTML('beforeend', '<div id="QbottomDetect" style="height: 10px; opacity: 0;"></div>')
-            bottomEl = document.getElementById("QbottomDetect")
-        }
-        else if (form == cForm) {
-            QdisplaySpace.insertAdjacentHTML('beforeend', '<div id="CbottomDetect" style="height: 10px; opacity: 0;"></div>')
-            bottomEl = document.getElementById("CbottomDetect")
-        }
-
+    if (result.length >= 20) { //if tehre is potential for more data to be loaded later
+        elData.displaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
+        const bottomEl = document.getElementById("bottomDetect")
         observer.observe(bottomEl)
     }
     else {
-        formdata.hasMore = false //there is no more data to load
+        hasMore = false //tehre is no more data to load
+    }
+
+    
+}
+
+async function loadMoreItems() {
+    if (!isLoading && hasMore) { //if its already loading or there are no more to be loaded
+        isLoading = true
+
+        elData.page.value = Number(elData.page.value) + 1 //increment page
+
+        await sendFilters(false) //send current filters to server and request data back
+
+        isLoading = false
     }
 }
 
-async function loadMoreItems(form, formdata, displayspace) {
-    if (!formdata.isLoading && formdata.hasMore) { //if its already loading or there are no more to be loaded
-        formdata.isLoading = true
-
-        formdata.page.value = Number(formdata.page.value) + 1 //increment page
-
-        await sendFilters(false, form, formdata, displayspace)
-
-        formdata.isLoading = false
-    }
-}
-
-const observer = new IntersectionObserver((entries) => { //if on screen
-    if (!entries[0].isIntersecting) return
-
-    const id = entries[0].target.id
-
-    if (id === "QbottomDetect") {
-        loadMoreItems(qForm, qFormData, QdisplaySpace)
-    } else {
-        loadMoreItems(cForm, cFormData, CdisplaySpace)
+const observer = new IntersectionObserver((entries) => {
+    
+    if (entries[0].isIntersecting) { //if on screen
+        loadMoreItems()
     }
 }, {
     root: null, 
     rootMargin: '1000px', //data load from 100px from bottom
     threshold: 0.1
 })
+
+sendFilters(true)

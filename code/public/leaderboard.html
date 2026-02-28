@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard - SCIMUS</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/leaderboard.css">
-    <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/leaderboard.css">
+    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
 </head>
 <body>
     <header id="header">
@@ -19,8 +19,8 @@
             <h3>LEADERBOARD</h3>
         </div>
 
-        <div id="leaderboardSearch" >
-            <form class="searchbar">
+        <div id="leaderboardSearch">
+            <form class="searchbar" id="lForm"  method="GET">
                 <select name="sort" id="sort" class="searchbar-item" >
                     <option value="time">Time studied</option> 
                     <option value="qcreate">Questions created</option>
@@ -28,8 +28,8 @@
                     <option value="qrating">Average question rating</option>
                 </select>
                 <select name="time" id="time" class="searchbar-item">
-                    <option value="">All time</option> 
-                    <option value="">Today</option>
+                    <option value="1">All time</option> 
+                    <option value="2">Today</option>
                 </select>
                 <div class="autocomplete-input school searchbar-item">
                     <input type="text" placeholder="school" name="school" id="school" class="">
@@ -43,6 +43,8 @@
                     </div>
                 </div>
 
+                <input type="text" style="display:none;" id="page" value="1" name="page">
+
                 <input type="submit" id="submit" value="Search" class="searchbar-item">
 
             </form>
@@ -51,22 +53,15 @@
         <div class="displaywrapper">
             <div id="displaySpace">
                 
-                <div class="lb-item">
-                    <div class="lb-info rank">1</div>
-                    <a href="/profile">
-                        <div class="lb-info tag">@monkey</div>
-                    </a>
-                    <div class="lb-info filter">30h</div>
-                    <div class="lb-info school">St Olave's</div>
-                    <div class="lb-info country">UK</div>
-                </div>
             </div>
                 
         </div>
+        <div class="error"></div>
     </main>
 
-    <script src="js/headerinsert.js"></script>
-    <script src="js/header.js"></script>
-    <script type="module" src="js/autocomplete.js"></script>
+    <script src="/js/headerinsert.js"></script>
+    <script src="/js/header.js"></script>
+    <script type="module" src="/js/autocomplete.js"></script>
+    <script type="module" src="/js/leaderboard.js"></script>
 </body>
 </html>

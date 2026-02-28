@@ -911,6 +911,74 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/api/lb/", async (req, res) => { //respond to leaderboard request
+        try{
+            let data = req.query
+            let page = req.params.page
+
+            !page ? page = 1 : page = Number(page)
+            const skip = (page-1)*20 //calculate total number to skip
+            
+            let filter = {}
+
+            let school
+
+            if (data.school != "") { //check school exists
+                school = await School.findOne({name:data.school}, {school_id:1, _id:0}).lean()
+                if (!school) {
+                    return res.status(400).json({error:"No such school found"}) //if subject is invalid
+                }
+            }
+
+            if (data.country != "") {filter.country = data.country}
+            if (data.school !=""){filter.school_id = school.school_id}
+
+
+            /*if (data.search){
+                filter.$or = [ //check matches in any of mark scheme, title, content
+                    {name:{$regex: data.search, $options: "i"}},
+                    {content:{$regex: data.search, $options: "i"}},
+                    {mark_scheme:{$regex: data.search, $options: "i"}}
+                ]
+            }
+
+            let sortVal = QsortMap[data.sort] || {views:-1} //default sort is views
+            sortVal._id = 1 //enforces specific order*/
+
+            let result = await User.find(filter, {
+                user_tag:1, studied_total:1, school_id:1, country:1, _id:0
+            }) //find specified questions
+            //.sort(sortVal)
+            .skip(skip)
+            .limit(20)
+            .lean()
+
+            //collect school ids
+            const schoolIDs = [...new Set(result.map(u => u.school_id))]
+
+            //fetch school ids and their names
+            const schools = await School.find({school_id:{$in:schoolIDs}}, {name:1, _id:0, school_id:1})
+
+            //create object of schoolid -> schoolname
+            const schoolObj = Object.fromEntries(schools.map(s => [s.school_id, s.name]))
+
+            //add to users in result
+            let counter = 1
+            for (let u of result) {
+                u.rank = skip + counter
+                counter++
+                const school = schoolObj[u.school_id]
+                u.school = school
+            }
+
+            return res.json(result)
+        }
+        catch (err) {
+            console.error(err)
+            return res.status(500).json({error:"Server error"})
+        }
+    })
+
     app.get("/api/collections/get/:id", async (req, res) => { //respond to collection requests
         try {
             const userTag = req.user.user_tag
