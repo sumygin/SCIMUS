@@ -21,11 +21,11 @@
 
         <div id="leaderboardSearch" >
             <form class="searchbar">
-                <select name="sort" id="sort" class="searchbar-item">
-                    <option value="">Time studied</option> 
-                    <option value="">Questions created</option>
-                    <option value="">Questions completed</option>
-                    <option value="">Average question rating</option>
+                <select name="sort" id="sort" class="searchbar-item" >
+                    <option value="time">Time studied</option> 
+                    <option value="qcreate">Questions created</option>
+                    <option value="qcomplete">Questions completed</option>
+                    <option value="qrating">Average question rating</option>
                 </select>
                 <select name="time" id="time" class="searchbar-item">
                     <option value="">All time</option> 
@@ -42,20 +42,15 @@
                     <div class="space">
                     </div>
                 </div>
+
+                <input type="submit" id="submit" value="Search" class="searchbar-item">
+
             </form>
         </div>
 
         <div class="displaywrapper">
             <div id="displaySpace">
-                <div class="lb-item" id="headers">
-                    <div class="lb-info rank">Rank</div>
-                    <a href="/profile">
-                        <div class="lb-info tag">Tag</div>
-                    </a>
-                    <div class="lb-info filter">Time studied</div>
-                    <div class="lb-info school">School</div>
-                    <div class="lb-info country">Country</div>
-                </div>
+                
                 <div class="lb-item">
                     <div class="lb-info rank">1</div>
                     <a href="/profile">

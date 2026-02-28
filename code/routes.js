@@ -14,15 +14,6 @@ const leo = require("leo-profanity")
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
 
-/*<option value="views">Views</option>
-<option value="easy">Easiest</option>
-<option value="hard">Hardest</option>
-<option value="likes">Like rating</option>
-<option value="commments">Number of comments</option>
-<option value="rates">Number of ratings</option>
-<option value="num">Question number</option>
-<option value="time">Recent</option>*/
-
 const QsortMap = { //quickly maps value of sort to a sort object
     "views":{views:-1}, //lowest views first
     "easy":{total_diff_rating:1}, //lowest difficulty first

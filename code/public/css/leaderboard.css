@@ -119,3 +119,14 @@ select.searchbar-item {
 .auto-item:hover {
     opacity: 0.6;
 }
+
+#submit {
+    background-color: white;
+    border: 1px solid gray;
+    text-align: left;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+#submit:hover {
+    background-color: white;
+}
