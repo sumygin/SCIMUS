@@ -1,4 +1,4 @@
-import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage} from "./utils.js"
+import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage, sendFormData} from "./utils.js"
 
 document.documentElement.style.visibility = "hidden"
 
@@ -17,6 +17,7 @@ let flipped = false
 const commentsTab = document.getElementById("comments-tab")
 const commentsBtn = document.getElementById("commentBtn")
 const questionSpace = document.getElementById("question")
+let commentTabOpenYet = false
 let cOpen = false
 
 const likeBarImgs = document.querySelectorAll(".like-bar img")
@@ -28,13 +29,15 @@ const collectionSpace = document.getElementsByClassName("collection-wrapper")[0]
 const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert els
     "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag",
     "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check", "arr1", "arr2", "plus", "addcol",
-
+    "cForm", "rbar", "rbaruser", "cinput", "csubmit", "page", "commentSpace"
 ]
 let elData = {}
 
 for (let el of qElementList) {
     elData[el] = document.getElementById(el)
 }
+
+
 
 //MARK SCHEME TOGGLE
 
@@ -143,6 +146,10 @@ elData.addcol.addEventListener("click", async () =>{
 //COMMENT TOGGLE
 
 commentsBtn.addEventListener("click", () => { //comment show/hide
+    if (!commentTabOpenYet) {
+        getComments(true)
+        commentTabOpenYet = true
+    }
     if (!cOpen) {
         commentsTab.style.display = "block" //show comments
         questionSpace.style.width = '70%'
@@ -153,6 +160,147 @@ commentsBtn.addEventListener("click", () => { //comment show/hide
     }
     cOpen = !cOpen
 })
+
+//===========
+//COMMENTS
+//===========
+
+elData.cForm.addEventListener("submit", async e => { 
+    elData.cinput.setCustomValidity("")
+
+    //client side validation
+
+    if (elData.cinput.value > 200) { 
+        reportInvalid(elData.cinput, "Comment can't be longer than 200 characters!", e)
+        return
+    }
+
+    e.preventDefault() //prevent form being sent
+
+    //processing form data
+
+    const result = await sendFormData(`/api/comments/create/${qID}`, elData.cForm, errbar, window, "Comment submitted", true)
+
+    if (result) {
+        elData.cinput.value = ""
+    }
+
+    return
+})
+
+function commentTemplate(c){ 
+    let newComment = document.createElement("div")
+    newComment.classList.add("comment-wrapper")
+
+    newComment.innerHTML =`
+                                <div class="comment">
+                                    <div class="c-top">
+                                        <div class="c-names">
+                                            <div class="c-name" href="${`/profile/${c.user_tag}`}">
+                                                ${c.username}
+                                            </div>
+                                            <div class="c-tag" href="${`/profile/${c.user_tag}`}">
+                                                @${c.user_tag}
+                                            </div>
+                                        </div>
+                                        <div class="icons">
+                                            <div class="c-likes">${c.like_rating}</div>
+                                            <button class="c-like">
+                                                <img src="/resources/neutral.PNG" alt="" class="icon comment-face"></button>
+                                            </button>
+                                            <button class="reply">
+                                                <img src="/resources/comments.PNG" alt="" class="icon comment-icon"></button>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="c-text">
+                                        ${c.content}
+                                    </div>
+                                    
+                                </div>
+                                <div class="c-replies">
+                                    ${
+                                        c.moreReplies ? '<button class="c-load">[ load replies ]</button>' : ""
+                                    }
+                                    
+                                </div>`
+
+    const replyBTN = newComment.querySelector(".c-replies")
+    if (replyBTN) replyBTN.id = c.comment_id //set id of more replies button to easily add more later
+
+    return newComment
+}
+
+function generateFullCommentHTML(comments) {
+    let totalHTML = document.createDocumentFragment()
+    for (const c of comments) {
+        totalHTML.appendChild(commentTemplate(c))
+    }
+    return totalHTML
+}
+
+let hasMore = true
+let isLoading = false
+
+async function getComments (deleteOld) { //function to request comment data
+    if (deleteOld) {
+        elData.page.value = "1"
+        elData.commentSpace.innerHTML = ""
+        hasMore = true
+        isLoading = false
+    }
+
+    const oldBottomEl = document.getElementById("bottomDetect")
+
+    if (oldBottomEl){
+        observer.unobserve(oldBottomEl)
+        oldBottomEl.remove() //remove old bottom detector
+    }
+
+    let result = await sendDataRequest(`/api/comments/get/${qID}/${elData.page.value}`, errbar, window, "")
+
+    if (!result) return
+    
+
+    //append new data
+    elData.commentSpace.appendChild(generateFullCommentHTML(result))
+
+    if (result.length >= 20) { //if tehre is potential for more data to be loaded later
+        elData.commentSpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
+        const bottomEl = document.getElementById("bottomDetect")
+        observer.observe(bottomEl)
+    }
+    else {
+        hasMore = false //tehre is no more data to load
+    }
+
+    
+}
+
+async function loadMoreItems() {
+    if (!isLoading && hasMore) { //if its already loading or there are no more to be loaded
+        isLoading = true
+
+        elData.page.value = Number(elData.page.value) + 1 //increment page
+
+        await getComments(false) //request more comments
+
+        isLoading = false
+    }
+}
+
+const observer = new IntersectionObserver((entries) => {
+    
+    if (entries[0].isIntersecting) { //if on screen
+        loadMoreItems()
+    }
+}, {
+    root: null, 
+    rootMargin: '1000px', //data load from 100px from bottom
+    threshold: 0.1
+})
+
+
 
 
 //  =================

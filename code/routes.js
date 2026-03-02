@@ -1361,55 +1361,43 @@ module.exports = function(app) {
 
             let page = Number(req.params.page)
 
-            !page ? page = 1 : page = Number(data.page)
+            !page ? page = 1 : page = Number(page)
             const skip = (page-1)*20 //calculate total number to skip
 
             //get top 20 comments
-            let comments = Comment.find({question_id:qID, parent_comment_id:undefined},
+            let comments = await Comment.find({question_id:qID, parent_comment_id:undefined},
                 {_id:0, comment_id:1, user_tag:1, content:1, like_rating:1, created_at:1}
             )
-            .sort({like_rating:-1, _id:0})
+            .sort({like_rating:-1, _id:1})
             .skip(skip)
             .limit(20)
             .lean()
 
             //collect user tags
-            const userIDs = [...new Set(comments.map(c => c.topic_id))]
+            const userTags = [...new Set(comments.map(u => u.user_tag))]
 
-            //fetch topic ids, names, subject_ids
-            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+            //fetch user IDS, usernames
+            const users = await User.find({user_tag:{$in:userTags}},{user_tag:1, username:1})
 
-            //create object of {topic_id:{topic_id, subject_id, name}}
-            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+            //create object of user_tag:username
+            const userObj = Object.fromEntries(users.map(c => [c.user_tag, c.username]))
 
-            //collect subject ids from topics
-            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+            //get comment IDs
+            const commentIDs = comments.map(c => c.comment_id)
+        
+            //fetch matching comments whose parents are in the commentIDs
+            const children = await Comment.find({parent_comment_id:{$in:commentIDs}},{parent_comment_id:1})
 
-            //fetch subject names
-            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+            //create object of cID:true
+            const childrenObj = Object.fromEntries(children.map(c => [c.parent_comment_id, true]))
 
-            //create object of {subject_id:name}
-            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
-
-            //add to questions in result
-            for (let q of questions) {
-                const topic = topicObj[q.topic_id]
-                q.topic = topic.name
-                q.subject = subjObj[topic.subject_id]
+            //add to comments in result
+            for (let c of comments) {
+                c.username = userObj[c.user_tag]
+                c.moreReplies = childrenObj[c.comment_id] == undefined ? false : true
             }
 
-            let tag = convertCollectionTag(collection.tag)
-
-            let data = {
-                tag:tag,
-                paper:collection.paper == 0 ? "" : collection.paper,
-                year:collection.year == 0 ? "" : collection.year,
-                name:collection.name,
-                user_tag:"@"+collection.user_tag,
-                question_data:questions
-            }
-
-            return res.json(data)
+            return res.json(comments)
         }
         catch (err) {
             console.error(err)
@@ -1417,13 +1405,55 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/api/replies/get/:cID", async (req, res) => { //load reply comments for a comment
+        try {
+            const cID = Number(req.params.cID) //get parent comment id
 
+            //check comment exists
+            if (!(await Comment.exists({comment_id:cID}))) { 
+                return res.status(409).json({ error: "Comment does not exist!"})
+            }
 
+            //get top 20 comments
+            let comments = await Comment.find({parent_comment_id:cID},
+                {_id:0, comment_id:1, user_tag:1, content:1, like_rating:1, created_at:1}
+            )
+            .sort({like_rating:-1, _id:1})
+            .lean()
 
+            //collect user tags
+            const userTags = [...new Set(comments.map(u => u.user_tag))]
 
+            //fetch user IDS, usernames
+            const users = await User.find({user_tag:{$in:userTags}},{user_tag:1, username:1})
 
+            //create object of user_tag:username
+            const userObj = Object.fromEntries(users.map(c => [c.user_tag, c.username]))
 
-    //SERVING FILES
+            //get comment IDs
+            const commentIDs = comments.map(c => c.comment_id)
+        
+            //fetch matching comments whose parents are in the commentIDs
+            const children = await Comment.find({parent_comment_id:{$in:commentIDs}},{parent_comment_id:1})
+
+            //create object of cID:true
+            const childrenObj = Object.fromEntries(children.map(c => [c.parent_comment_id, true]))
+
+            //add to comments in result
+            for (let c of comments) {
+                c.username = userObj[c.user_tag]
+                c.moreReplies = childrenObj[c.comment_id] == undefined ? false : true
+            }
+
+            return res.json(comments)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    //SERVING HTML FILES
 
     app.get("/", (req, res) => {
         //check if logged in first; redirect to home, otherwise welcome page
@@ -1790,6 +1820,67 @@ module.exports = function(app) {
                     success: true,
                     redirect: `/create/${qID}`
                 })
+            }
+        } catch(err) {
+            console.error(err)
+            return res.status(500).json({error:"Server error"}); 
+        }
+    })
+
+    app.post("/login", (req, res, next) => {
+        passport.authenticate("local", (err, user, info) => {
+            if (err) {
+                return res.status(500).json({ error: "Server error" })
+            }
+
+            if (!user) {
+                return res.status(401).json({error: info?.message || "Invalid credentials"})
+            }
+
+            req.logIn(user, err => {
+                if (err){
+                    return res.status(500).json({ error: "Login failed" })
+                }
+                return res.json({ success: true })
+                })
+        })(req, res, next)
+    })
+
+    // Logout
+    app.get("/logout", (req, res) => {
+        req.logout(() => {
+            res.redirect("/")
+        });
+    })
+
+    app.post("/api/comments/create/:qID", async (req, res) => {
+        const text = req.body.com
+        const userTag = req.user.user_tag
+        const qID = req.params.qID
+
+        try{
+            //validation
+
+            if (validate(text)) return //validate for profanities/links
+
+            if (text.length > 200) {
+                return res.status(400).json({error: "Max comment length is 200 characters"})
+            }
+            else {
+                //check question exists
+                if (!(await Question.exists({question_id:qID}))) { 
+                    return res.status(409).json({ error: "Question does not exist!"})
+                }
+
+                await Comment.insertOne({
+                    comment_id:await idGenerator(Comment),
+                    question_id:qID,
+                    user_tag:userTag,
+                    content:text,
+                    like_rating:0,
+                })
+
+                return res.status(200).json({success:true})
             }
         } catch(err) {
             console.error(err)

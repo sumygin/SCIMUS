@@ -33,7 +33,7 @@ main {
 .pagecontainer {
     display: flex;
     flex-direction: row;
-    height: 100%;
+    height: calc(95vh - 6.5vh);
     justify-content: center;
 }
 
@@ -101,6 +101,7 @@ main {
     height: inherit;
     padding-top: 0.5em;
     width: 95%;
+    box-sizing: border-box;
 }
 
 .bottom-bar {
@@ -140,19 +141,27 @@ main {
     font-size: 0.75rem;
     text-align: left;
     height: 70.5vh;
+    overflow: hidden;
 }
 
 .commentWrapper {
     position: relative;
-    overflow: none;
-    height: calc(94% - 5rem);
+    overflow: hidden;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y:hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .comments {
+    position: relative;
     overflow-y: auto;
-    position: absolute;
+    overflow-x: hidden;
+    height: 100%;
     padding-bottom: 2em;
     border-bottom: 2px solid lightgray;
+    flex: 1;
 }
 
 .c-bar {
@@ -160,7 +169,8 @@ main {
     text-align: center;
     width: 90%;
     top: 30vh;
-    height: 6rem;
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 #cinput { 
@@ -175,11 +185,6 @@ main {
     border-radius: 5px;
 }
 
-.comments {
-    position: relative;
-    overflow-y: auto;
-    height: 100%;
-}
 
 .c-container {
     display: flex;
@@ -226,10 +231,16 @@ main {
     background: white;
     text-align: center;
     padding: 0.3em;
+    font-size: 0.9em;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
 }
 
 .c-replies {
     padding-left: 1em;
+    border-left: 1px solid #ddd;
 }
 
 .c-load {
@@ -239,6 +250,7 @@ main {
 
 .r-cancel {
     color: red;
+    background: none;
 }
 
 .mark-scheme {
