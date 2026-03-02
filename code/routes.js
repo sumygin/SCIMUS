@@ -30,6 +30,13 @@ const CsortMap = { //quickly maps value of sort to a sort object
     "time":{created_at:-1}, //largest date (youngest) first
 }
 
+const LBsortMap = {
+    "time":[{studied_total:-1}, {studied_today:-1}],
+    "qcreate":[{created_total:-1}, {created_today:-1}],
+    "qcomplete":[{completed_total:-1}, {completed_today:-1}],
+    "likes":[{total_likes:-1}, {likes_today:-1}],
+}
+
 function passwordCheck(pw) {
     const hasNumber = /[0-9]/.test(pw)
     const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};:'",.<>/?\\|~]/.test(pw)
@@ -135,7 +142,7 @@ function convertCollectionTag(val) {
 
 module.exports = function(app) {
     const {User, Subject, Topic, School, Question, Collection, QuestionCollection, 
-    Like, Solve, Watch, Comment, Notification, Rate,
+    Like, Solve, Watch, Comment, Notification, Rate, ServerData,
     SubjectUser} = require("./database")
 
     mongoose.connect(hostUrl)
@@ -461,6 +468,11 @@ module.exports = function(app) {
                 {$inc:{num_solves:1}}
             )
 
+            await User.updateOne({ //increment questions completed
+                user_tag:userTag},
+                {$inc:{completed_today:1, completed_total:1}}
+            )
+
             return res.status(200).json({success:true})
         }
         catch (err) {
@@ -522,6 +534,12 @@ module.exports = function(app) {
                 question_id:qID},
                 {$inc:{num_solves:-1}}
             )
+
+            await User.updateOne({ //decrement questions completed
+                user_tag:userTag},
+                {$inc:{completed_today:-1, completed_total:-1}}
+            )
+
 
             return res.status(200).json({success:true})
         }
@@ -593,7 +611,7 @@ module.exports = function(app) {
             //update user total like rating
             await User.updateOne(
                 {user_tag:question.user_tag},
-                {$inc: {total_likes:delta}},
+                {$inc: {total_likes:delta, likes_today:delta}},
             )
 
             return res.status(200).json({
@@ -685,6 +703,32 @@ module.exports = function(app) {
                 return res.status(409).json({ error: "Invalid subject"})
             }
             return res.json(subject.papers)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/timer/add/:time", async (req, res) => { //add time studied to user account
+        try {
+            const userTag = req.user.user_tag
+            let time = Number(req.params.time)
+
+            if (!await User.findOne({user_tag:userTag})) {
+                return res.status(409).json({ error: "Invalid user tag"})
+            }
+            if (isNaN(time) || time < 0 || time > 1000*60*90) {
+                return res.status(409).json({ error: "Invalid time value!"})
+            }
+
+            await User.updateOne({user_tag:userTag}, {
+                $inc:{studied_today:time, studied_total:time}
+            })
+
+            return res.status(200).json({
+                success:true
+            })
         }
         catch (err) {
             console.error(err)
@@ -933,22 +977,25 @@ module.exports = function(app) {
             if (data.country != "") {filter.country = data.country}
             if (data.school !=""){filter.school_id = school.school_id}
 
-
-            /*if (data.search){
-                filter.$or = [ //check matches in any of mark scheme, title, content
-                    {name:{$regex: data.search, $options: "i"}},
-                    {content:{$regex: data.search, $options: "i"}},
-                    {mark_scheme:{$regex: data.search, $options: "i"}}
-                ]
+            if (["0", "1"].includes(data.time)) {
+                data.time = Number(data.time)
+            }
+            else {
+                return res.status(400).json({error:"Invalid time period"}) //if is invalid
             }
 
-            let sortVal = QsortMap[data.sort] || {views:-1} //default sort is views
-            sortVal._id = 1 //enforces specific order*/
+            if (!["time", "qcreate", "qcomplete", "likes"].includes(data.sort)) {
+                return res.status(400).json({error:"Invalid sort parameter"}) //if is invalid
+            }
+
+            let sortVal = {...LBsortMap[data.sort][data.time]} //get correct sort field + descending
+            let sortVar = Object.keys(sortVal)[0] //get actual variable name
+            sortVal._id = 1
 
             let result = await User.find(filter, {
-                user_tag:1, studied_total:1, school_id:1, country:1, _id:0
+                user_tag:1, [sortVar]:1, school_id:1, country:1, _id:0
             }) //find specified questions
-            //.sort(sortVal)
+            .sort(sortVal)
             .skip(skip)
             .limit(20)
             .lean()
@@ -965,8 +1012,11 @@ module.exports = function(app) {
             //add to users in result
             let counter = 1
             for (let u of result) {
+                //set rank
                 u.rank = skip + counter
                 counter++
+
+                //set shcl
                 const school = schoolObj[u.school_id]
                 u.school = school
             }
@@ -1300,6 +1350,73 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/api/comments/get/:qID/:page", async (req, res) => { //load base comments for a question
+        try {
+            const qID = Number(req.params.qID)
+
+            //check question exists
+            if (!(await Question.exists({question_id:qID}))) { 
+                return res.status(409).json({ error: "Question does not exist!"})
+            }
+
+            let page = Number(req.params.page)
+
+            !page ? page = 1 : page = Number(data.page)
+            const skip = (page-1)*20 //calculate total number to skip
+
+            //get top 20 comments
+            let comments = Comment.find({question_id:qID, parent_comment_id:undefined},
+                {_id:0, comment_id:1, user_tag:1, content:1, like_rating:1, created_at:1}
+            )
+            .sort({like_rating:-1, _id:0})
+            .skip(skip)
+            .limit(20)
+            .lean()
+
+            //collect user tags
+            const userIDs = [...new Set(comments.map(c => c.topic_id))]
+
+            //fetch topic ids, names, subject_ids
+            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+            //create object of {topic_id:{topic_id, subject_id, name}}
+            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+            //collect subject ids from topics
+            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+            //fetch subject names
+            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+            //create object of {subject_id:name}
+            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+            //add to questions in result
+            for (let q of questions) {
+                const topic = topicObj[q.topic_id]
+                q.topic = topic.name
+                q.subject = subjObj[topic.subject_id]
+            }
+
+            let tag = convertCollectionTag(collection.tag)
+
+            let data = {
+                tag:tag,
+                paper:collection.paper == 0 ? "" : collection.paper,
+                year:collection.year == 0 ? "" : collection.year,
+                name:collection.name,
+                user_tag:"@"+collection.user_tag,
+                question_data:questions
+            }
+
+            return res.json(data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
 
 
 
@@ -1509,6 +1626,7 @@ module.exports = function(app) {
                     completed_total:0,
                     completed_today:0,
                     total_likes:0,
+                    likes_today:0,
                 })
 
                 //let data = {name, password, password_1, school, stage, subjects, tag, username, country, email}
@@ -1679,11 +1797,66 @@ module.exports = function(app) {
         }
     })
 
-    
+    async function resetDailyTotals(scheduleNew) {
+        const lastReset = (await ServerData.findOne({})).time
+        const now = new Date()
 
-    // Auth middleware
-    
-//at the end of every day, set stats to 0
+        //check if it needs to be reset rn
+        if (!(lastReset.getDate() == now.getDate() 
+            && lastReset.getFullYear() == now.getFullYear()
+            && lastReset.getMonth() == now.getMonth())) { //if day is not the same
 
-    //delete all notifications that are older than 60 days
+            //update all user values to 0
+            
+            await User.updateMany({}, {
+                $set:{studied_today:0,
+                    completed_today:0,
+                    likes_today:0,
+                    created_today:0
+                }
+            })
+
+            //delete all notifications that are older than 365 days
+
+            let date365ago = new Date()
+            date365ago.setFullYear(date365ago.getFullYear()-1)
+
+            await Notification.deleteMany({
+                created_at:{$lt:date365ago}
+            })
+
+            console.log("RESET NOW!!!", now)
+
+            //update last reset
+            await ServerData.updateOne({},{
+                $set:{time:now}
+            })
+        }
+
+        if (scheduleNew){
+            setTimeout(() => resetDailyTotals(true), day)
+        }
+
+    }
+
+    //calculate ms to midnight
+    function msToMidnight() {
+        const now = new Date()
+        const nextMidnight = new Date(
+            now.getFullYear(), //this year
+            now.getMonth(), //this month
+            now.getDate() + 1, // tomorrow
+            0, 0, 0, 0         // midnight
+        )
+        return nextMidnight - now
+    }
+
+    console.log(msToMidnight())
+
+    
+    
+    resetDailyTotals(false)
+    setTimeout(() => resetDailyTotals(true), msToMidnight())
+
+    
 }

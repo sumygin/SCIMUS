@@ -163,10 +163,16 @@ main {
     height: 6rem;
 }
 
-.c-input { 
+#cinput { 
     resize: none;
     width: 100%;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+#csubmit {
+    font-size: 0.9em;
+    background: lightgray;
+    border-radius: 5px;
 }
 
 .comments {
@@ -196,8 +202,18 @@ main {
 }
 
 .c-names {
-    width: 70%;
+    width: 40%;
     font-weight: bold;
+}
+
+.icons {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
+
+.c-likes {
+    padding-top: 2px;
 }
 
 .reply {
@@ -205,11 +221,20 @@ main {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-.reply-bar {
+#replybar {
     width: 100%;
     background: white;
     text-align: center;
     padding: 0.3em;
+}
+
+.c-replies {
+    padding-left: 1em;
+}
+
+.c-load {
+    font-size: 0.80em;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 .r-cancel {

@@ -25,11 +25,11 @@
                     <option value="time">Time studied</option> 
                     <option value="qcreate">Questions created</option>
                     <option value="qcomplete">Questions completed</option>
-                    <option value="qrating">Average question rating</option>
+                    <option value="likes">Like rating</option>
                 </select>
                 <select name="time" id="time" class="searchbar-item">
-                    <option value="1">All time</option> 
-                    <option value="2">Today</option>
+                    <option value="0">All time</option> 
+                    <option value="1">Today</option>
                 </select>
                 <div class="autocomplete-input school searchbar-item">
                     <input type="text" placeholder="school" name="school" id="school" class="">
@@ -56,11 +56,12 @@
             </div>
                 
         </div>
+        
         <div class="error"></div>
     </main>
 
     <script src="/js/headerinsert.js"></script>
-    <script src="/js/header.js"></script>
+    <script  type="module" src="/js/header.js"></script>
     <script type="module" src="/js/autocomplete.js"></script>
     <script type="module" src="/js/leaderboard.js"></script>
 </body>

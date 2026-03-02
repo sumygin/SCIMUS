@@ -1,3 +1,7 @@
+import { sendDataRequest } from "./utils.js"
+
+const errbar = document.getElementsByClassName("error")[0]
+
 const tPopup = document.getElementById("timer-popup")
 const tHover = document.getElementsByClassName("timer-hover")
 const canvas = document.getElementById("timer-arc")
@@ -70,10 +74,12 @@ class Timer {
         console.log(timer)
         headerTxt.style.color = "black"
         setTimerText(true)
-        
     }
 
     zero() {
+        //send studied time to server
+        sendDataRequest(`/api/timer/add/${this.targetTime-this.timeLeft}`, errbar, window, "")
+
         updatePlayButton("replay")
         this.running = false
         this.timeLeft = 0
@@ -82,6 +88,7 @@ class Timer {
         if (!tPopup.matches(":hover")) {
             timerSound.play()
         }
+
     }
 
     switchMode() {
@@ -240,8 +247,8 @@ window.addEventListener("visibilitychange", function() {
 function mainLoop() {
 
     if (timer.running && timer.timeLeft != 0) {
-        if (timer.timeLeft < 10) {
-            timer.zero()
+        if (timer.timeLeft < 1) {
+            timer.zero(timer.timeLeft)
             timer.time
         }
         else {

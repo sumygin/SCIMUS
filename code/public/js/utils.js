@@ -257,3 +257,24 @@ export async function updatePaperNum(value, paper_field, errbar, window) { //gen
     }
 }
 
+export function timeConverter(time) {
+    const minute = [1000*60, "m"]
+    const hour = [60*minute[0], "h"]
+    const day = [24*hour[0], "d"]
+    const times = [day, hour, minute]
+
+    let result = ""
+
+    for (let t of times) {
+        
+        let number = Math.floor(time/t[0]) //figure out how many time units are in specified time
+        time -= number*t[0] //calculate time left over
+
+        if (number > 0) { //add to result
+            result += String(number) + t[1] + " "
+        }
+
+    }
+
+    return result == "" ? "0m" : result
+}

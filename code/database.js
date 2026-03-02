@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
   created_today: Number,
   created_total: Number, 
   total_likes:Number,
+  likes_today:Number,
 });
 
 const subjectSchema = new mongoose.Schema({
@@ -149,6 +150,10 @@ const notificationSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 })
 
+const dataSchema = new mongoose.Schema({
+  time: Date
+})
+
 module.exports = {
     User: mongoose.model('User', userSchema),
     Subject: mongoose.model('Subject', subjectSchema),
@@ -163,5 +168,6 @@ module.exports = {
     Comment: mongoose.model('Comment', commentSchema),
     Notification: mongoose.model('Notification', notificationSchema),
     SubjectUser: mongoose.model("SubjectUser", subjectUserSchema),
-    Rate: mongoose.model("Rate", rateSchema)
+    Rate: mongoose.model("Rate", rateSchema),
+    ServerData: mongoose.model("ServerData", dataSchema)
 }

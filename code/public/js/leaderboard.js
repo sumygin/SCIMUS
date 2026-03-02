@@ -1,4 +1,4 @@
-import { sendDataRequest, submitSearchData} from "./utils.js"
+import { sendDataRequest, submitSearchData, timeConverter} from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
 const elList = ["time", "sort", "school", "country", "displaySpace", "page"
@@ -10,15 +10,18 @@ for (let el of elList) {
 }
 
 //HMTL of header of leaderboard
-const headerHTML = `<div class="lb-item" id="headers"> 
-                    <div class="lb-info rank">Rank</div>
-                    <a href="/profile">
-                        <div class="lb-info tag">Tag</div>
-                    </a>
-                    <div class="lb-info filter">Time studied</div>
-                    <div class="lb-info school">School</div>
-                    <div class="lb-info country">Country</div>
-                </div>`
+function headerHTML() {
+    const text = `<div class="lb-item" id="headers"> 
+                        <div class="lb-info rank">Rank</div>
+                        <a href="/profile">
+                            <div class="lb-info tag">Tag</div>
+                        </a>
+                        <div class="lb-info filter">${elData.sort.options[elData.sort.selectedIndex].text}</div>
+                        <div class="lb-info school">School</div>
+                        <div class="lb-info country">Country</div>
+                    </div>`
+    return text
+}
 
 const lForm = document.getElementById("lForm")
 
@@ -34,12 +37,24 @@ let isLoading = false
 function userTemplate(user) {
     let newUser = document.createElement("div")
     newUser.classList.add("lb-item")
+
+    let sortItem = user.studied_total ?? user.studied_today ?? user.created_total ?? user.created_today ?? user.total_likes ?? user.likes_today ?? user.completed_total ?? user.completed_today
+
+    if (user.studied_today != undefined) {
+        sortItem = timeConverter(user.studied_today)
+    }
+    else if (user.studied_total != undefined) {
+        sortItem = timeConverter(user.studied_total)
+    }
+
     newUser.innerHTML = `
                             <div class="lb-info rank">${user.rank}</div>
                             <a href="/user/${user.user_tag}">
                                 <div class="lb-info tag">@${user.user_tag}</div>
                             </a>
-                            <div class="lb-info filter">${user.studied_total}</div>
+                            <div class="lb-info filter">${
+                                sortItem
+                            }</div>
                             <div class="lb-info school">${user.school}</div>
                             <div class="lb-info country">${user.country}</div>`
     
@@ -49,7 +64,7 @@ function userTemplate(user) {
 async function sendFilters (deleteOld) { //function to request user data
     if (deleteOld) {
         elData.page.value = "1"
-        elData.displaySpace.innerHTML = headerHTML
+        elData.displaySpace.innerHTML = headerHTML()
         hasMore = true
         isLoading = false
     }
