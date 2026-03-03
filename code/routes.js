@@ -1353,6 +1353,7 @@ module.exports = function(app) {
     app.get("/api/comments/get/:qID/:page", async (req, res) => { //load base comments for a question
         try {
             const qID = Number(req.params.qID)
+            const userTag = req.user.user_tag
 
             //check question exists
             if (!(await Question.exists({question_id:qID}))) { 
@@ -1377,7 +1378,7 @@ module.exports = function(app) {
             const userTags = [...new Set(comments.map(u => u.user_tag))]
 
             //fetch user IDS, usernames
-            const users = await User.find({user_tag:{$in:userTags}},{user_tag:1, username:1})
+            const users = await User.find({user_tag:{$in:userTags}},{user_tag:1, username:1}).lean()
 
             //create object of user_tag:username
             const userObj = Object.fromEntries(users.map(c => [c.user_tag, c.username]))
@@ -1386,15 +1387,24 @@ module.exports = function(app) {
             const commentIDs = comments.map(c => c.comment_id)
         
             //fetch matching comments whose parents are in the commentIDs
-            const children = await Comment.find({parent_comment_id:{$in:commentIDs}},{parent_comment_id:1})
+            const children = await Comment.find({parent_comment_id:{$in:commentIDs}},{parent_comment_id:1}).lean()
 
             //create object of cID:true
             const childrenObj = Object.fromEntries(children.map(c => [c.parent_comment_id, true]))
+
+            //also fetch which likes the user left on which comments
+            const likes = await Like.find({user_tag:userTag, item_type:1, item_id:{$in:commentIDs}},
+                {item_id:1, value:1, _id:0}
+            ).lean()
+
+            //create object of comment_id: like value
+            const likesObj = Object.fromEntries(likes.map(l => [l.item_id, l.value]))
 
             //add to comments in result
             for (let c of comments) {
                 c.username = userObj[c.user_tag]
                 c.moreReplies = childrenObj[c.comment_id] == undefined ? false : true
+                c.userLikeVal = likesObj[c.comment_id]
             }
 
             return res.json(comments)
@@ -1408,6 +1418,7 @@ module.exports = function(app) {
     app.get("/api/replies/get/:cID", async (req, res) => { //load reply comments for a comment
         try {
             const cID = Number(req.params.cID) //get parent comment id
+            const userTag = req.user.user_tag
 
             //check comment exists
             if (!(await Comment.exists({comment_id:cID}))) { 
@@ -1421,11 +1432,11 @@ module.exports = function(app) {
             .sort({like_rating:-1, _id:1})
             .lean()
 
-            //collect user tags
+           //collect user tags
             const userTags = [...new Set(comments.map(u => u.user_tag))]
 
             //fetch user IDS, usernames
-            const users = await User.find({user_tag:{$in:userTags}},{user_tag:1, username:1})
+            const users = await User.find({user_tag:{$in:userTags}},{user_tag:1, username:1}).lean()
 
             //create object of user_tag:username
             const userObj = Object.fromEntries(users.map(c => [c.user_tag, c.username]))
@@ -1434,18 +1445,103 @@ module.exports = function(app) {
             const commentIDs = comments.map(c => c.comment_id)
         
             //fetch matching comments whose parents are in the commentIDs
-            const children = await Comment.find({parent_comment_id:{$in:commentIDs}},{parent_comment_id:1})
+            const children = await Comment.find({parent_comment_id:{$in:commentIDs}},{parent_comment_id:1}).lean()
 
             //create object of cID:true
             const childrenObj = Object.fromEntries(children.map(c => [c.parent_comment_id, true]))
+
+            //also fetch which likes the user left on which comments
+            const likes = await Like.find({user_tag:userTag, item_type:1, item_id:{$in:commentIDs}},
+                {item_id:1, value:1, _id:0}
+            ).lean()
+
+            //create object of comment_id: like value
+            const likesObj = Object.fromEntries(likes.map(l => [l.item_id, l.value]))
 
             //add to comments in result
             for (let c of comments) {
                 c.username = userObj[c.user_tag]
                 c.moreReplies = childrenObj[c.comment_id] == undefined ? false : true
+                c.userLikeVal = likesObj[c.comment_id]
             }
 
             return res.json(comments)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/comment/like/:cid/:value", async (req, res) => {
+        const cID = req.params.cid
+        const val = Number(req.params.value)
+        const userTag = req.user.user_tag
+
+        try {
+            const comment = await Comment.findOne({comment_id:cID}, {_id:0, like_rating:1})
+
+            if (!comment) { //check question exists
+                return res.status(409).json({ error: "Comment does not exist!"})
+            }
+            if (![0, 1, -1].includes(val)) {
+                return res.status(409).json({ error: "Invalid like value"})
+            }
+
+            const like = await Like.findOne({item_id:cID, item_type:1, user_tag:userTag}, {value:1, _id:0})
+
+            const delta = val - (like ? like.value : 0)
+
+            if (delta == 0) {
+                return res.status(200).json({ success: true })
+            }
+
+            //UPDATE LIKES
+
+            if (!like && val !== 0) { //if like doesnt exist, create a new one
+                await Like.create({
+                    item_id: cID,
+                    user_tag: userTag,
+                    value: val,
+                    item_type: 1
+                })
+            }
+
+            else if (like && val == 0) { //delete existing like if unliking
+                await Like.deleteOne(
+                    {item_id:cID, 
+                    item_type:1, 
+                    user_tag:userTag}
+                )
+            }
+
+            else {
+                await Like.updateOne( //otherwise update existing like
+                    {
+                        item_id:cID, 
+                        item_type:1, 
+                        user_tag:userTag},
+                    {$set: {value: val}},
+                )
+            }
+
+            //UPDATE COMMENT
+
+            await Comment.updateOne( //update question rating
+                {comment_id: cID},
+                {$inc: {like_rating: delta}},
+            )
+
+            //update user total like rating
+            await User.updateOne(
+                {user_tag:userTag},
+                {$inc: {total_likes:delta, likes_today:delta}},
+            )
+
+            return res.status(200).json({
+                success:true,
+                newLikes:comment.like_rating+delta
+            })
         }
         catch (err) {
             console.error(err)
@@ -1853,10 +1949,11 @@ module.exports = function(app) {
         });
     })
 
-    app.post("/api/comments/create/:qID", async (req, res) => {
+    app.post("/api/comments/create/:qID/:rID", async (req, res) => {
         const text = req.body.com
         const userTag = req.user.user_tag
         const qID = req.params.qID
+        const rID = req.params.rID
 
         try{
             //validation
@@ -1867,9 +1964,29 @@ module.exports = function(app) {
                 return res.status(400).json({error: "Max comment length is 200 characters"})
             }
             else {
+                const question = await Question.findOne({question_id:qID}, {user_tag:1})
                 //check question exists
-                if (!(await Question.exists({question_id:qID}))) { 
+                if (!question) { 
                     return res.status(409).json({ error: "Question does not exist!"})
+                }
+
+                //check parent comment exists and is of the same question
+                if (rID != "0") { //get question ID of parent comment
+                    const parentComment = await Comment.findOne({comment_id:rID}, {question_id:1, _id:0, user_tag:1})
+                    if (!parentComment) {
+                        return res.status(409).json({ error: "Parent comment does not exist!"})
+                    }
+
+                    if (parentComment.question_id != qID) {
+                        return res.status(409).json({ error: "Reply and comment must be of same question!"})
+                    }
+
+                    await Notification.insertOne({ //create notification for parent comment creator
+                        notif_id: await idGenerator(Notification),
+                        user_tag:parentComment.user_tag,
+                        question_id:qID,
+                        message:`User <a href="/profile/${userTag}">@${userTag}</div> replied to your comment!`
+                    })
                 }
 
                 await Comment.insertOne({
@@ -1878,6 +1995,18 @@ module.exports = function(app) {
                     user_tag:userTag,
                     content:text,
                     like_rating:0,
+                    parent_comment_id: (rID == "0" ? undefined : rID) //sets parent comment id if exists
+                })
+
+                await Question.updateOne({question_id:qID}, //update number of comments in question
+                    {$inc:{num_comments:1}}
+                )
+
+                await Notification.insertOne({ //create notification for question creator
+                    notif_id: awaitidGenerator(Notification),
+                    user_tag:question.user_tag,
+                    question_id:qID,
+                    message:`User <a href="/profile/${userTag}">@${userTag}</div> commented on your question!`
                 })
 
                 return res.status(200).json({success:true})
@@ -1942,12 +2071,6 @@ module.exports = function(app) {
         return nextMidnight - now
     }
 
-    console.log(msToMidnight())
-
-    
-    
     resetDailyTotals(false)
     setTimeout(() => resetDailyTotals(true), msToMidnight())
-
-    
 }

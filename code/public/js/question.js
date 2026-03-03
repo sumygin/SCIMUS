@@ -29,7 +29,7 @@ const collectionSpace = document.getElementsByClassName("collection-wrapper")[0]
 const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert els
     "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag",
     "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check", "arr1", "arr2", "plus", "addcol",
-    "cForm", "rbar", "rbaruser", "cinput", "csubmit", "page", "commentSpace"
+    "cForm", "rbar", "rbaruser", "cinput", "csubmit", "page", "commentSpace", "rcancel", "replybar"
 ]
 let elData = {}
 
@@ -145,16 +145,20 @@ elData.addcol.addEventListener("click", async () =>{
 
 //COMMENT TOGGLE
 
+const openC = sessionStorage.getItem("commentsOpen", "false")
+
 commentsBtn.addEventListener("click", () => { //comment show/hide
     if (!commentTabOpenYet) {
         getComments(true)
         commentTabOpenYet = true
     }
     if (!cOpen) {
+        sessionStorage.setItem("commentsOpen", "true")
         commentsTab.style.display = "block" //show comments
         questionSpace.style.width = '70%'
     }
     else {
+        sessionStorage.setItem("commentsOpen", "false")
         commentsTab.style.display = "none" //hide comments
         questionSpace.style.width = '100%'
     }
@@ -179,7 +183,16 @@ elData.cForm.addEventListener("submit", async e => {
 
     //processing form data
 
-    const result = await sendFormData(`/api/comments/create/${qID}`, elData.cForm, errbar, window, "Comment submitted", true)
+    let replyID = "0"
+
+    if (elData.replybar.style.display == "flex" && elData.replybar.data) {//if a reply is active
+        replyID = elData.replybar.data
+    } 
+
+    const result = await sendFormData(`/api/comments/create/${qID}/${replyID}`, elData.cForm, errbar, window, "Comment submitted", true)
+
+    elData.replybar.data = ""
+    elData.replybar.style.display = "none"
 
     if (result) {
         elData.cinput.value = ""
@@ -187,6 +200,19 @@ elData.cForm.addEventListener("submit", async e => {
 
     return
 })
+
+//COMMENT LIKES
+
+let curCommentLike
+let lastLikeValues = {}
+
+async function loadMoreComments(e){ //if load more clicked, they are loaded
+    const btn = e.currentTarget
+    const result = await sendDataRequest(`/api/replies/get/${btn.id}`, errbar, window, "")
+    btn.innerHTML = ""
+    btn.appendChild(generateFullCommentHTML(result))
+    btn.removeEventListener("click", loadMoreComments)
+}
 
 function commentTemplate(c){ 
     let newComment = document.createElement("div")
@@ -204,19 +230,25 @@ function commentTemplate(c){
                                             </div>
                                         </div>
                                         <div class="icons">
-                                            <div class="c-likes">${c.like_rating}</div>
-                                            <button class="c-like">
-                                                <img src="/resources/neutral.PNG" alt="" class="icon comment-face"></button>
-                                            </button>
-                                            <button class="reply">
-                                                <img src="/resources/comments.PNG" alt="" class="icon comment-icon"></button>
-                                            </button>
+                                                <span class="val">${c.like_rating}</span><button class="like-ic">
+                                                    <span class="facewrap">
+                                                        <img src="/resources/neutral.PNG" alt="" class="icon face"></button>
+                                                        
+                                                        <span class="like-bar likebar">
+                                                            <img src="/resources/smile.PNG" class="icon" id="1">
+                                                            <img src="/resources/neutral.PNG" class="icon" id="0">
+                                                            <img src="/resources/frown.PNG" class="icon" id="-1">
+                                                        </span>
+                                                    </span>
+                                                <button class="reply">
+                                                    <img src="/resources/comments.PNG" alt="" class="icon comment-icon"></button>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
                                     <div class="c-text">
                                         ${c.content}
                                     </div>
-                                    
+
                                 </div>
                                 <div class="c-replies">
                                     ${
@@ -224,14 +256,66 @@ function commentTemplate(c){
                                     }
                                     
                                 </div>`
+    
+    const face = newComment.querySelector(".face")
+    const likebar = newComment.querySelector(".likebar")
+    const likeValue = newComment.querySelector(".val")
+    const likeImgs = likebar.querySelectorAll("img")
+
+    let curLike
+    let lastLikeValue = c.userLikeVal
+
+    //initial/onload face state
+    if (c.userLikeVal == 1) face.src = "/resources/smile.PNG"
+    else if (c.userLikeVal == -1) face.src = "/resources/frown.PNG"
+
+    //when face is clicked
+    face.addEventListener("pointerdown", () => {
+        likebar.style.display = "flex"
+    })
+
+    //when click is released
+
+    
+    //when a like value is selected
+    likebar.addEventListener("pointerup", async () => {
+        likebar.style.display = "none"
+        if (!curLike) return
+
+        const value = Number(curLike.id)
+        if (lastLikeValue === value) return
+
+        lastLikeValue = value
+        face.src = curLike.src
+
+        const result = await sendDataRequest(`/api/comment/like/${c.comment_id}/${value}`, errbar, window, "")
+
+        if (result) {
+            likeValue.innerText = result.newLikes
+        }
+    })
+
+    likeImgs.forEach(img => {
+        img.addEventListener("pointerover", () => {
+            curLike = img
+        })
+    })
+
+    const replyTrigger = newComment.querySelector(".reply") //get reply button
+    const replyTag = newComment.querySelector(".c-tag")
+    replyTrigger.addEventListener("click", () => {
+        showReplyBar(replyTag.innerHTML, c.comment_id)
+    })
 
     const replyBTN = newComment.querySelector(".c-replies")
     if (replyBTN) replyBTN.id = c.comment_id //set id of more replies button to easily add more later
 
+    replyBTN.addEventListener("click", loadMoreComments)
+
     return newComment
 }
 
-function generateFullCommentHTML(comments) {
+function generateFullCommentHTML(comments) {    
     let totalHTML = document.createDocumentFragment()
     for (const c of comments) {
         totalHTML.appendChild(commentTemplate(c))
@@ -263,7 +347,7 @@ async function getComments (deleteOld) { //function to request comment data
     
 
     //append new data
-    elData.commentSpace.appendChild(generateFullCommentHTML(result))
+    elData.commentSpace.appendChild(generateFullCommentHTML(result))         
 
     if (result.length >= 20) { //if tehre is potential for more data to be loaded later
         elData.commentSpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
@@ -300,7 +384,19 @@ const observer = new IntersectionObserver((entries) => {
     threshold: 0.1
 })
 
+//REPLYING TO COMMENTS
 
+function showReplyBar(tag, cID) { //if a reply button is clicked, set label to their tag and show replybar
+    elData.replybar.style.display = "flex"
+    elData.replybar.data = cID
+    elData.rbaruser.innerHTML = tag
+}
+
+elData.rcancel.addEventListener("click", function(e) { //if X is clicked, hide likebar
+    e.preventDefault()
+    elData.replybar.style.display = "none"
+    elData.replybar.data = ""
+})
 
 
 //  =================
@@ -325,6 +421,10 @@ elData.likebar.addEventListener("pointerup", async () => { //when mouse released
     //send like to server using curLike
 
     elData.likes.innerHTML = (await sendDataRequest(`/api/like/${qID}/${curLike.id}`, errbar, window, "")).newLikes
+})
+
+document.addEventListener("pointerup", () => {
+    elData.likebar.style.display = "none"
 })
 
 //add like/dislike detection
@@ -587,6 +687,11 @@ async function showPage() {
       )
     )
     document.documentElement.style.visibility = "visible"
+}
+
+//open comments if it was previously open
+if (openC == "true") {
+    commentsBtn.dispatchEvent(new Event("click"))
 }
 
 

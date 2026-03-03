@@ -215,6 +215,17 @@ main {
     display: flex;
     flex-direction: row;
     align-items: baseline;
+    transform: translateY(-3px);
+    background: none;
+}
+
+.icons .val {
+    transform: translateY(2px);
+}
+
+.like-ic {
+    background: none;
+    transform: translateY(0px);
 }
 
 .c-likes {
@@ -236,6 +247,8 @@ main {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: baseline;
+    padding-bottom: 1.3em;
+    display: none;
 }
 
 .c-replies {
@@ -248,7 +261,7 @@ main {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-.r-cancel {
+#rcancel {
     color: red;
     background: none;
 }
@@ -279,13 +292,44 @@ button.reply, button.c-like {
     display: none;
 }
 
+.comment-wrapper .facewrap {
+    position: relative;
+    display: inline-block;
+}
+
+.comment-wrapper .likebar {
+    display: none;
+    flex-direction: column;
+    position: absolute;                
+    transform: translateX(calc(-50% + -2px)) translateY(-103px);
+    width: 20px;
+    height: 66px;
+    z-index: 100000;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 2px;
+    background: white;
+}
+
+.comment-wrapper .likebar img {
+    width: 20px;              
+    height: 20px;
+    margin: 1px 0;
+    cursor: pointer;
+}
+
+.comment-wrapper .likebar img:hover {
+    transform: scale(1.2);
+    z-index: 20;
+}
+
 .like-bar {
     display: none;
     flex-direction: column;
     width: 24px;
     height: 72px;
     position: absolute;
-    right: 16.5px;
+    right: 10px;
     top: calc(6.5vh - 6px);
     z-index: 2;
     border: 2px solid black;
@@ -294,7 +338,7 @@ button.reply, button.c-like {
     background: white;
 }
 
-.like-bar img, .rate-bar img {
+.like-bar img, .rate-bar img{
     height: 24px;
     width: 24px;
     top: 0px;
@@ -305,7 +349,7 @@ button.reply, button.c-like {
     position: relative;
 }
 
-.like-bar img:hover, .rate-bar img:hover {
+.like-bar img:hover, .rate-bar img:hover{
     transform: scale(1.2);
     z-index: 3;
 }
