@@ -37,6 +37,33 @@ const LBsortMap = {
     "likes":[{total_likes:-1}, {likes_today:-1}],
 }
 
+function clip (txt, val) {
+    if (txt.length < val) {
+        return txt
+    }
+    else {
+        return (txt.substring(0, val) + "...")
+    }
+}
+
+function convertDate(date){ //converts date to nice format
+    const d = new Date(date)
+
+    const datePart = d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    })
+
+    const timePart = d.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+    })
+
+    return `${datePart} at ${timePart}`
+}
+
 function passwordCheck(pw) {
     const hasNumber = /[0-9]/.test(pw)
     const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};:'",.<>/?\\|~]/.test(pw)
@@ -555,7 +582,7 @@ module.exports = function(app) {
         const userTag = req.user.user_tag
 
         try {
-            const question = await Question.findOne({question_id:qID}, {_id:0, like_rating:1, user_tag:1})
+            const question = await Question.findOne({question_id:qID}, {_id:0, like_rating:1, user_tag:1, name:1})
 
             if (!question) { //check question exists
                 return res.status(409).json({ error: "Question does not exist!"})
@@ -603,7 +630,7 @@ module.exports = function(app) {
 
             //UPDATE QUESTION
 
-            await Question.updateOne( //update question rating
+            await Question.updateOne( //update question like rating
                 {question_id: qID},
                 {$inc: {like_rating: delta}},
             )
@@ -613,6 +640,17 @@ module.exports = function(app) {
                 {user_tag:question.user_tag},
                 {$inc: {total_likes:delta, likes_today:delta}},
             )
+
+            if (question.user_tag != userTag) {
+                if (question.like_rating+delta % 100 == 0 && question.like_rating+delta != 0) { //send notification if like threshold
+                    await Notification.insertOne({
+                        notif_id: await idGenerator(Notification),
+                        user_tag: question.user_tag,
+                        question_id: question.question_id,
+                        message: `Your question ${question.name} just hit ${question.like_rating+delta} likes!`,
+                    })
+                }
+            }
 
             return res.status(200).json({
                 success:true,
@@ -1104,7 +1142,7 @@ module.exports = function(app) {
             }
 
             //validate name
-            if (validate(newName)) {
+            if (validate(newName, res)) {
                 return
             }
 
@@ -1479,7 +1517,7 @@ module.exports = function(app) {
         const userTag = req.user.user_tag
 
         try {
-            const comment = await Comment.findOne({comment_id:cID}, {_id:0, like_rating:1})
+            const comment = await Comment.findOne({comment_id:cID}, {_id:0, like_rating:1, question_id:1, user_tag:1, content:1})
 
             if (!comment) { //check question exists
                 return res.status(409).json({ error: "Comment does not exist!"})
@@ -1527,7 +1565,7 @@ module.exports = function(app) {
 
             //UPDATE COMMENT
 
-            await Comment.updateOne( //update question rating
+            await Comment.updateOne( //update comment rating
                 {comment_id: cID},
                 {$inc: {like_rating: delta}},
             )
@@ -1538,10 +1576,56 @@ module.exports = function(app) {
                 {$inc: {total_likes:delta, likes_today:delta}},
             )
 
+            if (comment.user_tag != userTag) {
+                if (comment.like_rating+delta % 100 == 0 && comment.like_rating+delta != 0) { //send notification if like threshold
+                    await Notification.insertOne({
+                        notif_id: await idGenerator(Notification),
+                        user_tag: comment.user_tag,
+                        question_id: comment.question_id,
+                        message: `Your comment "${clip(comment.content, 30)}" just hit ${comment.like_rating+delta} likes!`,
+                    })
+                }
+            }
+
             return res.status(200).json({
                 success:true,
                 newLikes:comment.like_rating+delta
             })
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/inbox/:page", async (req, res) => {
+        const userTag = req.user.user_tag
+        const page = Number(req.params.page)
+        const skip = (page-1)*20
+
+        try {
+            const notifications = await Notification.find({user_tag:userTag}, //send back first 20 notifications for user
+                {_id:0, question_id:1, notif_id:1, message:1, created_at:1, viewed:1}
+            )
+            .sort({created_at:-1, _id:1})
+            .skip(skip)
+            .limit(20)
+            .lean()
+
+            //make all notifs returned viewed
+            const notifIDS = notifications.map(n => n.notif_id)
+
+            if (notifIDS.length > 0) {
+                await Notification.updateMany({notif_id:{$in:notifIDS}},
+                    {$set:{viewed:true}}
+                )
+            }
+
+            for (const n of notifications) { //make dates in text format
+                n.created_at = convertDate(n.created_at)
+            }
+
+            return res.json(notifications)
         }
         catch (err) {
             console.error(err)
@@ -1753,6 +1837,8 @@ module.exports = function(app) {
                     completed_today:0,
                     total_likes:0,
                     likes_today:0,
+
+                    preference_data:[50, 10],
                 })
 
                 //let data = {name, password, password_1, school, stage, subjects, tag, username, country, email}
@@ -1773,25 +1859,6 @@ module.exports = function(app) {
             console.error(err)
             return res.status(500).json({error:"Server error"}); 
         }
-    })
-
-    app.post("/login", (req, res, next) => {
-        passport.authenticate("local", (err, user, info) => {
-            if (err) {
-                return res.status(500).json({ error: "Server error" })
-            }
-
-            if (!user) {
-                return res.status(401).json({error: info?.message || "Invalid credentials"})
-            }
-
-            req.logIn(user, err => {
-                if (err){
-                    return res.status(500).json({ error: "Login failed" })
-                }
-                return res.json({ success: true })
-                })
-        })(req, res, next)
     })
 
     // Logout
@@ -1942,13 +2009,6 @@ module.exports = function(app) {
         })(req, res, next)
     })
 
-    // Logout
-    app.get("/logout", (req, res) => {
-        req.logout(() => {
-            res.redirect("/")
-        });
-    })
-
     app.post("/api/comments/create/:qID/:rID", async (req, res) => {
         const text = req.body.com
         const userTag = req.user.user_tag
@@ -1958,21 +2018,24 @@ module.exports = function(app) {
         try{
             //validation
 
-            if (validate(text)) return //validate for profanities/links
+            if (validate(text, res)) return //validate for profanities/links
 
             if (text.length > 200) {
                 return res.status(400).json({error: "Max comment length is 200 characters"})
             }
             else {
-                const question = await Question.findOne({question_id:qID}, {user_tag:1})
+                const question = await Question.findOne({question_id:qID}, {user_tag:1, name:1})
                 //check question exists
                 if (!question) { 
                     return res.status(409).json({ error: "Question does not exist!"})
                 }
 
+                //REPLY IF STATEMENT - handles replies
+
                 //check parent comment exists and is of the same question
                 if (rID != "0") { //get question ID of parent comment
-                    const parentComment = await Comment.findOne({comment_id:rID}, {question_id:1, _id:0, user_tag:1})
+                    const parentComment = await Comment.findOne({comment_id:rID}, {question_id:1, _id:0, user_tag:1, content:1})
+
                     if (!parentComment) {
                         return res.status(409).json({ error: "Parent comment does not exist!"})
                     }
@@ -1980,13 +2043,15 @@ module.exports = function(app) {
                     if (parentComment.question_id != qID) {
                         return res.status(409).json({ error: "Reply and comment must be of same question!"})
                     }
-
-                    await Notification.insertOne({ //create notification for parent comment creator
-                        notif_id: await idGenerator(Notification),
-                        user_tag:parentComment.user_tag,
-                        question_id:qID,
-                        message:`User <a href="/profile/${userTag}">@${userTag}</div> replied to your comment!`
-                    })
+                    
+                    if (userTag != parentComment.user_tag) {                    
+                        await Notification.insertOne({ //create notification for parent comment creator
+                            notif_id: await idGenerator(Notification),
+                            user_tag:parentComment.user_tag,
+                            question_id:qID,
+                            message:`User <a href="/profile/${userTag}">@${userTag}</a> replied to your comment "${clip(parentComment.content, 30)}" on question ${question.name}: "${clip(text, 30)}"`
+                        })
+                    }
                 }
 
                 await Comment.insertOne({
@@ -2001,13 +2066,37 @@ module.exports = function(app) {
                 await Question.updateOne({question_id:qID}, //update number of comments in question
                     {$inc:{num_comments:1}}
                 )
+                
+                if (userTag != question.user_tag) {            
+                    await Notification.insertOne({ //create notification for question creator
+                        notif_id: await idGenerator(Notification),
+                        user_tag:question.user_tag,
+                        question_id:qID,
+                        message:`User <a href="/profile/${userTag}">@${userTag}</a> commented on your question ${question.name}: "${clip(text, 30)}"`
+                    })
+                }
 
-                await Notification.insertOne({ //create notification for question creator
-                    notif_id: awaitidGenerator(Notification),
-                    user_tag:question.user_tag,
-                    question_id:qID,
-                    message:`User <a href="/profile/${userTag}">@${userTag}</div> commented on your question!`
-                })
+                //NOTIFICATIONS FOR ALL WHO WATCH QUESTION
+                //get watches
+                const watches = await Watch.find({question_id:qID}, {_id:0, user_tag:1}).lean()
+                const watchUsers = watches.map(w => w.user_tag) //list of relevant user tags
+
+                //generate list of new notifications
+                const notifications = []
+                for (const tag of watchUsers) {
+                    if (tag == userTag) continue //ignore current user
+
+                    notifications.push({
+                        notif_id: await idGenerator(Notification),
+                        user_tag:tag,
+                        question_id:qID,
+                        message: `User <a href="/profile/${userTag}">@${userTag}</a> commented on your watched question ${question.name}: "${clip(text, 30)}"`
+                    })
+                }
+
+                if (notifications.length > 0) { //add notifs
+                    await Notification.insertMany(notifications)
+                }
 
                 return res.status(200).json({success:true})
             }
@@ -2042,7 +2131,7 @@ module.exports = function(app) {
             date365ago.setFullYear(date365ago.getFullYear()-1)
 
             await Notification.deleteMany({
-                created_at:{$lt:date365ago}
+                created_at:{$lt:date365ago}, viewed:true
             })
 
             console.log("RESET NOW!!!", now)

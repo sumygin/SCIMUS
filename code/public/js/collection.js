@@ -4,12 +4,6 @@ document.documentElement.style.visibility = "hidden"
 
 const errbar = document.getElementsByClassName("error")[0]
 
-console.log("URL:", window.location.href)
-console.log("cID will be:", window.location.href.split("/collection")[1]?.substring(1))
-console.log("cIDS:", sessionStorage.getItem("cIDS"))
-console.log("cIndex:", sessionStorage.getItem("cIndex"))
-
-
 const qElementList = [
     "arr1", "arr2", "tag", "paper", "year", "name", "user_tag"
 ]

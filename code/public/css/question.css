@@ -246,6 +246,7 @@ main {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 0.5em;
     align-items: baseline;
     padding-bottom: 1.3em;
     display: none;
@@ -361,7 +362,7 @@ button.reply, button.c-like {
     height: 120px;
     position: absolute;
     top: calc(6.5vh + 51px);
-    right: 16.5px;
+    right: 10px;
     z-index: 2;
     border: 2px solid black;
     border-radius: 10px;
