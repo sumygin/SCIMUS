@@ -49,7 +49,7 @@ function userTemplate(user) {
 
     newUser.innerHTML = `
                             <div class="lb-info rank">${user.rank}</div>
-                            <a href="/user/${user.user_tag}">
+                            <a href="/profile/${user.user_tag}">
                                 <div class="lb-info tag">@${user.user_tag}</div>
                             </a>
                             <div class="lb-info filter">${

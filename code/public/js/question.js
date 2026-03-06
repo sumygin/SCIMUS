@@ -191,11 +191,10 @@ elData.cForm.addEventListener("submit", async e => {
 
     const result = await sendFormData(`/api/comments/create/${qID}/${replyID}`, elData.cForm, errbar, window, "Comment submitted", true)
 
-    elData.replybar.data = ""
-    elData.replybar.style.display = "none"
-
     if (result) {
         elData.cinput.value = ""
+        elData.replybar.data = ""
+        elData.replybar.style.display = "none"
     }
 
     return
@@ -542,7 +541,7 @@ async function fetchData() {
         }
     }
 
-    elData.user_tag.href = `/user/${result.user_tag.substring(1)}`
+    elData.user_tag.href = `/profile/${result.user_tag.substring(1)}`
 
     if (BtnValues.like == -1) { //set like image and other images (in action sidebar)
             elData.face.src = "/resources/frown.PNG"

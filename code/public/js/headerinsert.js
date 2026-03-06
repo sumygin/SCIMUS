@@ -33,12 +33,6 @@ let headerHMTL = `<a href="/"><button><img id="headerIMG" src="/resources/HEADER
             <a href="/inbox"><button style="text-align: right;"><img src="/resources/inbox.PNG" alt="" class="icon" id="inbox"></button></a>
           </span>
           <span class="profile-hover-item">
-            <a href="/search"><button>My stuff</button></a>
-          </span>
-          <span class="profile-hover-item">
-            <a href="/settings"><button>Settings</button></a>
-          </span>
-          <span class="profile-hover-item">
             <a href="/preferences"><button>Preferences</button></a>
           </span>
           <span class="profile-hover-item">

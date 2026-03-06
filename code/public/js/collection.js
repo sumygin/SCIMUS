@@ -111,7 +111,7 @@ async function fetchData() {
         }
     }
 
-    elData.user_tag.href = `/user/${result.user_tag.substring(1)}`
+    elData.user_tag.href = `/profile/${result.user_tag.substring(1)}`
 
     elData.tag.href = //encode links into the left-hand metadata
     `/search/?tag=${encodeURIComponent(convertTag(result.tag))}&searchType=c`

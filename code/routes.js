@@ -9,7 +9,8 @@ const { publicDecrypt } = require("crypto");
 const MongoStore = require('connect-mongo').default
 const fs = require("fs").promises
 const validator = require("validator")
-const leo = require("leo-profanity")
+const leo = require("leo-profanity");
+const database = require("./database");
 
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
@@ -96,6 +97,11 @@ function validate(field, res) {
 
     if (leo.check(field)) { //check for profanities
         res.status(400).json({error: "Profanities are not allowed"})
+        return true
+    }
+
+    if (field.includes(">") || field.includes("<")) {
+        res.status(400).json({error: `">" or "<" characters are not allowed!`})
         return true
     }
 }
@@ -1633,6 +1639,102 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/api/user/data/self", async (req, res) => { //return user's usertag
+        const userTag = req.user.user_tag
+
+        try {
+            const data = await User.findOne({user_tag:userTag},
+                {user_tag:1, username:1, school_id:1, country:1, total_likes:1, created_total:1, studied_today:1, studied_total:1, created_at:1, preference_data:1}
+            ).lean()
+
+            data.school = (await School.findOne({school_id:data.school_id}, {name:1})).name
+
+            data.created_at = convertDate(data.created_at)
+
+            return res.json(data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/user/data/:tag", async (req, res) => { //return user's usertag
+        const userTag = req.params.tag
+
+        if (userTag == -1) {
+            return res.redirect("/home")
+        }
+
+        console.log(userTag)
+
+        try {
+            const data = await User.findOne({user_tag:userTag},
+                {user_tag:1, username:1, school_id:1, country:1, total_likes:1, created_total:1, studied_today:1, studied_total:1, created_at:1, preference_data:1, completed_total:1}
+            ).lean()
+
+            if (!database) { //check question exists
+                return res.status(409).json({ error: "User does not exist!"})
+            }
+
+            data.school = (await School.findOne({school_id:data.school_id}, {name:1})).name
+
+            data.created_at = convertDate(data.created_at)
+
+            return res.json(data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/preferences/update/study/:value", async (req, res) => { 
+        const userTag = req.user.user_tag
+        const value = Number(req.params.value)
+
+        console.log(userTag, value)
+
+        if (isNaN(value) || value > 90 || value <= 0){
+            return res.status(409).json({ error: "Invalid study time entered!"})
+        }
+
+        try {
+            await User.updateOne({user_tag:userTag}, { //update preference
+                $set:{"preference_data.0":value}
+            })
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
+    app.get("/api/preferences/update/rest/:value", async (req, res) => { 
+        const userTag = req.user.user_tag
+        const value = Number(req.params.value)
+
+        console.log(userTag, value)
+
+        if (isNaN(value) || value > 90 || value <= 0){
+            return res.status(409).json({ error: "Invalid rest time entered!"})
+        }
+
+        try {
+            await User.updateOne({user_tag:userTag}, { //update preference
+                $set:{"preference_data.1":value}
+            })
+
+            return res.status(200).json({success:true})
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
     //SERVING HTML FILES
 
     app.get("/", (req, res) => {
@@ -1707,6 +1809,12 @@ module.exports = function(app) {
     })
 
     app.get("/profile", isLoggedIn, (req, res) => {
+        //process id in link as well
+        //if profile doesnt exist, return error page
+        res.redirect(`/profile/${req.user.user_tag}`)
+    })
+
+    app.get("/profile/:id", isLoggedIn, (req, res) => {
         //process id in link as well
         //if profile doesnt exist, return error page
         res.sendFile(path.join(__dirname, "public", "profile.html"))
