@@ -8,6 +8,7 @@
     padding: 1.5em;
     gap: 0.5em;
     padding:3em;
+    max-width: 1000px;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
@@ -42,6 +43,9 @@ body {
 .searchwrapper {
     min-height: 14em;
     padding: 1em;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
 select.searchbar-item {
@@ -69,7 +73,7 @@ select.searchbar-item {
     border: 2px solid black;
     position: relative;
     overflow: hidden;
-    border-radius: 0.8em;
+    border-radius: 5px;
     height: 67vh;
     width: inherit;
     min-width: 80vw;
@@ -78,7 +82,7 @@ select.searchbar-item {
 
 .s-q {
     border: 2px solid gray;
-    border-radius: 0.8em;
+    border-radius: 5px;
     font-size: 0.8em;
     margin: 0.2em;
     display: flex;

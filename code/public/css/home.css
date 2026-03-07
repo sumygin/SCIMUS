@@ -17,7 +17,7 @@ main {
     padding: 0.3rem;
     position: relative;
     overflow: hidden;
-    border-radius: 20px;
+    border-radius: 5px;
     border: 2px solid black;
     transition: transform 0.2s ease-in-out;
     
@@ -54,7 +54,7 @@ main {
 
 .car-q-content {
     border: 2px solid lightgray;
-    border-radius: 20px;
+    border-radius: 5px;
     width: 9em;
     padding: 0.5rem;
 }

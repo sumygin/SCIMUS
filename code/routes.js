@@ -1735,6 +1735,26 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/api/preferences/get", async (req, res) => { //return user's preferences
+        const userTag = req.user?.user_tag
+
+        if (!userTag) {
+            return res.status(200).json({success:true})
+        }
+
+        try {
+            const data = await User.findOne({user_tag:userTag},
+                {preference_data:1}
+            ).lean()
+
+            return res.json(data.preference_data)
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
     //SERVING HTML FILES
 
     app.get("/", (req, res) => {

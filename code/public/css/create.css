@@ -47,7 +47,7 @@ input {
 
 .bottom-bar input {
     border: 2px solid black;
-    border-radius: 2em;
+    border-radius: 5px;
     padding: 0.5em;
     padding-left: 2em;
     padding-right: 2em;
@@ -79,7 +79,8 @@ textarea:focus {
 }
 
 .question {
-    width: 97%;
+    max-width: 800px;
+    margin: 0 auto;
     height: 35vh;
 }
 

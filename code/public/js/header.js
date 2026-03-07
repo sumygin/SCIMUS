@@ -32,6 +32,11 @@ let user = {
 }
 //do later -> fetch from user data
 
+//load timer data form local storage
+
+function saveTimer() { //function to save the timer
+    localStorage.setItem("timer", JSON.stringify(timer))
+}
 
 class Timer {
     constructor(workTime=50*60000, restTime=10*60000, startTime=0, mode = "work", running=false, pauseTime=0, totalPauseTime=0) {
@@ -55,12 +60,14 @@ class Timer {
             this.totalPauseTime += Date.now()-this.pauseTime
         }
         setTimerText(false)
+        saveTimer()
     }
 
     pause() {
         this.pauseTime = Date.now()
         this.running = false
         setTimerText(true)
+        saveTimer()
     }
 
     forward(){
@@ -71,7 +78,6 @@ class Timer {
         this.running = false
         this.resetPauseTimes()
         this.timeLeft = this.targetTime
-        console.log(timer)
         headerTxt.style.color = "black"
         setTimerText(true)
     }
@@ -99,11 +105,11 @@ class Timer {
             
         }
         else if (this.mode == "rest") {
-            console.log("test")
             this.mode = "work"
             this.targetTime = this.workTime
             modeBtn.innerHTML = "<img src='/resources/work.PNG' alt='' class='icon'>"
         }
+        saveTimer()
     }
 
     reset() {
@@ -118,8 +124,39 @@ class Timer {
     resetPauseTimes() {
         this.pauseTime = 0
         this.totalPauseTime = 0
+        saveTimer()
     }
 }
+
+const saved = localStorage.getItem("timer") //get saved data
+const data = JSON.parse(saved)
+let timer = new Timer()
+
+if (data) { //if there is saved data, 
+    const prefs = await sendDataRequest("/api/preferences/get", errbar, window, "")
+    
+    if (prefs){ //set users preferences to timer values 
+        data.workTime = prefs[0]*1000*60
+        data.restTime = prefs[1]*1000*60
+    }
+
+    Object.assign(timer, data)
+
+    if (timer.running) {
+        updatePlayButton("pause")
+    }
+
+    if (timer.timeLeft == 0) {
+        headerTxt.style.color = "green"
+        updatePlayButton("replay")
+    }
+
+     if (timer.mode == "rest") {
+        modeBtn.innerHTML = '<img src="/resources/rest.PNG" alt="" class="icon">'
+        
+    }
+}
+
 
 function setTimerText(bool) {
     for (let el of timeInputs) {
@@ -144,24 +181,19 @@ function updatePlayButton(update) {
     }
 }
 
-let timer = new Timer()
 
 playBtn.addEventListener("click", function() { //PLAY BUTTON EVENTS
-    console.log(timer.timeLeft)
     if (timer.timeLeft != 0) {
         if (timer.running) { //pause
-            console.log("timer pause")
             updatePlayButton("play")
             timer.pause()
         }
         else {
-            console.log("timer play")
             updatePlayButton("pause") //play
             timer.play()
         }
     }
     else {
-        console.log("timer reset")
         timer.reset()
         updatePlayButton("play")
     }
@@ -230,11 +262,13 @@ for (const el of timeInputs) {
     })
 }
 
-window.addEventListener("visibilitychange", function() {
+window.addEventListener("visibilitychange", function() { //change when page is switched
     if (document.hidden && timer.running) {
         updatePlayButton("play")
         timer.pause()
+
         timer.running = true
+        saveTimer()
     }
     else if (timer.running){
         timer.play()

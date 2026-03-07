@@ -88,10 +88,13 @@ main {
     border: 2px solid lightgray;
     padding-bottom: 0.5em;
     overflow: hidden;
-    border-radius: 1em;
+    border-radius: 5px;
     padding-left: 1em;
     padding-right: 2em;
-    width:100%;
+    width: 80%;
+    margin: 0 auto;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.2em;
 }
 
 .question-text, .mark-scheme-text {
@@ -136,7 +139,7 @@ main {
     flex-direction: column;
     width: 30%;
     border: 2px solid lightgray;
-    border-radius: 1em;
+    border-radius: 5px;
     margin-left: 5px;
     font-size: 0.75rem;
     text-align: left;
@@ -194,7 +197,7 @@ main {
 .comment {
     border: 1px solid lightgray;
     margin: 0.3em;
-    border-radius: 1em;
+    border-radius: 5px;
     padding: 0.3em;
 }
 
@@ -307,7 +310,7 @@ button.reply, button.c-like {
     height: 66px;
     z-index: 100000;
     border: 2px solid black;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 2px;
     background: white;
 }
@@ -334,7 +337,7 @@ button.reply, button.c-like {
     top: calc(6.5vh - 6px);
     z-index: 2;
     border: 2px solid black;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 2px;
     background: white;
 }
@@ -365,7 +368,7 @@ button.reply, button.c-like {
     right: 10px;
     z-index: 2;
     border: 2px solid black;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 2px;
     background: white;
 }
