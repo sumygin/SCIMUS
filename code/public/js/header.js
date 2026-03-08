@@ -84,7 +84,9 @@ class Timer {
 
     zero() {
         //send studied time to server
-        sendDataRequest(`/api/timer/add/${this.targetTime-this.timeLeft}`, errbar, window, "")
+        if (timer.mode == "study") {
+            sendDataRequest(`/api/timer/add/${this.targetTime-this.timeLeft}`, errbar, window, "")
+        }
 
         updatePlayButton("replay")
         this.running = false

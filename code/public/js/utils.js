@@ -127,6 +127,38 @@ export async function sendFormData(route, form, errbar, window, successMsg, send
     if (send_result) return result
 }
 
+export async function sendData(route, data, errbar, window, successMsg, send_result) {
+    console.log(route, data, errbar, window, successMsg, send_result)
+    
+    const res = await fetch(route, { //send data
+        method:"POST",
+        headers: {"Content-Type": "application/json"},
+        body:JSON.stringify(data),
+    })
+
+    const result = await res.json()
+
+    console.log(result)
+
+    //display response
+
+    if (!res.ok) { //not successful
+        warn(errbar, result.error)
+        return
+    }
+    
+    if (successMsg != "") success(errbar, successMsg)
+
+    setTimeout(() => {    
+        if (result.redirect) { //redirect if a link sent back
+            window.location.href = result.redirect
+        }
+    }, 1000)
+
+    if (send_result) return result
+}
+
+
 export async function submitSearchData(form, errbar, window, successMsg, send_result,  history, type, deleteOld) {
     const formdata = new FormData(form)
 

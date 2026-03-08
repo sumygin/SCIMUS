@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema({
   full_name: String,
   email: String,
   password_hash: String,
-  scroll_data: { type: [Number], default: [] },      
   preference_data: { type: [Number], default: [] }, 
   created_at: { type: Date, default: Date.now },
   completed_today: Number,
@@ -20,6 +19,8 @@ const userSchema = new mongoose.Schema({
   created_total: Number, 
   total_likes:Number,
   likes_today:Number,
+
+  interaction_n:{type:Number, default:0},
 });
 
 const subjectSchema = new mongoose.Schema({
@@ -32,11 +33,13 @@ const subjectSchema = new mongoose.Schema({
   exam_board: String,
   formulas: String,
   spec: String,
+  weights:{type:[Number], default:[1, 1, 1, 1, 1, 1, 1, 1, 1]}
 });
 
 const subjectUserSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User', required: true },
-  subject_id: { type: Number, ref: 'Subject', required: true }
+  subject_id: { type: Number, ref: 'Subject', required: true },
+  ability:  {type:Number, default:0},
 })
 
 const topicSchema = new mongoose.Schema({
@@ -57,12 +60,12 @@ const questionSchema = new mongoose.Schema({
   name: { type: String, maxlength: 40 },
   content: {type:String, required:true},
   total_diff_rating: {type: Number, default:0},
+  avg_diff_rating: {type: Number, default:0},
   like_rating: {type: Number, default:0},
   images: {type: [Buffer], default: []},
   paper_num: {type: Number, default:0},
   question_num: {type:Number,default:0},
   tag: {type: Number, enum: [0, 1, 2]}, //0=official, 1 = user-made, 2 = looking for solution
-  scroll_data: {type: [Number], default: [] },
   mark_scheme: {type:String, required:true},
   created_at: {type: Date, default: Date.now},
   published: { type: Boolean, default: false},
@@ -76,7 +79,10 @@ const questionSchema = new mongoose.Schema({
   num_diff_ratings: {type: Number,  default:0},
 
   study_stage:{type:Number, required:true},
-  subject_id:{type:Number, required:true}
+  subject_id:{type:Number, required:true},
+
+  difficulty:{type:Number, default:0},
+  interaction_n:{type:Number, default:0},
 })
 
 const collectionSchema = new mongoose.Schema({

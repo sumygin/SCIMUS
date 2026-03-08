@@ -1,19 +1,22 @@
 .arr1, .arr2 {
     position: absolute;
-    height: 10vh;
+    height: 5vh;
     transition: 0.2s ease-in-out;
     top: 50vh;
     width: auto;
     z-index: 9999;
+    opacity: 0.5;
 }
 
 
 .arr1:hover {
     transform: scaleX(-1) scale(1.1);
+    opacity: 1;
 }
 
 .arr2:hover {
     transform: scale(1.1);
+    opacity: 1;
 }
 
 .arr1 {
@@ -22,6 +25,22 @@
 }
 .arr2 {
     right: 0.5em;
+}
+
+.arr3 {
+    bottom:-1em;
+    position: absolute;
+    height: 5vh;
+    transition: 0.2s ease-in-out;
+    width: auto;
+    z-index: 9999;
+    transform: rotate(90deg);
+    opacity: 0.5;
+}
+
+.arr3:hover {
+    transform: rotate(90deg) scale(1.1);
+    opacity: 1;
 }
 
 main {

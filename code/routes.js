@@ -2,23 +2,52 @@ const express = require("express")
 const session = require("express-session")
 const path = require("path")
 const passport = require("passport")
-const LocalStrategy = require("passport-local").Strategy;
+const LocalStrategy = require("passport-local").Strategy
 const bcrypt = require("bcrypt")
-const mongoose = require("mongoose");
-const { publicDecrypt } = require("crypto");
+const mongoose = require("mongoose")
+const { publicDecrypt } = require("crypto")
 const MongoStore = require('connect-mongo').default
 const fs = require("fs").promises
 const validator = require("validator")
-const leo = require("leo-profanity");
-const database = require("./database");
+const leo = require("leo-profanity")
+const database = require("./database")
+const {spawn} = require('child_process')
+
+async function sendModelRequest(data, requestType) { //python model request
+    console.log("HELLO")
+    try {
+        const result = await fetch(`http://127.0.0.1:8000/api/${requestType}`, {
+            method:"POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+
+        }) //send request
+
+        if (!result.ok) {
+            console.error("Python error", result.statusText, await result.text())
+            return
+        }
+
+        
+        const res = await result.json()
+        console.log(result, res)
+        return res
+    }
+    catch (err) {
+        console.error(err.message)
+        throw err
+    }
+}
 
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
 
 const QsortMap = { //quickly maps value of sort to a sort object
     "views":{views:-1}, //lowest views first
-    "easy":{total_diff_rating:1}, //lowest difficulty first
-    "hard":{total_diff_rating:-1}, //highest difficulty first
+    "easy":{avg_diff_rating:1}, //lowest difficulty first
+    "hard":{avg_diff_rating:-1}, //highest difficulty first
     "likes":{like_rating:-1}, //highest likes first
     "comments":{num_comments:-1}, //highest comments first
     "rates":{num_diff_ratings:-1}, //highest number of ratings first
@@ -178,10 +207,7 @@ module.exports = function(app) {
     Like, Solve, Watch, Comment, Notification, Rate, ServerData,
     SubjectUser} = require("./database")
 
-    mongoose.connect(hostUrl)
-        .then(() => {
-            console.log("mongodb connected")})
-        .catch(err => console.error(err))
+    
 
     // LOADING MIDDLEWARE
 
@@ -677,7 +703,7 @@ module.exports = function(app) {
         try {
             const question = await Question.findOne(
                 {question_id:qID}, 
-                {_id:0, num_diff_ratings:1, total_diff_rating:1})
+                {_id:0, num_diff_ratings:1, total_diff_rating:1, avg_diff_rating:1})
 
             if (!question) { //check question exists
                 return res.status(409).json({ error: "Question does not exist!"})
@@ -719,18 +745,26 @@ module.exports = function(app) {
 
             //UPDATE QUESTION
 
+            //new average values
+            let newAverage = (+question.total_diff_rating+delta)/(+question.num_diff_ratings+deltaRateNum)
+            let deltaAvg = newAverage - question.avg_diff_rating
+
+            if (isNaN(newAverage)) {newAverage = 0}
+            if (isNaN(deltaAvg) ){deltaAvg = 0}
+
             await Question.updateOne( //update question rating
                 {question_id: qID},
                 {$inc: {
                     total_diff_rating:delta,
-                    num_diff_ratings:deltaRateNum
+                    num_diff_ratings:deltaRateNum,
+                    avg_diff_rating:deltaAvg
                 }},
             )
 
             return res.status(200).json({
                 success:true,
                 newRate: +question.num_diff_ratings + deltaRateNum,
-                newAvg:(+question.total_diff_rating+delta)/(+question.num_diff_ratings+deltaRateNum)
+                newAvg:newAverage
             })
         }
         catch (err) {
@@ -1925,9 +1959,10 @@ module.exports = function(app) {
                     if (!subjectID) {
                         return res.status(409).json({ error: "Subject does not exist!" })
                     }
-                    await SubjectUser.insertMany([{
+                    await SubjectUser.insertMany([{ //create subjectuser entry
                         user_tag: data.tag,
-                        subject_id:subjectID.subject_id
+                        subject_id:subjectID.subject_id,
+                        ability:0
                     }])
                 }
                 
@@ -1946,8 +1981,8 @@ module.exports = function(app) {
                     newSklID = skl.school_id
                 }
 
-                const hash = await bcrypt.hash(data.password, 10)
-                const user = new User({
+                const hash = await bcrypt.hash(data.password, 10) //hash password
+                const user = new User({ //create new user
                     user_tag:data.tag, 
                     password_hash: hash,
                     school_id:newSklID,
@@ -1995,6 +2030,89 @@ module.exports = function(app) {
             res.redirect("/")
         });
     })
+
+    //SCROLL INTERACTION
+     app.post("/api/scroll/interaction", async (req, res) => { //interaction
+
+        try{
+            const userTag = req.user?.user_tag
+            const markers = req.body.markers
+            const qID = req.body.qID
+
+            console.log("HELLO")
+            //validation
+            const user = await User.findOne({user_tag:userTag}, {_id:0, interaction_n:1})
+            if (!user) {return res.status(409).json({ error: "User does not exist!"})}
+
+            const question = await Question.findOne({question_id:qID}, {_id:0, difficulty:1, interaction_n:1, subject_id:1})
+            if (!question) {return res.status(409).json({ error: "Question does not exist!"})}
+
+            const subjectuser = await SubjectUser.findOne({user_tag:userTag, subject_id:question.subject_id}, {ability:1, _id:0})
+            if (!subjectuser) {return res.status(409).json({ error: "User does not study that subject!"})} 
+
+            //get weights from subject
+            const subject = await Subject.findOne({subject_id:question.subject_id}, {_id:0, weights:1})
+            if (!subject) {return res.status(409).json({ error: "Subject does not exist!"})} 
+
+            console.log("HELLO")
+
+            const data =   { //calculate interaction output
+                m:markers,
+                w:subject.weights,
+                s_i:subjectuser.ability,
+                d:question.difficulty,
+                user_interactions:user.interaction_n,
+                question_interactions:question.interaction_n
+            }
+
+            const result = await sendModelRequest(data, "interaction")
+
+            console.log(result)
+
+            for (let i = 0; i < markers.length; i++) { //convert true/false markers
+                if (markers[i] === true) markers[i] = 1
+                else if (markers[i] === false) markers[i] = 0
+            }
+
+            //UPDATE WEIGHTS AND VALUES
+            await Question.updateOne({question_id:qID},{
+                $inc:{difficulty:result.d, interaction_n:1}
+            })
+
+            await User.updateOne({user_tag:userTag},{
+                $inc:{interaction_n:1}
+            })
+
+            const weightUpdates = {}
+            result.w.forEach((delta, index) => {
+                weightUpdates[`weights.${index}`] = delta
+                
+            })
+
+            await Subject.updateOne(
+                {subject_id:question.subject_id},
+                { 
+                    $inc: { 
+                        ...weightUpdates, // increment each weight index by its specific delta
+                        interaction_n: 1 
+                    }
+                }
+            )
+
+            await SubjectUser.updateOne({user_tag:userTag, subject_id:question.subject_id},{
+                $inc:{ability:result.s_i}
+            })
+
+            return res.status(200).json({success:true})
+            
+        } catch(err) {
+            console.error(err)
+            console.log(err)
+            return res.status(500).json({error:"Server error"}); 
+        }
+    })
+
+    //SCROLL RECOMMENDATION
 
     app.post("/api/question/save/:id/:publish", async (req, res) => {
         let qID = req.params.id
@@ -2234,6 +2352,44 @@ module.exports = function(app) {
         }
     })
 
+    //=============
+    //PYTHON SERVER
+    //=============
+
+    async function startPythonServer() { //start python server
+        const pyServer = spawn("uvicorn", ["model:app", "--port", "8000"], {
+            cwd:__dirname, shell:true
+        })
+
+        pyServer.stdout.on('data', (data) => { //console messages
+            console.log(`Python: ${data}`)
+        })
+
+        pyServer.stderr.on('data', (data) => {
+            console.error(`Python Error: ${data}`)
+        })
+
+        pyServer.on('close', (code) => {
+            console.log(`Python server exited with code ${code}`)
+            process.exit()
+        })
+
+        process.on('SIGINT', () => { //kill when signout
+            pythonProcess.kill();
+            process.exit();
+        });
+
+        process.on("uncaughtException", (err) => {
+            console.error(err)
+            pyServer.kill();
+            process.exit(1);
+        });
+
+        process.on("exit", () => pyServer.kill()) //kill when server ends
+
+        return pyServer
+    }
+
     async function resetDailyTotals(scheduleNew) {
         const lastReset = (await ServerData.findOne({})).time
         const now = new Date()
@@ -2261,6 +2417,7 @@ module.exports = function(app) {
             await Notification.deleteMany({
                 created_at:{$lt:date365ago}, viewed:true
             })
+
 
             console.log("RESET NOW!!!", now)
 
@@ -2290,4 +2447,16 @@ module.exports = function(app) {
 
     resetDailyTotals(false)
     setTimeout(() => resetDailyTotals(true), msToMidnight())
+    
+    
+    async function loadServer() {
+        await mongoose.connect(hostUrl)
+        .then(() => {
+            console.log("mongodb connected")})
+        .catch(err => console.error(err))
+
+        const pyServer = await startPythonServer()
+    }
+
+    loadServer()
 }

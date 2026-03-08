@@ -4,7 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "lsof -t -i:3000 -i:8000 | xargs kill -9 || true",
+    "start": "npm run clean && node server.js",
+    "dev": "npm run clean && nodemon server.js"
   },
   "repository": {
     "type": "git",

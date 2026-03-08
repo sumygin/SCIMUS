@@ -12,9 +12,7 @@ user_new_limit = 20
 question_new_limit = 30
 
 class interactionData(BaseModel): #data that is received from an interaction
-    user_id: str
-    question_id: str
-    m: list[float]     
+    m: list[float]
     w: list[float]     
     s_i:float #user ability
     d: float #question difficulty
@@ -31,12 +29,6 @@ def sigmoid(x):
 def normalise_log(x, cap):
     return (np.log10(1+x))/(np.log10(1+cap))
 
-def normalise_binary(val):
-    if val == True:
-        return 1
-    elif val == False:
-        return 0
-
 @app.post("/api/interaction")
 def interaction(data: interactionData):
     try:
@@ -45,9 +37,11 @@ def interaction(data: interactionData):
         m = np.array(m)
         w = np.array(w) #HAS to be length 9
 
+        lr = global_lr
+
         #check user + questions are new?
         if u_i < user_new_limit:
-            lr *= 2
+            lr*= 2
         if q_i < question_new_limit:
             lr*=2
 
@@ -55,14 +49,8 @@ def interaction(data: interactionData):
         #w array: [rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]
         #difficulty rating
         if m[0] ==  0:
-            m[0] = 3
-        m[0]  = (m[0]-1)/5
-
-        #watch
-        m[1] = normalise_binary(m[1])
-
-        #like
-        m[2]= normalise_binary(m[2])
+            m[0] = 2
+        m[0]  = (m[0]-1)/4
 
         #like
         m[3] = (m[3]+1)/2
@@ -76,10 +64,7 @@ def interaction(data: interactionData):
         #view duration
         m[6] = -normalise_log(m[6], 30)
 
-        #skip
-        m[7] = normalise_binary(m[7])
-
-        np.append(m, 1) #constant
+        m = np.append(m, 1) #constant
 
         #inferred correctness value
         c_i = sigmoid(np.dot(m, w)) #dot product then sigmoid
@@ -89,16 +74,26 @@ def interaction(data: interactionData):
 
         #calculate delta and update weights
         delta = c_i - c_e
-        s_i_new = s_i + (lr*delta) #new user ability
-        d_new = d - (lr*delta) #new question diff
-        w_new = w + (lr*delta*m) #new weights
+        delta_s_i = (lr*delta) #new user ability
+        delta_d = (lr*delta) #new question diff
+        delta_w = (lr*delta*m) #new weights
+
+        #clip values to ranges
+        new_w = w + delta_w
+        new_w = np.clip(new_w, -3, 3)
+
+        new_s = np.clip(s_i + delta_s_i, -4, 4)
+        new_d = np.clip(d + delta_d, -4, 4)
+
+        print("HELLO", delta)
 
         return {
-            "status":"success",
-            "s_i":s_i_new,
-            "d":d_new,
-            "w":w_new.tolist()
+            "status": "success",
+            "s_i": (new_s - s_i),
+            "d": (new_d - d),
+            "w": (new_w - w).tolist()
         }
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -113,7 +108,7 @@ def recommendation(data: recommendationData):
         bands = {
             "regular": [d_T-0.5, d_T+0.5],
             "hard": [d_T+0.5, d_T+1],
-            "easy": [d_T-1, d_T+0.5]
+            "easy": [d_T-1, d_T-0.5]
         }
 
         #check if user is new, scale bands accordingly

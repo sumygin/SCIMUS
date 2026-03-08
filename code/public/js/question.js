@@ -1,4 +1,4 @@
-import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage, sendFormData} from "./utils.js"
+import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage, sendFormData, sendData} from "./utils.js"
 
 document.documentElement.style.visibility = "hidden"
 
@@ -7,6 +7,14 @@ let BtnValues = { //values of the sidebar (for animation purposes)
     watch:false,
     solve:false,
     rate:false,
+}
+
+let markers = { //markers
+    rateVal:0,
+    commentVal:0,
+    collectionVal:0,
+    viewStart:Date.now(),
+    skipVal:true,
 }
 
 const errbar = document.getElementsByClassName("error")[0]
@@ -26,10 +34,10 @@ const rateBarImgs = document.querySelectorAll(".rate-bar img")
 const collectionMenu = document.getElementsByClassName("col-bar")[0]
 const collectionSpace = document.getElementsByClassName("collection-wrapper")[0]
 
-const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert els
+const qElementList = ["stage", "subject","paper","question","topic","name","user_tag","rating","views", //insert elements
     "qtext","mstext","formula","spec","formula","likes","watches","solves","ratings","comments","collections", "tag",
     "likebar", "face", "smile", "neutral", "frown", "star", "ratebar", "watch", "check", "arr1", "arr2", "plus", "addcol",
-    "cForm", "rbar", "rbaruser", "cinput", "csubmit", "page", "commentSpace", "rcancel", "replybar"
+    "cForm", "rbar", "rbaruser", "cinput", "csubmit", "page", "commentSpace", "rcancel", "replybar", "arr3"
 ]
 let elData = {}
 
@@ -56,6 +64,8 @@ document.addEventListener("DOMContentLoaded", function() {
 //MARK SCHEME TOGGLE
 
 msBtn.addEventListener("click", async () => { //ms show/hide
+    markers.skipVal = false
+
     if (!flipped) {
         elData.qtext.style.display = "none" //show ms
         elData.mstext.style.display = "block"
@@ -97,10 +107,12 @@ async function checkedTogle(btn) {
 
     elData.collections.innerHTML = request.newColnum
 
-    if (btn.classList.contains("checked")) {
+    if (btn.classList.contains("checked")) { ///uncheck
+        markers.collectionVal = Math.max(0, markers.collectionVal-1) //update markers
         btn.src = "/resources/check_empty.PNG"
     }
-    else {
+    else { //check
+        markers.collectionVal += 1 //update marker
         btn.src = "/resources/check_full.PNG"
     }
     btn.classList.toggle("checked")
@@ -204,6 +216,8 @@ elData.cForm.addEventListener("submit", async e => {
     } 
 
     const result = await sendFormData(`/api/comments/create/${qID}/${replyID}`, elData.cForm, errbar, window, "Comment submitted", true)
+
+    markers.commentVal += 1 //update marker
 
     if (result) {
         elData.cinput.value = ""
@@ -479,6 +493,8 @@ elData.ratebar.addEventListener("pointerup", async () => { //handle ratings
     if (lastRateVal == curStar.id) {return}
     lastRateVal = curStar.id
 
+    markers.rateVal = Number(curStar.id) //update rate marker
+
     //send rate to server using curStara
     const result = (await sendDataRequest(`/api/rate/${qID}/${Number(curStar.id)}`, errbar, window, ""))
     if (!result) return
@@ -677,9 +693,6 @@ const index = JSON.parse(sessionStorage.getItem("qIndex"))
 let clear = true
 
 async function setArrowListeners() {
-    
-
-    console.log(qIDS, index)
 
     if (!qIDS) { //check there is 
         elData.arr1.style.display = "none"
@@ -695,15 +708,15 @@ async function setArrowListeners() {
     }
 
     //HORIZONTAL SCROLL
-    elData.arr1.addEventListener("click", () => { //left
-        sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
+    elData.arr1.addEventListener("click", async () => { //left
+        await scroll(false)
         sessionStorage.setItem("qIndex", index-1)
         window.location.href = `/question/${qIDS[index-1]}`
         clear = false
     })
 
-    elData.arr2.addEventListener("click", () => { //right
-        sessionStorage.setItem("qIDS", JSON.stringify(qIDS)) //store question ids and index 
+    elData.arr2.addEventListener("click", async () => { //right
+        await scroll(false)
         sessionStorage.setItem("qIndex", index+1)
         window.location.href = `/question/${qIDS[index+1]}`
         clear = false
@@ -736,5 +749,29 @@ if (openC == "true") {
 
 
 //VERTICAL SCROLL
+async function scroll(vertical) { //vertical means if its a vertical scroll, redirect to next question
+    //gather scroll data (markers)
+    const timeSpent = (Date.now() - markers.viewStart)/60000 //time spent in minutes
+
+    //[rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]
+    const markersToSend = [markers.rateVal, BtnValues.watch, BtnValues.solve, BtnValues.like, markers.commentVal, markers.collectionVal, timeSpent, markers.skipVal]
+
+    const data = {qID:qID, markers:markersToSend}
+
+    //send markers to server
+    const result = await sendData("/api/scroll/interaction", data, errbar, window, "IT WORKED", true)
+
+    console.log(result)
+
+    alert(result)
+
+    if (vertical) {
+        //get scroll direction
+
+        //if last question item, then need to load more data
+
+        //redirect to next question
+    }
+}
 
 showPage()
