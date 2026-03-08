@@ -37,6 +37,20 @@ for (let el of qElementList) {
     elData[el] = document.getElementById(el)
 }
 
+//LISTENER FOR LATEX
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            //block
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            //inline
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ],
+        throwOnError: false //stops page crashing if error
+    })
+})
 
 
 //MARK SCHEME TOGGLE
@@ -310,6 +324,19 @@ function commentTemplate(c){
     if (replyBTN) replyBTN.id = c.comment_id //set id of more replies button to easily add more later
 
     replyBTN.addEventListener("click", loadMoreComments)
+
+    //render laTex
+    renderMathInElement(newComment, {
+        delimiters: [
+            //block
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            //inline
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ],
+        throwOnError: false //stops page crashing if error
+    })
 
     return newComment
 }
@@ -629,6 +656,20 @@ async function fetchData() {
     for (const inp of inputs) {
         inp.addEventListener("change", (e) => collectionNameEdit(e, inp))
     }
+
+    //render laTex for question/ms
+    renderMathInElement(document.body, {
+        delimiters: [
+            //block
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            //inline
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ],
+        throwOnError: false //stops page crashing if error
+    })
+
 }
 
 const qIDS = JSON.parse(sessionStorage.getItem("qIDS"))

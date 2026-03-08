@@ -66,7 +66,7 @@ select.searchbar-item {
 }
 
 .lb-item {
-    border: 2px solid gray;
+    border-bottom: 2px solid lightgray;
     border-radius: 5px;
     font-size: 0.8rem;
     margin: 0.2rem;
@@ -84,6 +84,7 @@ select.searchbar-item {
 #headers {
     font-size: 1.05em;
     font-weight: bolder;
+    border: 2px solid black;
 }
 
 .autocomplete-input {
