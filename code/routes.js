@@ -14,7 +14,6 @@ const database = require("./database")
 const {spawn} = require('child_process')
 
 async function sendModelRequest(data, requestType) { //python model request
-    console.log("HELLO")
     try {
         const result = await fetch(`http://127.0.0.1:8000/api/${requestType}`, {
             method:"POST",
@@ -44,6 +43,12 @@ async function sendModelRequest(data, requestType) { //python model request
 const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
 const day = 1000 * 60 * 60 * 24
 
+const bandCounts = { //number of questions from each band per batch
+    regular: 18,
+    hard:8, 
+    easy:5
+}
+
 const QsortMap = { //quickly maps value of sort to a sort object
     "views":{views:-1}, //lowest views first
     "easy":{avg_diff_rating:1}, //lowest difficulty first
@@ -65,6 +70,19 @@ const LBsortMap = {
     "qcreate":[{created_total:-1}, {created_today:-1}],
     "qcomplete":[{completed_total:-1}, {completed_today:-1}],
     "likes":[{total_likes:-1}, {likes_today:-1}],
+}
+
+function shuffle(list) {//shuffles a list
+    for (let i = 0; i<list.length; i++) {
+        const randomPos = Math.floor((Math.random() - 0.0001) * (list.length)) //can never exceeed last pos index
+
+        //now swap
+        if (randomPos != i) {
+            const temp = list[i]
+            list[i] = list[randomPos]
+            list[randomPos] = temp
+        }
+    }
 }
 
 function clip (txt, val) {
@@ -917,7 +935,7 @@ module.exports = function(app) {
         }
         catch (err) {
             console.error(err)
-            return res.status(500).json({error:"Server error"})
+            return res.status(500).json({error:err.message})
         }
     })
 
@@ -1029,7 +1047,7 @@ module.exports = function(app) {
         }
         catch (err) {
             console.error(err)
-            return res.status(500).json({error:"Server error"})
+            return res.status(500).json({error:err.message})
         }
     })
 
@@ -1103,7 +1121,7 @@ module.exports = function(app) {
         }
         catch (err) {
             console.error(err)
-            return res.status(500).json({error:"Server error"})
+            return res.status(500).json({error:err.message})
         }
     })
 
@@ -1855,7 +1873,6 @@ module.exports = function(app) {
     })
 
     app.get("/collection/:id", isLoggedIn, (req, res) => {
-        console.log("hit collection get, user:", req.user, "id:", req.params.id)
         //process id in link as well
         //if collection is private, check that it belongs to user
         //if collection is not accesible or doesnt exist, return error page
@@ -2020,7 +2037,7 @@ module.exports = function(app) {
             }
         } catch(err) {
             console.error(err)
-            return res.status(500).json({error:"Server error"}); 
+            return res.status(500).json({error:err.message}); 
         }
     })
 
@@ -2039,7 +2056,6 @@ module.exports = function(app) {
             const markers = req.body.markers
             const qID = req.body.qID
 
-            console.log("HELLO")
             //validation
             const user = await User.findOne({user_tag:userTag}, {_id:0, interaction_n:1})
             if (!user) {return res.status(409).json({ error: "User does not exist!"})}
@@ -2054,8 +2070,6 @@ module.exports = function(app) {
             const subject = await Subject.findOne({subject_id:question.subject_id}, {_id:0, weights:1})
             if (!subject) {return res.status(409).json({ error: "Subject does not exist!"})} 
 
-            console.log("HELLO")
-
             const data =   { //calculate interaction output
                 m:markers,
                 w:subject.weights,
@@ -2066,8 +2080,6 @@ module.exports = function(app) {
             }
 
             const result = await sendModelRequest(data, "interaction")
-
-            console.log(result)
 
             for (let i = 0; i < markers.length; i++) { //convert true/false markers
                 if (markers[i] === true) markers[i] = 1
@@ -2108,7 +2120,126 @@ module.exports = function(app) {
         } catch(err) {
             console.error(err)
             console.log(err)
-            return res.status(500).json({error:"Server error"}); 
+            return res.status(500).json({error:err.message}); 
+        }
+    })
+
+    app.post("/api/scroll/recommendation", async (req, res) => { //recommendation
+        try{
+            const userTag = req.user?.user_tag
+
+            //get subject IDs that user does
+            const userSBJS = await SubjectUser.find({user_tag:userTag}, {subject_id:1, _id:0, ability:1})
+
+            //send request to python server
+            const user = await User.findOne({user_tag:userTag}, {interaction_n:1, _id:0})
+
+            let dataToSendToPython = []
+            for (const sbj of userSBJS) { //batch data of all subjects to send 
+                dataToSendToPython.push({
+                    s_i: sbj.ability,
+                    user_interactions:user.interaction_n,
+                    sbj_id:sbj.subject_id
+                })
+            }
+
+            const bands = (await sendModelRequest(dataToSendToPython, "recommendation")).result //send request to model for calculation of bands
+
+            let conditions = []//array to add condtions to
+            for (const sbj of userSBJS) {
+                let subjectID = sbj.subject_id
+                conditions.push({
+                    subject_id:sbj.subject_id, //match bands to correct subject 
+                    difficulty: {$gte:bands[subjectID].easy[0], $lte:bands[subjectID].hard[1]}
+                }) //query from bottom of range to top
+            }
+
+            const questions = await Question.aggregate([ //database query
+                {$match:{$or:conditions}},
+                {$sample:{size:40}},
+                {$project:{
+                    question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, topic_id:1, subject_id:1
+                }}
+            ])
+
+            shuffle(questions)
+
+            let result = []
+            let notAddedQueue = []
+            let currentBandCounts = {easy:0, regular:0, hard:0} //keeps track of how many added so far
+
+            for (const q of questions) { //adds questions of correct bands
+                const sbjID = q.subject_id
+                const bandsObj = bands[sbjID]
+                
+                if (q.difficulty <= bandsObj.easy[1]){ //q in easy band
+                    if (currentBandCounts.easy < bandCounts.easy) { //if goal not met, push to result
+                        result.push(q)
+                        currentBandCounts.easy ++
+                    }
+                    else { //if not, add to unadded queue
+                        notAddedQueue.push(q)
+                    }
+                }
+                else if (q.difficulty <= bandsObj.regular[1]) { //q in regular band
+                    if (currentBandCounts.regular < bandCounts.regular) { //if goal not met, push to result
+                        result.push(q)
+                        currentBandCounts.regular ++
+                    }
+                    else { //if not, add to unadded queue
+                        notAddedQueue.push(q)
+                    }
+                }
+                else { //q in hard band
+                    if (currentBandCounts.hard < bandCounts.hard) { //if goal not met, push to result
+                        result.push(q)
+                        currentBandCounts.hard ++
+                    }
+                    else { //if not, add to unadded queue
+                        notAddedQueue.push(q)
+                    }
+                }
+            }
+
+            if (result.length < 20) { //if result is too short
+                const possibleToAdd = notAddedQueue.length //max questions available to add
+                const numToAdd = Math.min(possibleToAdd, 20-result.length) //questions to add
+                result.push(...notAddedQueue.slice(0, numToAdd)) //add missing if needed
+            }
+
+            //collect topic ids
+            const topicIDs = [...new Set(result.map(q => q.topic_id))]
+
+            //fetch topic ids, names, subject_ids
+            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+            //create object of {topic_id:{topic_id, subject_id, name}}
+            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+            //collect subject ids from topics
+            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+            //fetch subject names
+            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+            //create object of {subject_id:name}
+            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+            //add to questions in result
+            for (let q of result) {
+                const topic = topicObj[q.topic_id]
+                q.topic = topic.name
+                q.subject = subjObj[topic.subject_id]
+            }
+
+            console.log(result)
+
+            return res.json(result)
+            
+        } catch(err) {
+            console.error(err)
+            console.log(err)
+            return res.status(500).json({error:err.message}); 
         }
     })
 
@@ -2120,7 +2251,6 @@ module.exports = function(app) {
         const clientTag = req.user.user_tag
 
         //parsing data
-
         const {stage, subject, topic, tag, mstext, qtext, qname} = req.body
         let data = {stage, subject, topic, tag, mstext, qtext, qname}
 
@@ -2232,14 +2362,14 @@ module.exports = function(app) {
             }
         } catch(err) {
             console.error(err)
-            return res.status(500).json({error:"Server error"}); 
+            return res.status(500).json({error:err.message}); 
         }
     })
 
     app.post("/login", (req, res, next) => {
         passport.authenticate("local", (err, user, info) => {
             if (err) {
-                return res.status(500).json({ error: "Server error" })
+                return res.status(500).json({ error: err.message })
             }
 
             if (!user) {
@@ -2348,7 +2478,7 @@ module.exports = function(app) {
             }
         } catch(err) {
             console.error(err)
-            return res.status(500).json({error:"Server error"}); 
+            return res.status(500).json({error:err.message}); 
         }
     })
 

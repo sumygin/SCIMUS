@@ -579,8 +579,14 @@ async function fetchData() {
         else if (item == "extra") { //detect additional user/question data and intercept
             BtnValues = result[item]
         }
+        else if (item == "paper") {
+            elData[item].innerHTML = `Paper ${result[item]}`
+        }
+        else if (item == "question") {
+            elData[item].innerHTML = `Question ${result[item]}`
+        }
         else {
-            elData[item].innerText = result[item]
+            elData[item].innerHTML = result[item]
         }
     }
 
@@ -613,6 +619,14 @@ async function fetchData() {
 
     elData.subject.href =
     `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&searchType=q`
+
+    elData.topic.href =
+    `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&topic=${encodeURIComponent(result.topic)}&searchType=q`
+
+    if (result.paper && result.paper != "") {
+        elData.paper.href =
+        `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&paper=${encodeURIComponent(result.paper)}&searchType=q`
+    }
 
     elData.topic.href =
     `/search/?stage=${encodeURIComponent(convertStudyStage(result.stage))}&subject=${encodeURIComponent(result.subject)}&topic=${encodeURIComponent(result.topic)}&searchType=q`
@@ -759,11 +773,9 @@ async function scroll(vertical) { //vertical means if its a vertical scroll, red
     const data = {qID:qID, markers:markersToSend}
 
     //send markers to server
-    const result = await sendData("/api/scroll/interaction", data, errbar, window, "IT WORKED", true)
+    const result = await sendData("/api/scroll/interaction", data, errbar, window, "", true)
 
-    console.log(result)
-
-    alert(result)
+    
 
     if (vertical) {
         //get scroll direction
@@ -771,6 +783,8 @@ async function scroll(vertical) { //vertical means if its a vertical scroll, red
         //if last question item, then need to load more data
 
         //redirect to next question
+
+        //const aresult = await sendData("/api/scroll/recommendation", data, errbar, window, "", true)
     }
 }
 

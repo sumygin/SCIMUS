@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException # server tools
 from pydantic import BaseModel #handle requests 
 import numpy as np #math
+from typing import List
 
 app = FastAPI()
 
@@ -22,12 +23,15 @@ class interactionData(BaseModel): #data that is received from an interaction
 class recommendationData(BaseModel):
     s_i: float
     user_interactions: int
+    sbj_id: int
 
 def sigmoid(x):
+    x = np.clip(x, -50, 50)
     return 1 / (1 + np.exp(-x))
 
 def normalise_log(x, cap):
-    return (np.log10(1+x))/(np.log10(1+cap))
+    x = min(x, cap)
+    return (np.log(1+x))/(np.log(1+cap))
 
 @app.post("/api/interaction")
 def interaction(data: interactionData):
@@ -49,7 +53,7 @@ def interaction(data: interactionData):
         #w array: [rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]
         #difficulty rating
         if m[0] ==  0:
-            m[0] = 2
+            m[0] = 3
         m[0]  = (m[0]-1)/4
 
         #like
@@ -62,9 +66,9 @@ def interaction(data: interactionData):
         m[5] = normalise_log(m[5], 10)
 
         #view duration
-        m[6] = -normalise_log(m[6], 30)
+        m[6] = normalise_log(m[6], 30)
 
-        m = np.append(m, 1) #constant
+        m = np.concatenate((m, [1])) #constant
 
         #inferred correctness value
         c_i = sigmoid(np.dot(m, w)) #dot product then sigmoid
@@ -85,8 +89,6 @@ def interaction(data: interactionData):
         new_s = np.clip(s_i + delta_s_i, -4, 4)
         new_d = np.clip(d + delta_d, -4, 4)
 
-        print("HELLO", delta)
-
         return {
             "status": "success",
             "s_i": (new_s - s_i),
@@ -98,28 +100,35 @@ def interaction(data: interactionData):
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/api/recommendation")
-def recommendation(data: recommendationData):
+def recommendation(data: List[recommendationData]):
     try:
-        [s_i, u_i] = [data.s_i, data.user_interactions]
-        
-        d_T = s_i + np.log((1/target_c) - 1) #target question difficulty
+        print(data)
+        result = {}#total result
+        for item in data:
+            [s_i, u_i, sbj_id] = [item.s_i, item.user_interactions, item.sbj_id]
+            
+            d_T = s_i + np.log((1/target_c) - 1) #target question difficulty
 
-        #define bands
-        bands = {
-            "regular": [d_T-0.5, d_T+0.5],
-            "hard": [d_T+0.5, d_T+1],
-            "easy": [d_T-1, d_T-0.5]
-        }
+            #define bands
+            bands = {
+                "regular": [d_T-0.5, d_T+0.5],
+                "hard": [d_T+0.5, d_T+1],
+                "easy": [d_T-1, d_T-0.5]
+            }
 
-        #check if user is new, scale bands accordingly
-        if u_i < user_new_limit:
-            for key in bands:
-                bands[key][0] *= (2 / np.sqrt(u_i+1))
-                bands[key][1] *= (2 / np.sqrt(u_i+1))
+            #check if user is new, scale bands accordingly
+            if u_i < user_new_limit:
+                scale = 2 / np.sqrt(u_i + 1)
+                for key in bands:
+                    lower, upper = bands[key]
+                    bands[key][0] = d_T + (lower - d_T) * scale
+                    bands[key][1] = d_T + (upper - d_T) * scale
         
+            result[sbj_id] = bands #append to result
+            
         return {
-            "success":"true",
-            "bands":bands
+            "success":True,
+            "result":result #return full result
         }
 
     except Exception as e:
