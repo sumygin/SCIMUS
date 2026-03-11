@@ -2706,9 +2706,6 @@ module.exports = function(app) {
         )
         return nextMidnight - now
     }
-
-    resetDailyTotals(false)
-    setTimeout(() => resetDailyTotals(true), msToMidnight())
     
     
     async function loadServer() {
@@ -2718,6 +2715,9 @@ module.exports = function(app) {
         .catch(err => console.error(err))
 
         const pyServer = await startPythonServer()
+
+        resetDailyTotals(false)
+        setTimeout(() => resetDailyTotals(true), msToMidnight())
     }
 
     loadServer()
