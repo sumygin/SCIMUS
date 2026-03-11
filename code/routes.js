@@ -13,7 +13,7 @@ const leo = require("leo-profanity")
 const database = require("./database")
 const {spawn} = require('child_process')
 
-const PYTHON_URL = process.env.MODEL_URL
+const PYTHON_URL = process.env.MODEL_URL || "http://127.0.0.1:8000"
 
 async function sendModelRequest(data, requestType) { //python model request
     try {

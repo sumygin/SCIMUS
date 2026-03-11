@@ -131,3 +131,7 @@ def recommendation(data: List[recommendationData]):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/health")
+def health():
+    return True
