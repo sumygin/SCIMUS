@@ -40,7 +40,8 @@ async function sendModelRequest(data, requestType) { //python model request
     }
 }
 
-const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
+const hostUrl = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/SCIMUS"
+console.log(`Host URL is ${hostUrl}`)
 const day = 1000 * 60 * 60 * 24
 
 const bandCounts = { //number of questions from each band per batch
