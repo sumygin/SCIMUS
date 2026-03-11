@@ -2032,6 +2032,11 @@ module.exports = function(app) {
         res.sendFile(path.join(__dirname, "public", "leaderboard.html"))
     })
 
+    app.get("/health", isLoggedIn, (req, res) => {
+        //process + return leaderboard filters in link as well
+        res.send("Up")
+    })
+
     //POST REQUESTS
 
     app.post("/register", async (req, res) => {
