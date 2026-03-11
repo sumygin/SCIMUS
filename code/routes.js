@@ -13,6 +13,7 @@ const leo = require("leo-profanity")
 const database = require("./database")
 const {spawn} = require('child_process')
 
+const RENDER = !!process.env.RENDER
 const PYTHON_URL = process.env.MODEL_URL || "http://127.0.0.1:8000"
 
 async function sendModelRequest(data, requestType) { //python model request
@@ -2624,40 +2625,44 @@ module.exports = function(app) {
     //=============
     //PYTHON SERVER
     //=============
+    let startPythonServer
+    try{
+        startPythonServer = async function startPythonServer() { //start python server
 
-    /*async function startPythonServer() { //start python server
-        const pyServer = spawn("uvicorn", ["model:app", "--port", "8000"], {
-            cwd:__dirname, shell:true
-        })
+            const pyServer = spawn("uvicorn", ["model:app", "--port", "8000"], {
+                cwd:__dirname, shell:true
+            })
 
-        pyServer.stdout.on('data', (data) => { //console messages
-            console.log(`Python: ${data}`)
-        })
+            pyServer.stdout.on('data', (data) => { //console messages
+                console.log(`Python: ${data}`)
+            })
 
-        pyServer.stderr.on('data', (data) => {
-            console.error(`Python Error: ${data}`)
-        })
+            pyServer.stderr.on('data', (data) => {
+                console.error(`Python Error: ${data}`)
+            })
 
-        pyServer.on('close', (code) => {
-            console.log(`Python server exited with code ${code}`)
-            process.exit()
-        })
+            pyServer.on('close', (code) => {
+                console.log(`Python server exited with code ${code}`)
+                process.exit()
+            })
 
-        process.on('SIGINT', () => { //kill when signout
-            pythonProcess.kill();
-            process.exit();
-        });
+            process.on('SIGINT', () => { //kill when signout
+                pythonProcess.kill();
+                process.exit();
+            });
 
-        process.on("uncaughtException", (err) => {
-            console.error(err)
-            pyServer.kill();
-            process.exit(1);
-        });
+            process.on("uncaughtException", (err) => {
+                console.error(err)
+                pyServer.kill();
+                process.exit(1);
+            });
 
-        process.on("exit", () => pyServer.kill()) //kill when server ends
+            process.on("exit", () => pyServer.kill()) //kill when server ends
 
-        return pyServer
-    }*/
+            return pyServer
+        }
+    }
+    catch(err) {console.log(err)}
 
     async function resetDailyTotals(scheduleNew) {
         const lastReset = (await ServerData.findOne({})).time
@@ -2721,7 +2726,9 @@ module.exports = function(app) {
             console.log("mongodb connected")})
         .catch(err => console.error(err))
 
-        //const pyServer = await startPythonServer()
+        if (!RENDER) {
+            const pyServer = await startPythonServer()
+        }
 
         resetDailyTotals(false)
         setTimeout(() => resetDailyTotals(true), msToMidnight())

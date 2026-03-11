@@ -161,3 +161,6 @@ select.searchbar-item {
     background-color: white;
 }
 
+#collectionSearch {
+    display: none;
+}

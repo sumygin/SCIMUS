@@ -25,11 +25,6 @@ document.getElementsByTagName("main")[0].scroll = true
 
 document.addEventListener("dragstart", e => e.preventDefault())
 
-let user = {
-    workTime:600,
-    restTime:60,
-    timeStudiedToday:0,
-}
 //do later -> fetch from user data
 
 //load timer data form local storage
@@ -136,10 +131,13 @@ let timer = new Timer()
 
 if (data) { //if there is saved data, 
     const prefs = await sendDataRequest("/api/preferences/get", errbar, window, "")
-    
     if (prefs){ //set users preferences to timer values 
         data.workTime = prefs[0]*1000*60
         data.restTime = prefs[1]*1000*60
+    }
+    if (isNaN(data.workTime) || isNaN(data.restTime) || !data.workTime || !data.restTime) {
+        data.workTime = 50 * 1000 * 60
+        data.restTime = 10 * 1000 * 60
     }
 
     Object.assign(timer, data)
