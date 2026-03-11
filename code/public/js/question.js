@@ -161,7 +161,6 @@ elData.addcol.addEventListener("click", async () =>{
     
     //create collection on server
     let newID = await sendDataRequest("/api/collection/create", errbar, window, "")
-    console.log(newID)
     if (newID) {
         newCol.id = newID.id
         collectionSpace.appendChild(newCol)
@@ -171,7 +170,7 @@ elData.addcol.addEventListener("click", async () =>{
 
 //COMMENT TOGGLE
 
-const openC = sessionStorage.getItem("commentsOpen", "false")
+const openC = sessionStorage.getItem("commentsOpen") || "false"
 
 commentsBtn.addEventListener("click", () => { //comment show/hide
     if (!commentTabOpenYet) {
@@ -567,8 +566,6 @@ async function fetchData() {
 
     const result = await sendDataRequest(`/api/question/get/${qID}`, errbar, window, "")
 
-    console.log(result)
-
     for (const item in result) {
         if (item == "spec" || item == "formula") { //spec and formulas need their links to be changed
             elData[item].href = result[item]
@@ -579,10 +576,10 @@ async function fetchData() {
         else if (item == "extra") { //detect additional user/question data and intercept
             BtnValues = result[item]
         }
-        else if (item == "paper") {
+        else if (item == "paper" && result[item] != 0) {
             elData[item].innerHTML = `Paper ${result[item]}`
         }
-        else if (item == "question") {
+        else if (item == "question" && result[item] != 0) {
             elData[item].innerHTML = `Question ${result[item]}`
         }
         else {
@@ -703,11 +700,18 @@ async function fetchData() {
 }
 
 const qIDS = JSON.parse(sessionStorage.getItem("qIDS"))
-const index = JSON.parse(sessionStorage.getItem("qIndex"))
+let index = JSON.parse(sessionStorage.getItem("qIndex"))
 let clear = true
 
-async function setArrowListeners() {
 
+function saveToStorage() {
+    sessionStorage.setItem("qIndex", index)
+    sessionStorage.setItem("qIDS", JSON.stringify(qIDS))
+    sessionStorage.setItem("recommendQueue", JSON.stringify(rcQueue || []))
+    sessionStorage.setItem("commentsOpen", cOpen)
+}
+
+async function setArrowListeners() {
     if (!qIDS) { //check there is 
         elData.arr1.style.display = "none"
         elData.arr2.style.display = "none"
@@ -724,22 +728,27 @@ async function setArrowListeners() {
     //HORIZONTAL SCROLL
     elData.arr1.addEventListener("click", async () => { //left
         await scroll(false)
-        sessionStorage.setItem("qIndex", index-1)
         window.location.href = `/question/${qIDS[index-1]}`
+        index --
+        saveToStorage()
         clear = false
+        
     })
 
     elData.arr2.addEventListener("click", async () => { //right
         await scroll(false)
-        sessionStorage.setItem("qIndex", index+1)
         window.location.href = `/question/${qIDS[index+1]}`
+        index ++
+        saveToStorage()
         clear = false
+        
     })
 
     window.addEventListener("pagehide", () => { //if not horizontal scrolling, then remove the stored data
         if(clear) {
             sessionStorage.removeItem("qIDS")
             sessionStorage.removeItem("qIndex")
+            sessionStorage.removeItem("recommendQueue")
         }
         
     })
@@ -761,6 +770,9 @@ if (openC == "true") {
     commentsBtn.dispatchEvent(new Event("click"))
 }
 
+//recommendation queue
+let rcQueue = JSON.parse(sessionStorage.getItem("recommendQueue") || "[]")
+
 
 //VERTICAL SCROLL
 async function scroll(vertical) { //vertical means if its a vertical scroll, redirect to next question
@@ -772,20 +784,30 @@ async function scroll(vertical) { //vertical means if its a vertical scroll, red
 
     const data = {qID:qID, markers:markersToSend}
 
-    //send markers to server
-    const result = await sendData("/api/scroll/interaction", data, errbar, window, "", true)
-
+    //send markers to server if time spent above 10seconds
+    if (timeSpent > (1/6)) {
+        await sendData("/api/scroll/interaction", data, errbar, window, "", true)
+    }
     
 
     if (vertical) {
-        //get scroll direction
-
         //if last question item, then need to load more data
+        if (!rcQueue || rcQueue.length == 0) { //if end of queue/undefined, get more questions
+            rcQueue = await sendData("/api/scroll/recommendation", {}, errbar, window, "", true)
+            rcQueue = rcQueue.map(q => q.question_id) //get list of ids
+        }
 
         //redirect to next question
-
-        //const aresult = await sendData("/api/scroll/recommendation", data, errbar, window, "", true)
+        const nextPage = rcQueue.shift() //get next page
+        saveToStorage()
+        window.location.href = `/question/${nextPage}`
+        clear = false
     }
 }
+
+elData.arr3.addEventListener("click", function(){ //event listener for bottom arrow
+    scroll(true)
+})
+
 
 showPage()

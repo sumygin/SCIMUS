@@ -832,106 +832,111 @@ module.exports = function(app) {
         }
     })
 
+    async function searchQuestions(data, userTag, res) {
+
+        let filter = {}
+
+        if(data.creator.startsWith("@")) data.creator = data.creator.slice(1) //remove @ at the start
+        
+        !data.page ? data.page = 1 : data.page = Number(data.page)
+        const skip = (data.page-1)*20 //calculate total number to skip
+
+        if (data.creator != userTag) {
+            filter.published = true
+        }
+
+        let subject, topic
+
+        if (data.paper && data.paper !="" && data.paper !="-1"  && data.subject == "") { //if paper without subject
+            return res.status(400).json({error:"Cannot search paper without subject!"})
+        }
+
+        if (data.stage =="-1" && (data.subject !="" || data.topic !="")) {//if subject/topic without study stage
+            return res.status(400).json({error:"Cannot search subject/topic without study stage!"}) 
+        }
+
+        if (data.topic !="" && data.subject == "") {
+            return res.status(400).json({error:"Cannot search topic without subject!"}) //if topic without subject
+        }
+
+        //find subject
+        if (data.subject != "") { //check subject exists
+            subject = await Subject.findOne({full_name:data.subject}, {subject_id:1, _id:0})
+            if (!subject) {
+                return res.status(400).json({error:"No such subject found"}) //if subject is invalid
+            }
+        }
+
+        //find topic
+        if (data.topic != "") { //check topic exists
+            topic = await Topic.findOne({name:data.topic}, {topic_id:1, _id:0})
+            if (!topic) {
+                return res.status(400).json({error:"No such topic found"}) //if topic is invalid
+            }
+        }
+
+
+        if (data.creator !=""){filter.user_tag = data.creator} 
+        if (data.paper != "-1"){filter.paper_num = Number(data.paper)}
+        if (data.stage != "-1" && data.stage){filter.study_stage = Number(data.stage)}
+        if (data.subject !=""){filter.subject_id = subject.subject_id}
+        if (data.tag != "-1"){filter.tag = Number(data.tag)}
+        if (data.topic != ""){filter.topic_id = topic.topic_id}
+        if (data.year !=""){filter.year = Number(data.year)}
+
+        if (data.search){
+            filter.$or = [ //check matches in any of mark scheme, title, content
+                {name:{$regex: data.search, $options: "i"}},
+                {content:{$regex: data.search, $options: "i"}},
+                {mark_scheme:{$regex: data.search, $options: "i"}}
+            ]
+        }
+
+        let sortVal = QsortMap[data.sort] || {views:-1} //default sort is views
+        sortVal._id = 1 //enforces specific order
+
+        let result = await Question.find(filter, {
+            question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, topic_id:1, subject_id:1
+        }) //find specified questions
+        .sort(sortVal)
+        .skip(skip)
+        .limit(20)
+        .lean()
+
+        //collect topic ids
+        const topicIDs = [...new Set(result.map(q => q.topic_id))]
+
+        //fetch topic ids, names, subject_ids
+        const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+        //create object of {topic_id:{topic_id, subject_id, name}}
+        const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+        //collect subject ids from topics
+        const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+        //fetch subject names
+        const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+        //create object of {subject_id:name}
+        const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+        //add to questions in result
+        for (let q of result) {
+            const topic = topicObj[q.topic_id]
+            q.topic = topic.name
+            q.subject = subjObj[topic.subject_id]
+        }
+
+        return result
+    }
+
     app.get("/api/search/question/", async (req, res) => { //respond to question searches
         try{
             let data = req.query
             const userTag = req.user.user_tag
-            
-            let filter = {}
 
-            if(data.creator.startsWith("@")) data.creator = data.creator.slice(1) //remove @ at the start
-            
-            !data.page ? data.page = 1 : data.page = Number(data.page)
-            const skip = (data.page-1)*20 //calculate total number to skip
-
-            if (data.creator != userTag) {
-                filter.published = true
-            }
-
-            let subject, topic
-
-            if (data.paper !="-1"  && data.subject == "") { //if paper without subject
-                return res.status(400).json({error:"Cannot search paper without subject!"})
-            }
-
-            if (data.stage =="-1" && (data.subject !="" || data.topic !="")) {//if subject/topic without study stage
-                return res.status(400).json({error:"Cannot search subject/topic without study stage!"}) 
-            }
-
-            if (data.topic !="" && data.subject == "") {
-                return res.status(400).json({error:"Cannot search topic without subject!"}) //if topic without subject
-            }
-
-            //find subject
-            if (data.subject != "") { //check subject exists
-                subject = await Subject.findOne({full_name:data.subject}, {subject_id:1, _id:0})
-                if (!subject) {
-                    return res.status(400).json({error:"No such subject found"}) //if subject is invalid
-                }
-            }
-
-            //find topic
-            if (data.topic != "") { //check topic exists
-                topic = await Topic.findOne({name:data.topic}, {topic_id:1, _id:0})
-                if (!topic) {
-                    return res.status(400).json({error:"No such topic found"}) //if topic is invalid
-                }
-            }
-
-
-            if (data.creator !=""){filter.user_tag = data.creator} 
-            if (data.paper != "-1"){filter.paper_num = Number(data.paper)}
-            if (data.stage != "-1" && data.stage){filter.study_stage = Number(data.stage)}
-            if (data.subject !=""){filter.subject_id = subject.subject_id}
-            if (data.tag != "-1"){filter.tag = Number(data.tag)}
-            if (data.topic != ""){filter.topic_id = topic.topic_id}
-            if (data.year !=""){filter.year = Number(data.year)}
-
-            if (data.search){
-                filter.$or = [ //check matches in any of mark scheme, title, content
-                    {name:{$regex: data.search, $options: "i"}},
-                    {content:{$regex: data.search, $options: "i"}},
-                    {mark_scheme:{$regex: data.search, $options: "i"}}
-                ]
-            }
-
-            let sortVal = QsortMap[data.sort] || {views:-1} //default sort is views
-            sortVal._id = 1 //enforces specific order
-
-            let result = await Question.find(filter, {
-                question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, topic_id:1, subject_id:1
-            }) //find specified questions
-            .sort(sortVal)
-            .skip(skip)
-            .limit(20)
-            .lean()
-
-            //collect topic ids
-            const topicIDs = [...new Set(result.map(q => q.topic_id))]
-
-            //fetch topic ids, names, subject_ids
-            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
-
-            //create object of {topic_id:{topic_id, subject_id, name}}
-            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
-
-            //collect subject ids from topics
-            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
-
-            //fetch subject names
-            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
-
-            //create object of {subject_id:name}
-            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
-
-            //add to questions in result
-            for (let q of result) {
-                const topic = topicObj[q.topic_id]
-                q.topic = topic.name
-                q.subject = subjObj[topic.subject_id]
-            }
-
-            return res.json(result)
+            return res.json(await searchQuestions(data, userTag, res))
         }
         catch (err) {
             console.error(err)
@@ -1369,76 +1374,81 @@ module.exports = function(app) {
         }
     })
 
+    async function getCollectionData(cID, userTag, res) {
+
+        const collection = await Collection.findOne( //query collection
+            {collection_id:cID},
+            {name:1, user_tag:1, tag:1, published:1, _id:0,
+                paper:1, year:1,
+            })
+        
+        //if doesn't exist or private, but not owned by the user, then redirect to home
+        if (!collection || (!collection.published && collection.user_tag != userTag)) { 
+            return res.status(500).json({
+                success: false,
+                redirect: `/home`
+            })
+        }
+
+        //find questionIDS in collection
+        const questionIDs = await QuestionCollection.find({collection_id:cID}, {question_id:1, _id:0}).lean()
+        const questionIDArray = questionIDs.map(q => q.question_id)
+
+        //get data from questions
+
+        let questions = await Question.find({ //find specified questions from ID list
+            question_id: {$in:questionIDArray}
+        }, {
+            question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, subject_id:1, topic:1, subject:1, topic_id:1, subject_id:1
+        }) 
+        .sort({created_at:-1})
+        .lean()
+
+        //collect topic ids
+        const topicIDs = [...new Set(questions.map(q => q.topic_id))]
+
+        //fetch topic ids, names, subject_ids
+        const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+        //create object of {topic_id:{topic_id, subject_id, name}}
+        const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+        //collect subject ids from topics
+        const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+        //fetch subject names
+        const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+        //create object of {subject_id:name}
+        const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+        //add to questions in result
+        for (let q of questions) {
+            const topic = topicObj[q.topic_id]
+            q.topic = topic.name
+            q.subject = subjObj[topic.subject_id]
+        }
+
+        let tag = convertCollectionTag(collection.tag)
+
+        let data = {
+            tag:tag,
+            paper:collection.paper == 0 ? "" : collection.paper,
+            year:collection.year == 0 ? "" : collection.year,
+            name:collection.name,
+            user_tag:"@"+collection.user_tag,
+            question_data:questions
+        }
+
+        return data
+    }
+
     app.get("/api/collection/get/:id", async (req, res) => {
         try {
             const cID = Number(req.params.id)
             const userTag = req.user.user_tag
 
-            const collection = await Collection.findOne( //query collection
-                {collection_id:cID},
-                {name:1, user_tag:1, tag:1, published:1, _id:0,
-                    paper:1, year:1,
-                })
-            
-            //if doesn't exist or private, but not owned by the user, then redirect to home
-            if (!collection || (!collection.published && collection.user_tag != userTag)) { 
-                return res.status(500).json({
-                    success: false,
-                    redirect: `/home`
-                })
-            }
-
-            //find questionIDS in collection
-            const questionIDs = await QuestionCollection.find({collection_id:cID}, {question_id:1, _id:0}).lean()
-            const questionIDArray = questionIDs.map(q => q.question_id)
-
-            //get data from questions
-
-            let questions = await Question.find({ //find specified questions from ID list
-                question_id: {$in:questionIDArray}
-            }, {
-                question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, subject_id:1, topic:1, subject:1, topic_id:1, subject_id:1
-            }) 
-            .sort({created_at:-1})
-            .lean()
-
-            //collect topic ids
-            const topicIDs = [...new Set(questions.map(q => q.topic_id))]
-
-            //fetch topic ids, names, subject_ids
-            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
-
-            //create object of {topic_id:{topic_id, subject_id, name}}
-            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
-
-            //collect subject ids from topics
-            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
-
-            //fetch subject names
-            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
-
-            //create object of {subject_id:name}
-            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
-
-            //add to questions in result
-            for (let q of questions) {
-                const topic = topicObj[q.topic_id]
-                q.topic = topic.name
-                q.subject = subjObj[topic.subject_id]
-            }
-
-            let tag = convertCollectionTag(collection.tag)
-
-            let data = {
-                tag:tag,
-                paper:collection.paper == 0 ? "" : collection.paper,
-                year:collection.year == 0 ? "" : collection.year,
-                name:collection.name,
-                user_tag:"@"+collection.user_tag,
-                question_data:questions
-            }
-
-            return res.json(data)
+            return res.json((await getCollectionData(cID, userTag, res)))
         }
         catch (err) {
             console.error(err)
@@ -1807,6 +1817,121 @@ module.exports = function(app) {
         }
     })
 
+    app.get("/api/homepage", async (req, res) => { //return all homepage questions
+        const userTag = req.user?.user_tag
+
+        try {
+            const result = []
+            result.push({ //get recommended collections
+                name:"Recommended",
+                questions: (await getRecommendedQuestions(userTag))
+            })
+
+            //get latest watched
+            const latestWatches = (await Watch.find({user_tag:userTag}, {question_id:1}).limit(20)
+            .sort({created_at:-1})).map(w => w.question_id)
+
+            //get watched questions
+            const watchedQuestions = await Question.find({question_id:{$in:latestWatches}}, {
+                subject_id:1, topic_id:1, name:1, like_rating:1, avg_diff_rating:1, views:1, question_id:1
+            }).lean()
+
+            //get latest solved
+            const latestSolves = (await Solve.find({user_tag:userTag}, {question_id:1}).limit(20)
+            .sort({created_at:-1})).map(s => s.question_id)
+
+            //get solved questions
+            const solvedQuestions = await Question.find({question_id:{$in:latestSolves}}, {
+                subject_id:1, topic_id:1, name:1, like_rating:1, avg_diff_rating:1, views:1, question_id:1
+            }).lean()
+
+            let combinedQuestions = [...watchedQuestions, ...solvedQuestions] //combined array - modify topics and subjects of all questions inside
+
+            //collect topic ids
+            const topicIDs = [...new Set(combinedQuestions.map(q => q.topic_id))]
+
+            //fetch topic ids, names, subject_ids
+            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+            //create object of {topic_id:{topic_id, subject_id, name}}
+            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+            //collect subject ids from topics
+            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+            //fetch subject names
+            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+            //create object of {subject_id:name}
+            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+
+            //add to questions in result
+            for (let q of combinedQuestions) {
+                const topic = topicObj[q.topic_id]
+                q.topic = topic.name
+                q.subject = subjObj[topic.subject_id]
+            }
+
+            result.push({ //push to result
+                name:"Recently watched questions",
+                questions: watchedQuestions
+            })
+
+            result.push({ 
+                name:"Recently solved questions",
+                questions: solvedQuestions,
+            })
+            
+            //get solvelater id
+            const solveLaterID = (await Collection.findOne({user_tag:userTag, name:"Solve Later"}, {collection_id:1}))?.collection_id
+
+            if (solveLaterID) { //if they have a solve later collection
+                result.push({ //get recommended collections
+                    name:"Solve Later",
+                    questions: (await getCollectionData(solveLaterID, userTag, res)).question_data,
+                    href:`/collection/${solveLaterID}`
+                })
+            }
+
+            result.push({ //get recommended collections
+                name:"Highest like rated",
+                questions: (await searchQuestions({
+                    sort:"likes", creator:"", topic:"", subject:"", question:"", paper:"-1", content:"", stage:"-1", year:"", tag:"-1", search:""
+                }, userTag , res)),
+                href:"/search/?stage=-1&subject=&paper=-1&year=&tag=-1&creator=&topic=&search=&sort=likes&page=1&searchType=q"
+            })
+
+            result.push({ //find those looking for solution, i.e. tag = 2
+                name:"Looking for solution",
+                questions: (await searchQuestions({
+                    sort:"time", creator:"", topic:"", subject:"", question:"", paper:"-1", content:"", stage:"-1", year:"", tag:"2", search:""
+                }, userTag , res)),
+                href:"/search/?stage=-1&subject=&paper=-1&year=&tag=2&creator=&topic=&search=&sort=time&page=1&searchType=q"
+            })
+
+            const userCollections = await Collection.find({user_tag:userTag}, {collection_id:1, name:1}).lean()
+            for (const c of userCollections) {
+                //push all of users collections to carousels, except solve later
+                if (c.collection_id == solveLaterID) {
+                    continue
+                }
+
+                result.push({  
+                    name: c.name,
+                    questions: (await getCollectionData(c.collection_id, userTag, res)).question_data,
+                    href:`/collection/${c.collection_id}`
+                })
+            }
+
+            return res.json(result)
+
+        }
+        catch (err) {
+            console.error(err)
+            res.status(500).json({ error: err.message })
+        }
+    })
+
     //SERVING HTML FILES
 
     app.get("/", (req, res) => {
@@ -2124,117 +2249,123 @@ module.exports = function(app) {
         }
     })
 
+    async function getRecommendedQuestions(userTag) {
+        //get subject IDs that user does
+        const userSBJS = await SubjectUser.find({user_tag:userTag}, {subject_id:1, _id:0, ability:1})
+
+        //send request to python server
+        const user = await User.findOne({user_tag:userTag}, {interaction_n:1, _id:0})
+
+        let dataToSendToPython = []
+        for (const sbj of userSBJS) { //batch data of all subjects to send 
+            dataToSendToPython.push({
+                s_i: sbj.ability,
+                user_interactions:user.interaction_n,
+                sbj_id:sbj.subject_id
+            })
+        }
+
+        const bands = (await sendModelRequest(dataToSendToPython, "recommendation")).result //send request to model for calculation of bands
+
+        let conditions = []//array to add condtions to
+        for (const sbj of userSBJS) {
+            let subjectID = sbj.subject_id
+            conditions.push({
+                subject_id:sbj.subject_id, //match bands to correct subject 
+                difficulty: {$gte:bands[subjectID].easy[0], $lte:bands[subjectID].hard[1]}
+            }) //query from bottom of range to top
+        }
+
+        const questions = await Question.aggregate([ //database query
+            {$match:{$or:conditions}},
+            {$sample:{size:40}},
+            {$project:{
+                question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, topic_id:1, subject_id:1, difficulty:1
+            }}
+        ])
+
+        shuffle(questions)
+
+        let result = []
+        let notAddedQueue = []
+        let currentBandCounts = {easy:0, regular:0, hard:0} //keeps track of how many added so far
+
+        for (const q of questions) { //adds questions of correct bands
+            console.log(q.name)
+            const sbjID = q.subject_id
+            const bandsObj = bands[sbjID]
+
+            if (!bandsObj) continue
+            
+            if (q.difficulty <= bandsObj.easy[1]){ //q in easy band
+                if (currentBandCounts.easy < bandCounts.easy) { //if goal not met, push to result
+                    result.push(q)
+                    currentBandCounts.easy ++
+                }
+                else { //if not, add to unadded queue
+                    notAddedQueue.push(q)
+                }
+            }
+            else if (q.difficulty <= bandsObj.regular[1]) { //q in regular band
+                if (currentBandCounts.regular < bandCounts.regular) { //if goal not met, push to result
+                    result.push(q)
+                    currentBandCounts.regular ++
+                }
+                else { //if not, add to unadded queue
+                    notAddedQueue.push(q)
+                }
+            }
+            else { //q in hard band
+                if (currentBandCounts.hard < bandCounts.hard) { //if goal not met, push to result
+                    result.push(q)
+                    currentBandCounts.hard ++
+                }
+                else { //if not, add to unadded queue
+                    notAddedQueue.push(q)
+                }
+            }
+        }
+
+        if (result.length < 20) { //if result is too short
+            const possibleToAdd = notAddedQueue.length //max questions available to add
+            const numToAdd = Math.min(possibleToAdd, 20-result.length) //questions to add
+            result.push(...notAddedQueue.slice(0, numToAdd)) //add missing if needed
+        }
+
+        //collect topic ids
+        const topicIDs = [...new Set(result.map(q => q.topic_id))]
+
+        //fetch topic ids, names, subject_ids
+        const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
+
+        //create object of {topic_id:{topic_id, subject_id, name}}
+        const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
+
+        //collect subject ids from topics
+        const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
+
+        //fetch subject names
+        const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
+
+        //create object of {subject_id:name}
+        const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
+        
+        //add to questions in result
+        for (let q of result) {
+            const topic = topicObj[q.topic_id]
+            console.log(q.name)
+            q.topic = topic.name
+            q.subject = subjObj[topic.subject_id]
+        }
+
+        return result
+    }
+
     app.post("/api/scroll/recommendation", async (req, res) => { //recommendation
         try{
             const userTag = req.user?.user_tag
 
-            //get subject IDs that user does
-            const userSBJS = await SubjectUser.find({user_tag:userTag}, {subject_id:1, _id:0, ability:1})
-
-            //send request to python server
-            const user = await User.findOne({user_tag:userTag}, {interaction_n:1, _id:0})
-
-            let dataToSendToPython = []
-            for (const sbj of userSBJS) { //batch data of all subjects to send 
-                dataToSendToPython.push({
-                    s_i: sbj.ability,
-                    user_interactions:user.interaction_n,
-                    sbj_id:sbj.subject_id
-                })
-            }
-
-            const bands = (await sendModelRequest(dataToSendToPython, "recommendation")).result //send request to model for calculation of bands
-
-            let conditions = []//array to add condtions to
-            for (const sbj of userSBJS) {
-                let subjectID = sbj.subject_id
-                conditions.push({
-                    subject_id:sbj.subject_id, //match bands to correct subject 
-                    difficulty: {$gte:bands[subjectID].easy[0], $lte:bands[subjectID].hard[1]}
-                }) //query from bottom of range to top
-            }
-
-            const questions = await Question.aggregate([ //database query
-                {$match:{$or:conditions}},
-                {$sample:{size:40}},
-                {$project:{
-                    question_id:1, user_tag:1, name:1, content:1, total_diff_rating:1, like_rating:1, images:1, paper_num:1, question_num:1, tag:1, mark_scheme:1, views:1, year:1, num_comments:1, num_watches:1, num_solves:1, num_diff_ratings:1, study_stage:1, topic_id:1, subject_id:1
-                }}
-            ])
-
-            shuffle(questions)
-
-            let result = []
-            let notAddedQueue = []
-            let currentBandCounts = {easy:0, regular:0, hard:0} //keeps track of how many added so far
-
-            for (const q of questions) { //adds questions of correct bands
-                const sbjID = q.subject_id
-                const bandsObj = bands[sbjID]
-                
-                if (q.difficulty <= bandsObj.easy[1]){ //q in easy band
-                    if (currentBandCounts.easy < bandCounts.easy) { //if goal not met, push to result
-                        result.push(q)
-                        currentBandCounts.easy ++
-                    }
-                    else { //if not, add to unadded queue
-                        notAddedQueue.push(q)
-                    }
-                }
-                else if (q.difficulty <= bandsObj.regular[1]) { //q in regular band
-                    if (currentBandCounts.regular < bandCounts.regular) { //if goal not met, push to result
-                        result.push(q)
-                        currentBandCounts.regular ++
-                    }
-                    else { //if not, add to unadded queue
-                        notAddedQueue.push(q)
-                    }
-                }
-                else { //q in hard band
-                    if (currentBandCounts.hard < bandCounts.hard) { //if goal not met, push to result
-                        result.push(q)
-                        currentBandCounts.hard ++
-                    }
-                    else { //if not, add to unadded queue
-                        notAddedQueue.push(q)
-                    }
-                }
-            }
-
-            if (result.length < 20) { //if result is too short
-                const possibleToAdd = notAddedQueue.length //max questions available to add
-                const numToAdd = Math.min(possibleToAdd, 20-result.length) //questions to add
-                result.push(...notAddedQueue.slice(0, numToAdd)) //add missing if needed
-            }
-
-            //collect topic ids
-            const topicIDs = [...new Set(result.map(q => q.topic_id))]
-
-            //fetch topic ids, names, subject_ids
-            const topics = await Topic.find({topic_id:{$in:topicIDs}},{topic_id:1, name:1, subject_id:1})
-
-            //create object of {topic_id:{topic_id, subject_id, name}}
-            const topicObj = Object.fromEntries(topics.map(t => [t.topic_id, t]))
-
-            //collect subject ids from topics
-            const subjectIDs = [...new Set(topics.map(t => t.subject_id))]
-
-            //fetch subject names
-            const subjects = await Subject.find({subject_id:{$in:subjectIDs}},{subject_id:1, full_name:1})
-
-            //create object of {subject_id:name}
-            const subjObj = Object.fromEntries(subjects.map(s => [s.subject_id, s.full_name]))
-
-            //add to questions in result
-            for (let q of result) {
-                const topic = topicObj[q.topic_id]
-                q.topic = topic.name
-                q.subject = subjObj[topic.subject_id]
-            }
-
-            console.log(result)
-
-            return res.json(result)
+            return res.json(await getRecommendedQuestions(userTag))
             
         } catch(err) {
             console.error(err)

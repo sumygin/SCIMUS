@@ -1,4 +1,4 @@
-import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage, likeConverter} from "./utils.js"
+import {generateStarHTML, warn, success, sendDataRequest, convertTag, convertStudyStage, likeConverter, getSubjectColour} from "./utils.js"
 
 document.documentElement.style.visibility = "hidden"
 
@@ -73,6 +73,8 @@ function questionTemplate(question){
         sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
         sessionStorage.setItem("qIndex", index)
     })
+
+    newQuestion.style.backgroundColor = getSubjectColour(question.subject_id)
 
     return newQuestion
 }

@@ -13,7 +13,9 @@ async function del() {
 
 del()
 
-Subject.insertMany([
+async function seed(){
+  await Subject.deleteMany({})
+await Subject.insertMany([
   // A-Level subjects (stage 1)
   {
     subject_id: 1,
@@ -163,3 +165,6 @@ Subject.insertMany([
     spec: "https://www.physics.ox.ac.uk/study/undergraduates/how-apply/engineering-and-science-admissions-test-esat/pat-syllabus"
   }
 ])
+}
+
+seed()

@@ -1,4 +1,4 @@
-import { sendFormData, convertStudyStage, generateStarHTML, likeConverter, convertTag, submitSearchData, updatePaperNum} from "./utils.js"
+import { sendFormData, convertStudyStage, generateStarHTML, likeConverter, convertTag, submitSearchData, updatePaperNum, getSubjectColour} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -92,7 +92,7 @@ function questionTemplate(question){
         <div class="s-q">
             <div class="s-q-text">
                 <div class="s-q-name">${question.name}</div>
-                <div class="s-q-content">${question.content.substring(0, 61).trim() + (question.content.length > 61 ? "..." : "")}</div>
+                <div class="s-q-content"></div>
             </div>
             <div class="s-q-metadata">
                 <div class="row">
@@ -120,12 +120,35 @@ function questionTemplate(question){
         </div>
     </a>`
 
+    
+    
+
+    //set preview safely
+    const dummyEl = document.createElement("div")
+    dummyEl.innerHTML = question.content.substring(0, 61).trim() + (question.content.length > 61 ? "..." : "")
+    newQuestion.querySelector(".s-q-content").innerText = dummyEl.innerText //so that HTML tags in preview dont affect formatting, but they are stil hidden
+
+    newQuestion.style.backgroundColor = getSubjectColour(question.subject_id)
+
     newQuestion.id = question.question_id
 
     newQuestion.addEventListener("click", (e)=>{
         let index = qIDList.indexOf(Number(newQuestion.id))
         sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
         sessionStorage.setItem("qIndex", index)
+    })
+
+    //render latex
+    renderMathInElement(newQuestion, {
+        delimiters: [
+            //block
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            //inline
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ],
+        throwOnError: false //stops page crashing if error
     })
 
     return newQuestion

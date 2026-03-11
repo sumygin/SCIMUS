@@ -44,10 +44,8 @@ def interaction(data: interactionData):
         lr = global_lr
 
         #check user + questions are new?
-        if u_i < user_new_limit:
-            lr*= 2
-        if q_i < question_new_limit:
-            lr*=2
+        if u_i < user_new_limit or q_i < question_new_limit:
+            lr*= 1.5
 
         #NORMALISING MARKERS
         #w array: [rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]

@@ -12,7 +12,11 @@ async function del() {
 
 del()
 
-Topic.insertMany([
+
+
+async function seed() {
+    await Topic.deleteMany({})
+    await Topic.insertMany([
   // ======================
   // GCSE SUBJECTS
   // ======================
@@ -264,8 +268,9 @@ Topic.insertMany([
   { topic_id: 12002, subject_id: 13, name: "Maths 2" },
   { topic_id: 12003, subject_id: 13, name: "Physics" },
   { topic_id: 12004, subject_id: 13, name: "Chemistry" },
-  { topic_id: 12005, subject_id: 13, name: "Biology" },
-])
+  { topic_id: 12005, subject_id: 13, name: "Biology" }])
+    console.log("done")
+    mongoose.disconnect()
+}
 
-
-
+seed()

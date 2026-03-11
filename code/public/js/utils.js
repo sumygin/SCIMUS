@@ -127,9 +127,7 @@ export async function sendFormData(route, form, errbar, window, successMsg, send
     if (send_result) return result
 }
 
-export async function sendData(route, data, errbar, window, successMsg, send_result) {
-    console.log(route, data, errbar, window, successMsg, send_result)
-    
+export async function sendData(route, data, errbar, window, successMsg, send_result) {    
     const res = await fetch(route, { //send data
         method:"POST",
         headers: {"Content-Type": "application/json"},
@@ -137,8 +135,6 @@ export async function sendData(route, data, errbar, window, successMsg, send_res
     })
 
     const result = await res.json()
-
-    console.log(result)
 
     //display response
 
@@ -309,4 +305,23 @@ export function timeConverter(time) {
     }
 
     return result == "" ? "0m" : result
+}
+
+export function getSubjectColour(subjectID) {
+    const subjectColours = {
+        1: "hsla(0, 100%, 70%, 0.1)",     
+        2: "hsla(270, 100%, 70%, 0.1)",   
+        3: "hsla(120, 100%, 70%, 0.1)",   
+        4: "hsla(30, 100%, 70%, 0.1)",     
+        5: "hsla(210, 100%, 70%, 0.1)",     
+        6: "hsla(60, 100%, 70%, 0.1)",      
+        7: "hsla(0, 100%, 70%, 0.1)",     
+        8: "hsla(120, 100%, 70%, 0.1)",   
+        9: "hsla(30, 100%, 70%, 0.1)",     
+        10: "hsla(210, 100%, 70%, 0.1)",   
+        11: "hsla(270, 80%, 75%, 0.1)",    
+        13: "hsla(180, 100%, 70%, 0.1)",    
+        14: "hsla(300, 100%, 70%, 0.1)"     
+    }
+    return subjectColours[subjectID]
 }

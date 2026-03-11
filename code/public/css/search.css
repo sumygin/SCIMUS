@@ -130,7 +130,7 @@ select.searchbar-item {
     right: 0px;
     width: 65%;
     z-index: 3;
-    background: white;
+    background: none;
 }
 
 .row{

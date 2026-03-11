@@ -59,7 +59,7 @@ const questionSchema = new mongoose.Schema({
   question_id: { type: Number, unique: true, index: true },
   topic_id: { type: Number, ref: 'Topic', required: true, index: true },
   user_tag: { type: String, ref: 'User', index: true },
-  name: { type: String, maxlength: 50 },
+  name: { type: String, maxlength: 40 },
   content: {type:String, required:true},
   total_diff_rating: {type: Number, default:0},
   avg_diff_rating: {type: Number, default:0},

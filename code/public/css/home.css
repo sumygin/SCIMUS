@@ -29,7 +29,7 @@ main {
     padding: 0.3rem;
     position: relative;
     overflow: hidden;
-    margin-right: 3em;
+    margin-right: 1.5em;
     transition-duration: 1s;
 }
 
@@ -79,11 +79,12 @@ a {
 
 .img1, .img2 {
     position: absolute;
-    top: 3.5em;
+    top: 5em;
     transition: 0.2s ease-in-out;
-    height: 8em;
+    height: 4em;
     width: auto;
     z-index: 9999;
+    opacity: 0.3;
 }
 
 .img1 {
@@ -98,12 +99,26 @@ a {
 
 .img1:hover {
     transform: scaleX(-1) scale(1.1);
+    opacity: 1;
 }
 
 .img2:hover {
     transform: scale(1.1);
+    opacity:1;
 }
 
 main {
     overflow-y: auto;
+}
+
+.topic {
+    font-size:0.85em;
+}
+
+.car-q-info {
+    font-size: 0.85em;
+}
+
+.car-q-content img {
+    height: 18px;
 }
