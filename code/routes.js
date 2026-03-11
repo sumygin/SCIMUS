@@ -2620,7 +2620,7 @@ module.exports = function(app) {
     //PYTHON SERVER
     //=============
 
-    async function startPythonServer() { //start python server
+    /*async function startPythonServer() { //start python server
         const pyServer = spawn("uvicorn", ["model:app", "--port", "8000"], {
             cwd:__dirname, shell:true
         })
@@ -2652,7 +2652,7 @@ module.exports = function(app) {
         process.on("exit", () => pyServer.kill()) //kill when server ends
 
         return pyServer
-    }
+    }*/
 
     async function resetDailyTotals(scheduleNew) {
         const lastReset = (await ServerData.findOne({})).time
