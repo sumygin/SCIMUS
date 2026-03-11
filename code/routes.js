@@ -13,9 +13,11 @@ const leo = require("leo-profanity")
 const database = require("./database")
 const {spawn} = require('child_process')
 
+const PYTHON_URL = process.env.MODEL_URL
+
 async function sendModelRequest(data, requestType) { //python model request
     try {
-        const result = await fetch(`http://127.0.0.1:8000/api/${requestType}`, {
+        const result = await fetch(`${PYTHON_URL}/api/${requestType}`, {
             method:"POST",
             headers: {
                 "Content-Type": "application/json",
@@ -2714,7 +2716,7 @@ module.exports = function(app) {
             console.log("mongodb connected")})
         .catch(err => console.error(err))
 
-        const pyServer = await startPythonServer()
+        //const pyServer = await startPythonServer()
 
         resetDailyTotals(false)
         setTimeout(() => resetDailyTotals(true), msToMidnight())
