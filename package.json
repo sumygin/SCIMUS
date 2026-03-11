@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "lsof -t -i:3000 -i:8000 | xargs kill -9 || true",
-    "start": "npm run clean && node server.js",
-    "dev": "npm run clean && nodemon server.js"
+    "start": "npm run clean && node code/app.js",
+    "dev": "npm run clean && nodemon code/app.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,6 @@
   "bugs": {
     "url": "https://github.com/sumygin/SCIMUS/issues"
   },
-  "homepage": "https://github.com/sumygin/SCIMUS#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.1",
