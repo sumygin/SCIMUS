@@ -1,7 +1,6 @@
 body {
     margin: 0;
     user-select: none;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -158,8 +157,6 @@ main {
     margin-top: 7rem;
     padding: 1vh;
     text-align: center;
-    overflow: none;
-    overflow-y: auto;
     transition: 2s cubic-bezier(0.23, 1, 0.320, 1);
     height: 90vh;
 }
