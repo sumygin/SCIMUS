@@ -34,7 +34,6 @@ async function sendModelRequest(data, requestType) { //python model request
 
         
         const res = await result.json()
-        console.log(result, res)
         return res
     }
     catch (err) {
@@ -1732,7 +1731,6 @@ module.exports = function(app) {
             return res.redirect("/home")
         }
 
-        console.log(userTag)
 
         try {
             const data = await User.findOne({user_tag:userTag},
@@ -1759,7 +1757,6 @@ module.exports = function(app) {
         const userTag = req.user.user_tag
         const value = Number(req.params.value)
 
-        console.log(userTag, value)
 
         if (isNaN(value) || value > 90 || value <= 0){
             return res.status(409).json({ error: "Invalid study time entered!"})
@@ -1782,7 +1779,6 @@ module.exports = function(app) {
         const userTag = req.user.user_tag
         const value = Number(req.params.value)
 
-        console.log(userTag, value)
 
         if (isNaN(value) || value > 90 || value <= 0){
             return res.status(409).json({ error: "Invalid rest time entered!"})
@@ -2300,7 +2296,6 @@ module.exports = function(app) {
         let currentBandCounts = {easy:0, regular:0, hard:0} //keeps track of how many added so far
 
         for (const q of questions) { //adds questions of correct bands
-            console.log(q.name)
             const sbjID = q.subject_id
             const bandsObj = bands[sbjID]
 
@@ -2362,7 +2357,6 @@ module.exports = function(app) {
         //add to questions in result
         for (let q of result) {
             const topic = topicObj[q.topic_id]
-            console.log(q.name)
             q.topic = topic.name
             q.subject = subjObj[topic.subject_id]
         }

@@ -133,7 +133,7 @@ async function fetchData() {
         formData[item].value = result[item]
     }
 
-    document.title = `Editing ${result.name} - SCIMUS`
+    document.title = `Editing ${result.qname} - SCIMUS`
 
 }
 

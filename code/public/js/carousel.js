@@ -180,7 +180,6 @@ function qTemplate(q) {
 
 //first, need to generate sources for all carousels
 const carouselData = await sendDataRequest("/api/homepage", errbar, window, "")
-console.log(carouselData)
 
 //then, need to generate amount of carousels needed and then put them onto the page
 

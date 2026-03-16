@@ -35,6 +35,8 @@ async function loadData() {
         </div>
 
         <div class="error"></div>`
+    
+    document.title = `${user.username} - SCIMUS`
 }
 
 loadData()

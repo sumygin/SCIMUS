@@ -93,11 +93,8 @@ async function fetchData() {
         return
     }
 
-    console.log(cID)
 
     const result = await sendDataRequest(`/api/collection/get/${cID}`, errbar, window, "")
-
-    console.log("fetched result:", result)
 
     for (const item in result) {
         if (item == "question_data") { //detect if question data sent and intercept
@@ -132,7 +129,6 @@ function setArrowListeners() {
     const Cindex = Number(JSON.parse(sessionStorage.getItem("cIndex")))
     let clear = true
 
-    console.log(cIDS, Cindex)
 
     if (!cIDS) { //check there is 
         elData.arr1.style.display = "none"
@@ -150,8 +146,6 @@ function setArrowListeners() {
     //HORIZONTAL SCROLL
     elData.arr1.addEventListener("click", (e) => { //left
         
-        console.log(`/collection/${cIDS[Cindex-1]}`, Cindex-1)
-
         sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and Cindex 
         sessionStorage.setItem("cIndex", Cindex-1)
         window.location.href = `/collection/${cIDS[Cindex-1]}`
@@ -163,7 +157,6 @@ function setArrowListeners() {
 
     elData.arr2.addEventListener("click", (e) => { //right
         e.preventDefault()
-        console.log(`/collection/${cIDS[Cindex+1]}`, Cindex+1)
 
         sessionStorage.setItem("cIDS", JSON.stringify(cIDS)) //store collection ids and index 
         sessionStorage.setItem("cIndex", Cindex+1)

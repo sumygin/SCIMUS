@@ -54,8 +54,6 @@ async function sendFilters (deleteOld) { //function to request user data
 
     if (!result) return
 
-    console.log(result)
-
     for (const notif of result) { //append new data
         elData.displaySpace.appendChild(notifTemplate(notif))
     }

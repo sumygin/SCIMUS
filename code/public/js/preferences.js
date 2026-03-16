@@ -5,7 +5,6 @@ let restTime
 
 async function loadData() {
     const errbar = document.getElementsByClassName("error")[0]
-    console.log(errbar, "hey")
 
     const user = await sendDataRequest(`/api/user/data/self`, errbar, window, "")
 
