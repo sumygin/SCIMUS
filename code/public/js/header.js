@@ -95,6 +95,7 @@ class Timer {
     }
 
     switchMode() {
+        if (this.running) {return}
         if (this.mode == "work") {
             this.mode = "rest"
             this.targetTime = this.restTime
