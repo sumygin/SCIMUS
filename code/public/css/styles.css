@@ -3,6 +3,7 @@ body {
     user-select: none;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 #header {
