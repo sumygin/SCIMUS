@@ -155,7 +155,7 @@ button:active {
 }
 
 main {
-    margin-top: 7rem;
+    padding-top: 7rem;
     padding: 1vh;
     text-align: center;
     transition: 2s cubic-bezier(0.23, 1, 0.320, 1);
