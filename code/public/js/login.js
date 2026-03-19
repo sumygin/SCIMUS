@@ -73,15 +73,15 @@ async function clientValidation() {
             reportInvalid(formData.password, "Password must be at least 8 characters", e)
             return
         }
-        if (formData.name.value.length < 3) {
+        if (formData.name.value.length <2) {
             reportInvalid(formData.name, "Name is too short", e)
             return
         }
-        if (formData.username.value.length < 3) {
+        if (formData.username.value.length < 2) {
             reportInvalid(formData.username, "Username is too short", e)
             return
         }
-        if (formData.tag.value.length < 3) {
+        if (formData.tag.value.length < 2) {
             reportInvalid(formData.tag, "Tag is too short", e)
             return
         }
@@ -113,7 +113,7 @@ async function clientValidation() {
 
         //processing form data
 
-        const result = sendFormData(regForm.action, regForm, errbar, window, "Register successful")
+        const result = await sendFormData(regForm.action, regForm, errbar, window, "Register successful", true)
 
         if (result && result.redirect) {
             setTimeout(() => {
@@ -129,9 +129,11 @@ async function clientValidation() {
 
         //processing form data
 
-        const result = sendFormData(logForm.action, logForm, errbar, window, "Log-in successful")
+        const result = await sendFormData(logForm.action, logForm, errbar, window, "Log-in successful", true)
 
-        if (result && result.redirect) {
+        console.log(result)
+
+        if (result && result.success) {
             setTimeout(() => {
                 window.location.href = "/home"
             }, 1000)

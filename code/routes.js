@@ -2068,16 +2068,16 @@ module.exports = function(app) {
             else if (data.password.length < 8) {
                 return res.status(400).json({error: "Password must be at least 8 characters"})
             }
-            else if (data.name.length < 3) {
+            else if (data.name.length < 2) {
                 return res.status(400).json({error: "Name is too short"})
             }
-            else if (data.username.length < 3) {
+            else if (data.username.length < 2) {
                 return res.status(400).json({error: "Username is too short"})
             }
             else if (data.username.length > 20) {
                 return res.status(400).json({error: "Username is too long! (max 20 characters)"})
             }
-            else if (data.tag.length < 3){
+            else if (data.tag.length < 2){
                 return res.status(400).json({error: "Tag is too short"})
             }
             else if (!passwordCheck(data.password)) {

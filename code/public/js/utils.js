@@ -118,6 +118,8 @@ export async function sendFormData(route, form, errbar, window, successMsg, send
     
     if (successMsg != "") success(errbar, successMsg)
 
+    console.log(result)
+
     setTimeout(() => {    
         if (result.redirect) { //redirect if a link sent back
             window.location.href = result.redirect
