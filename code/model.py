@@ -78,7 +78,7 @@ def interaction(data: interactionData):
         delta = c_i - c_e
         delta_s_i = (lr*delta) #new user ability
         delta_d = (lr*delta) #new question diff
-        delta_w = (lr*delta*m) #new weights
+        delta_w = (-lr*delta*m) #new weights
 
         #clip values to ranges
         new_w = w + delta_w

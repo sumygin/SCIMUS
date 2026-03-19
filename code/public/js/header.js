@@ -78,11 +78,6 @@ class Timer {
     }
 
     zero() {
-        //send studied time to server
-        if (timer.mode == "study") {
-            sendDataRequest(`/api/timer/add/${this.targetTime-this.timeLeft}`, errbar, window, "")
-        }
-
         updatePlayButton("replay")
         this.running = false
         this.timeLeft = 0
@@ -90,6 +85,12 @@ class Timer {
         headerTxt.style.color = "green"
         if (!tPopup.matches(":hover")) {
             timerSound.play()
+        }
+
+        //send studied time to server
+        console.log(timer.mode)
+        if (timer.mode == "work") {
+            sendDataRequest(`/api/timer/add/${this.targetTime-this.timeLeft}`, errbar, window, "")
         }
 
     }

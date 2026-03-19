@@ -113,11 +113,13 @@ async function clientValidation() {
 
         //processing form data
 
-        sendFormData(regForm.action, regForm, errbar, window, "Register successful")
+        const result = sendFormData(regForm.action, regForm, errbar, window, "Register successful")
 
-        setTimeout(() => {
-            window.location.href = "/login"
-        }, 1000)
+        if (result && result.redirect) {
+            setTimeout(() => {
+                window.location.href = "/login"
+            }, 1000)
+        }
 
         return
     })
@@ -127,11 +129,14 @@ async function clientValidation() {
 
         //processing form data
 
-        sendFormData(logForm.action, logForm, errbar, window, "Log-in successful")
+        const result = sendFormData(logForm.action, logForm, errbar, window, "Log-in successful")
 
-        setTimeout(() => {
-            window.location.href = "/home"
-        }, 1000)
+        if (result && result.redirect) {
+            setTimeout(() => {
+                window.location.href = "/home"
+            }, 1000)
+        }
+        
     })
 }
 

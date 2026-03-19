@@ -2074,6 +2074,9 @@ module.exports = function(app) {
             else if (data.username.length < 3) {
                 return res.status(400).json({error: "Username is too short"})
             }
+            else if (data.username.length > 20) {
+                return res.status(400).json({error: "Username is too long! (max 20 characters)"})
+            }
             else if (data.tag.length < 3){
                 return res.status(400).json({error: "Tag is too short"})
             }
