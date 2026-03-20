@@ -76,8 +76,8 @@ const LBsortMap = {
 }
 
 function shuffle(list) {//shuffles a list
-    for (let i = 0; i<list.length; i++) {
-        const randomPos = Math.floor((Math.random() - 0.0001) * (list.length)) //can never exceeed last pos index
+    for (let i = list.length - 1; i > 0; i--) {
+        const randomPos = Math.floor(Math.random() * (i + 1)) //can never exceeed last pos index
 
         //now swap
         if (randomPos != i) {
@@ -86,6 +86,8 @@ function shuffle(list) {//shuffles a list
             list[randomPos] = temp
         }
     }
+
+    return list
 }
 
 function clip (txt, val) {
@@ -850,6 +852,10 @@ module.exports = function(app) {
 
         let subject, topic
 
+        if (isNaN(Number(data.year))){ //check that year is a number
+            return res.status(400).json({error:"Invalid year number!"})
+        }
+
         if (data.paper && data.paper !="" && data.paper !="-1"  && data.subject == "") { //if paper without subject
             return res.status(400).json({error:"Cannot search paper without subject!"})
         }
@@ -939,7 +945,13 @@ module.exports = function(app) {
             let data = req.query
             const userTag = req.user.user_tag
 
-            return res.json(await searchQuestions(data, userTag, res))
+            const searchRes = await searchQuestions(data, userTag, res)
+
+            if (searchRes.outputData) { //if an error is returned instead of question
+                return
+            }
+
+            return res.json(searchRes)
         }
         catch (err) {
             console.error(err)
@@ -1451,7 +1463,13 @@ module.exports = function(app) {
             const cID = Number(req.params.id)
             const userTag = req.user.user_tag
 
-            return res.json((await getCollectionData(cID, userTag, res)))
+            const searchRes = await getCollectionData(cID, userTag, res)
+
+            if (searchRes.outputData) { //if an error is returned instead of question
+                return
+            }
+
+            return res.json(searchRes)
         }
         catch (err) {
             console.error(err)
@@ -2292,8 +2310,6 @@ module.exports = function(app) {
             }}
         ])
 
-        shuffle(questions)
-
         let result = []
         let notAddedQueue = []
         let currentBandCounts = {easy:0, regular:0, hard:0} //keeps track of how many added so far
@@ -2363,6 +2379,10 @@ module.exports = function(app) {
             q.topic = topic.name
             q.subject = subjObj[topic.subject_id]
         }
+
+        result = result.slice(0, 20)
+
+        result = shuffle(result)
 
         return result
     }

@@ -155,10 +155,17 @@ button:active {
 
 main {
     margin-top: 7rem;
-    padding: 1vh;
+    padding: 1em;
     text-align: center;
     transition: 2s cubic-bezier(0.23, 1, 0.320, 1);
-    min-height: calc(100vh - 7rem);
+    height: 100%;
+    flex: 1;          
+    overflow: visible; 
+}
+
+html, body {
+    height: 100%;
+    overflow-x: hidden; 
 }
 
 ::-webkit-scrollbar {

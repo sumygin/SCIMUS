@@ -22,7 +22,8 @@
 }
 
 body {
-    overflow: hidden;
+    overflow-x: hidden; /* only block horizontal */
+    overflow-y: auto;
 }
 
 .searchbar-item[type="text"],
@@ -58,6 +59,7 @@ select.searchbar-item {
 
 #QdisplaySpace, #CdisplaySpace {
     overflow-y:scroll;
+    overflow-x:hidden;
     position: absolute;
     height: inherit;
     width: 100%;
@@ -74,10 +76,12 @@ select.searchbar-item {
     position: relative;
     overflow: hidden;
     border-radius: 5px;
-    height: 67vh;
+    height: 50vh;
     width: inherit;
     min-width: 80vw;
     max-width: 80vw;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .s-q {

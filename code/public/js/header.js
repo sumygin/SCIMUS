@@ -52,7 +52,7 @@ class Timer {
             this.startTime = Date.now()
         }
         else {
-            this.totalPauseTime += Date.now()-this.pauseTime
+            this.totalPauseTime += Date.now()-this.pauseTime //add time spent paused to total
         }
         setTimerText(false)
         saveTimer()
@@ -72,7 +72,7 @@ class Timer {
     back(){
         this.running = false
         this.resetPauseTimes()
-        this.timeLeft = this.targetTime
+        this.timeLeft = this.targetTime //reset time to full
         headerTxt.style.color = "black"
         setTimerText(true)
     }
@@ -83,7 +83,7 @@ class Timer {
         this.timeLeft = 0
         this.resetPauseTimes()
         headerTxt.style.color = "green"
-        if (!tPopup.matches(":hover")) {
+        if (!tPopup.matches(":hover")) { //only play sound if user isnt hovering over timer
             timerSound.play()
         }
 
@@ -96,7 +96,7 @@ class Timer {
     }
 
     switchMode() {
-        if (this.running) {return}
+        if (this.running) {return} //prevent mode switch while running
         if (this.mode == "work") {
             this.mode = "rest"
             this.targetTime = this.restTime
@@ -114,7 +114,7 @@ class Timer {
     reset() {
         this.switchMode()
         this.resetPauseTimes()
-        this.timeLeft = this.targetTime
+        this.timeLeft = this.targetTime //reset time to new mode target
         headerTxt.style.color = "black"
         setTimerText(true)
         this.running = false
@@ -137,7 +137,7 @@ if (data) { //if there is saved data,
         data.workTime = prefs[0]*1000*60
         data.restTime = prefs[1]*1000*60
     }
-    if (isNaN(data.workTime) || isNaN(data.restTime) || !data.workTime || !data.restTime) {
+    if (isNaN(data.workTime) || isNaN(data.restTime) || !data.workTime || !data.restTime) { //fallback to defaults if prefs are invalid
         data.workTime = 50 * 1000 * 60
         data.restTime = 10 * 1000 * 60
     }
@@ -148,7 +148,7 @@ if (data) { //if there is saved data,
         updatePlayButton("pause")
     }
 
-    if (timer.timeLeft == 0) {
+    if (timer.timeLeft == 0) { //timer was already finished when page was closed
         headerTxt.style.color = "green"
         updatePlayButton("replay")
     }
@@ -160,7 +160,7 @@ if (data) { //if there is saved data,
 }
 
 
-function setTimerText(bool) {
+function setTimerText(bool) { //toggle whether time inputs are editable
     for (let el of timeInputs) {
         el.contentEditable = bool
     }
@@ -196,7 +196,7 @@ playBtn.addEventListener("click", function() { //PLAY BUTTON EVENTS
         }
     }
     else {
-        timer.reset()
+        timer.reset() //replay -> reset and switch mode
         updatePlayButton("play")
     }
 })
@@ -208,7 +208,7 @@ fwdBtn.addEventListener("click", function(){
 })
 
 backBtn.addEventListener("click", function(){
-    if (timer.timeLeft != timer.targetTime) {
+    if (timer.timeLeft != timer.targetTime) { //only allow back if timer has been started
         timer.back()
         updatePlayButton("play")
     }
@@ -237,7 +237,7 @@ for (const el of timeInputs) {
         let mins = parseInt(minsTxt.innerText || "0", 10) //convert to ints
         let secs = parseInt(secsText.innerText || "0", 10)
 
-
+        //clamp time between 0 and 90 mins
         timer.timeLeft = (mins * 60000) + (secs * 1000)
         timer.timeLeft = Math.max(timer.timeLeft, 0)
         timer.timeLeft = Math.min(timer.timeLeft, 90*60000)
@@ -269,7 +269,7 @@ window.addEventListener("visibilitychange", function() { //change when page is s
         updatePlayButton("play")
         timer.pause()
 
-        timer.running = true
+        timer.running = true //keep running flag so timer resumes on return
         saveTimer()
     }
     else if (timer.running){
@@ -289,7 +289,7 @@ function mainLoop() {
         }
         else {
             timer.timeLeft = timer.startTime == 0 ? timer.targetTime : timer.targetTime-(Date.now() 
-            - timer.startTime - timer.totalPauseTime)
+            - timer.startTime - timer.totalPauseTime) //elapsed = now - start - total pause time
         }
 
         
@@ -303,7 +303,7 @@ function mainLoop() {
     }
 
     if (renderArc){
-        let theta = -(Math.PI*(timer.timeLeft/(timer.targetTime)))
+        let theta = -(Math.PI*(timer.timeLeft/(timer.targetTime))) //angle proportional to time remaining
         if (timer.timeLeft == 0) {
             theta = 0
         }
@@ -312,6 +312,7 @@ function mainLoop() {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+        //draw filled arc showing time elapsed
         ctx.beginPath()
         ctx.arc(c[0], c[1], 120, theta, 0, false)
         ctx.strokeStyle = "black"
@@ -319,6 +320,7 @@ function mainLoop() {
         ctx.stroke()
         ctx.closePath()
 
+        //draw outline arc showing time remaining
         ctx.beginPath()
         ctx.arc(c[0], c[1], 130, -Math.PI, theta, false)
         ctx.moveTo(c[0]-110, c[1])
@@ -329,6 +331,7 @@ function mainLoop() {
         ctx.fillStyle = "white"
         ctx.stroke()
 
+        //draw tick marker at current position
         ctx.beginPath()
         ctx.moveTo(c[0]-((120-l)*Math.cos(Math.PI-theta)), c[1] + ((120-l)*Math.sin(Math.PI-theta))) //P1
         ctx.lineTo(c[0]-((120+l)*Math.cos(Math.PI-theta)), c[1] + ((120+l)*Math.sin(Math.PI-theta))) //P2
@@ -338,6 +341,7 @@ function mainLoop() {
         ctx.closePath()
     }
 
+    //update header and input display
     let minutes = Math.floor(timer.timeLeft/60000)
     let seconds = Math.floor((timer.timeLeft%60000)/1000)
     headerTxt.innerHTML = `${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds: seconds}`
