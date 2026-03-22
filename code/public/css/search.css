@@ -76,7 +76,7 @@ select.searchbar-item {
     position: relative;
     overflow: hidden;
     border-radius: 5px;
-    height: 50vh;
+    height: 90vh;
     width: inherit;
     min-width: 80vw;
     max-width: 80vw;
