@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException # server tools
 from pydantic import BaseModel #handle requests 
 import numpy as np #math
 from typing import List
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -135,3 +136,7 @@ def recommendation(data: List[recommendationData]):
 @app.post("/api/health")
 def health():
     return True
+
+@app.post("/")
+def root():
+    return RedirectResponse(url="http://127.0.0.1:3000/home", status_code=303)
