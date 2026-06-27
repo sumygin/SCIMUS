@@ -3,8 +3,17 @@ from pydantic import BaseModel #handle requests
 import numpy as np #math
 from typing import List
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 global_lr = 0.025 #learning rate
 target_c = 0.6 #target correctness value
@@ -135,7 +144,7 @@ def recommendation(data: List[recommendationData]):
 
 @app.get("/api/health")
 def health():
-    return True
+    return {"status": "alive"}
 
 @app.get("/")
 def root():
