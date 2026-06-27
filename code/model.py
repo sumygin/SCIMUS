@@ -133,10 +133,10 @@ def recommendation(data: List[recommendationData]):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/health")
+@app.get("/api/health")
 def health():
     return True
 
-@app.post("/")
+@app.get("/")
 def root():
     return RedirectResponse(url="http://127.0.0.1:3000/home", status_code=303)
