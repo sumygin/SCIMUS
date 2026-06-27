@@ -143,6 +143,7 @@ def recommendation(data: List[recommendationData]):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/health")
+@app.head("/api/health")  # explicitly catches HEAD requests
 def health():
     return {"status": "alive"}
 
