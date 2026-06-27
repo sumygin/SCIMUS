@@ -146,6 +146,6 @@ def recommendation(data: List[recommendationData]):
 def health():
     return {"status": "alive"}
 
-@app.route("/", methods=["GET", "HEAD"])
+@app.get("/", methods=["GET", "HEAD"])
 def root():
     return RedirectResponse(url="https://scimus.onrender.com", status_code=303)
