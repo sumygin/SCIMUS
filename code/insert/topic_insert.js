@@ -1,20 +1,10 @@
 const mongoose = require("mongoose")
 const {Topic} = require("../database")
-const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
-mongoose.connect(hostUrl)
-        .then(() => {
-            console.log("mongodb connected")})
-        .catch(err => console.error(err))
-
-async function del() {
-  await Topic.deleteMany({})
-}
-
-del()
-
-
+const connect = require("./connect")
 
 async function seed() {
+    await connect()
+
     await Topic.deleteMany({})
     await Topic.insertMany([
   // ======================
@@ -270,7 +260,7 @@ async function seed() {
   { topic_id: 12004, subject_id: 13, name: "Chemistry" },
   { topic_id: 12005, subject_id: 13, name: "Biology" }])
     console.log("done")
-    mongoose.disconnect()
+    await mongoose.disconnect()
 }
 
 seed()

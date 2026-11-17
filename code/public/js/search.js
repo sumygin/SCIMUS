@@ -1,4 +1,4 @@
-import { sendFormData, convertStudyStage, generateStarHTML, likeConverter, convertTag, submitSearchData, updatePaperNum, getSubjectColour} from "./utils.js"
+import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -74,118 +74,40 @@ qcbtn.addEventListener("click",() => { //switch between questions/collections
     state = !state
 })
 
-function questionTemplate(question){ 
-    let insertData = ""
-    if (question.tag == 0) {
-        insertData = 
-        `<div class="s-q-year s-q-item">${
-            question.year != 0 ? question.year : ""}</div>
-        <div class="s-q-paper s-q-item">${
-            question.paper_num != 0 ? "Paper " + question.paper_num : ""}</div>
-        <div class="s-q-questionNo s-q-item">${
-            question.question_num != 0 ? "Q" + question.question_num : ""}</div>`
-    }
-
-    let newQuestion = document.createElement("div")
-
-    newQuestion.innerHTML =`<a href="/question/${question.question_id}">
-        <div class="s-q">
-            <div class="s-q-text">
-                <div class="s-q-name">${question.name}</div>
-                <div class="s-q-content"></div>
-            </div>
-            <div class="s-q-metadata">
-                <div class="row">
-                    ${question.user_tag ? `<div class="s-q-los s-q-item">@${question.user_tag}</div>` : ""}
-                    <div class="s-q-los s-q-item">${convertStudyStage(question.study_stage)}</div>
-                    <div class="s-q-subject s-q-item">${question.subject}</div>
-                    <div class="s-q-topic s-q-item">${question.topic}</div>
-                    <div class="s-q-tag s-q-item-last">${convertTag(question.tag)}</div>
-                </div>
-                    
-                <div class="row">
-                    <div class="s-q-views s-q-item"><img src="/resources/view.PNG" alt="" class="icon"> ${question.views}</div>
-                    
-                    
-                    <div class="s-q-comments s-q-item"><img src="/resources/comments.PNG" alt="" class="icon"> ${question.num_comments}</div>
-
-                    <div class="s-q-likes s-q-item">${likeConverter(question.like_rating)} ${question.like_rating}</div>
-                    
-                    <div class="s-q-rating s-q-item">${generateStarHTML(Number(question.total_diff_rating)/Number(question.num_diff_ratings))} ${question.num_diff_ratings}</div>
-
-                    ${insertData}
-
-                </div>
-            </div>
-        </div>
-    </a>`
-
-    
-    
-
-    //set preview safely
-    const dummyEl = document.createElement("div")
-    dummyEl.innerHTML = question.content.substring(0, 61).trim() + (question.content.length > 61 ? "..." : "")
-    newQuestion.querySelector(".s-q-content").innerText = dummyEl.innerText //so that HTML tags in preview dont affect formatting, but they are stil hidden
-
-    newQuestion.style.backgroundColor = getSubjectColour(question.subject_id)
-
-    newQuestion.id = question.question_id
-
-    newQuestion.addEventListener("click", (e)=>{
-        let index = qIDList.indexOf(Number(newQuestion.id))
-        sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
-        sessionStorage.setItem("qIndex", index)
-    })
-
-    //render latex
-    renderMathInElement(newQuestion, {
-        delimiters: [
-            //block
-            {left: '$$', right: '$$', display: true},
-            {left: '\\[', right: '\\]', display: true},
-            //inline
-            {left: '$', right: '$', display: false},
-            {left: '\\(', right: '\\)', display: false}
-        ],
-        throwOnError: false //stops page crashing if error
-    })
-
-    return newQuestion
-}
-
 function collectionTemplate(collection){ 
     let insertData = ""
     if (collection.tag == 0) {
         insertData = 
         `<div class="s-q-year s-q-item">${
-            collection.year != 0 ? collection.year : ""}</div>
+            collection.year ? Number(collection.year) : ""}</div>
         <div class="s-q-paper s-q-item">${
-            collection.paper != 0 ? "Paper " + collection.paper : ""}</div>`
+            collection.paper ? "Paper " + Number(collection.paper) : ""}</div>`
     }
+
+    const preview = collection.preview.join(", ")
 
     let newcollection = document.createElement("div")
 
-    newcollection.innerHTML =`<a href="/collection/${collection.collection_id}">
+    newcollection.innerHTML =`<a href="/collection/${Number(collection.collection_id)}">
         <div class="s-q">
             <div class="s-q-text">
-                <div class="s-q-name">${collection.name}</div>
-                <div class="s-q-content">${collection.preview.join(", ").substring(0, 61).trim() + (collection.preview.join(", ").length >= 61 ? "..." : "")}</div>
+                <div class="s-q-name">${escapeHTML(collection.name)}</div>
+                <div class="s-q-content">${escapeHTML(preview.substring(0, 61).trim() + (preview.length > 61 ? "..." : ""))}</div>
             </div>
             <div class="s-q-metadata">
                 <div class="row">
-                ${collection.user_tag ? `<div class="s-q-los s-q-item">@${collection.user_tag}</div>` : ""}
+                ${collection.user_tag ? `<div class="s-q-los s-q-item">@${escapeHTML(collection.user_tag)}</div>` : ""}
                     <div class="s-q-los s-q-item">${convertStudyStage(collection.stages[0])} 
                     ${collection.stages.length > 1 ? `+ ${collection.stages.length-1}` : ""}</div>
-                    <div class="s-q-subject s-q-item">${collection.subjects[0]}
+                    <div class="s-q-subject s-q-item">${escapeHTML(collection.subjects[0])}
                     ${collection.subjects.length > 1 ? `+ ${collection.subjects.length-1}` : ""}</div>
-                    <div class="s-q-topic s-q-item">${collection.topics[0]}
+                    <div class="s-q-topic s-q-item">${escapeHTML(collection.topics[0])}
                     ${collection.topics.length > 1 ? `+ ${collection.topics.length-1}` : ""}</div>
-                    <div class="s-q-tag s-q-item-last">${convertTag(collection.tag)}</div>
+                    <div class="s-q-tag s-q-item-last">${convertCollectionTag(collection.tag)}</div>
                 </div>
                     
                 <div class="row">
-                    <div class="s-q-rating s-q-item">${collection.question_num} questions</div>
+                    <div class="s-q-rating s-q-item">${Number(collection.question_num)} questions</div>
 
                     ${insertData}
 
@@ -196,8 +118,7 @@ function collectionTemplate(collection){
 
     newcollection.id = collection.collection_id
 
-    newcollection.addEventListener("click", (e)=>{
-        
+    newcollection.addEventListener("click", ()=>{
         let index = cIDList.indexOf(Number(newcollection.id))
         sessionStorage.setItem("cIDS", JSON.stringify(cIDList)) //store collection ids and index 
         sessionStorage.setItem("cIndex", index)
@@ -214,7 +135,7 @@ qFormData.stage.addEventListener("change", ()=>{
     qFormData.topic.value = ""
 })
 
-qFormData.subject.addEventListener("keyup", ()=>{
+qFormData.subject.addEventListener("input", ()=>{
     qFormData.paper.value = -1
     qFormData.topic.value = ""
 })
@@ -225,7 +146,7 @@ cFormData.stage.addEventListener("change", ()=>{
     cFormData.topic.value = ""
 })
 
-cFormData.subject.addEventListener("keyup", ()=>{
+cFormData.subject.addEventListener("input", ()=>{
     cFormData.paper.value = -1
     cFormData.topic.value = ""
 })
@@ -269,9 +190,12 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
         oldBottomEl.remove() //remove old bottom detector
     }
 
-    let result = await submitSearchData(form, errbar, window, "", true, history, form == qForm ? "q" : "c", deleteOld)
+    //the url only follows the search that is currently on screen
+    const onScreen = (form == qForm) == state
 
-    if (!result) return "no data received"
+    let result = await submitSearchData(form, errbar, window, "", true, history, form == qForm ? "q" : "c", deleteOld && onScreen)
+
+    if (!result) return
 
     if (form == qForm) {
         qIDList.push(...result.map(q => Number(q.question_id))) //generate list of question ids
@@ -282,7 +206,15 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
 
     for (const item of result) { //append new data
         if (form == qForm) {
-            QdisplaySpace.appendChild(questionTemplate(item))
+            const newQuestion = questionTemplate(item)
+
+            newQuestion.addEventListener("click", ()=>{
+                let index = qIDList.indexOf(Number(item.question_id))
+                sessionStorage.setItem("qIDS", JSON.stringify(qIDList)) //store question ids and index 
+                sessionStorage.setItem("qIndex", index)
+            })
+
+            QdisplaySpace.appendChild(newQuestion)
         }
         else if (form == cForm) {
             CdisplaySpace.appendChild(collectionTemplate(item))
@@ -296,7 +228,7 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
             bottomEl = document.getElementById("QbottomDetect")
         }
         else if (form == cForm) {
-            QdisplaySpace.insertAdjacentHTML('beforeend', '<div id="CbottomDetect" style="height: 10px; opacity: 0;"></div>')
+            CdisplaySpace.insertAdjacentHTML('beforeend', '<div id="CbottomDetect" style="height: 10px; opacity: 0;"></div>')
             bottomEl = document.getElementById("CbottomDetect")
         }
 
@@ -331,7 +263,7 @@ const observer = new IntersectionObserver((entries) => { //if on screen
     }
 }, {
     root: null, 
-    rootMargin: '1000px', //data load from 100px from bottom
+    rootMargin: '1000px', //start loading before the bottom is reached
     threshold: 0.1
 })
 
@@ -364,7 +296,7 @@ async function fillForm() { //update filters according to URL data
     }
 
     for (const [key, value] of URLdata.entries()) {
-        if (!form[key]) continue
+        if (!(form[key] instanceof HTMLElement)) continue
         else {
             if (key == "paper") { //modify paper manually
                 await updatePaperNum(form.subject.value, form.paper, errbar, window)

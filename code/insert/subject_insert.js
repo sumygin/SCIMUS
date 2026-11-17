@@ -1,19 +1,10 @@
 const mongoose = require("mongoose")
 const {Subject} = require("../database")
-const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
-
-mongoose.connect(hostUrl)
-        .then(() => {
-            console.log("mongodb connected")})
-        .catch(err => console.error(err))
-
-async function del() {
-  await Subject.deleteMany({})
-}
-
-del()
+const connect = require("./connect")
 
 async function seed(){
+  await connect()
+
   await Subject.deleteMany({})
 await Subject.insertMany([
   // A-Level subjects (stage 1)
@@ -165,6 +156,8 @@ await Subject.insertMany([
     spec: "https://www.physics.ox.ac.uk/study/undergraduates/how-apply/engineering-and-science-admissions-test-esat/pat-syllabus"
   }
 ])
+  console.log("done")
+  await mongoose.disconnect()
 }
 
 seed()

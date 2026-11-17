@@ -324,8 +324,9 @@ button.reply, button.c-like {
 .comment-wrapper .likebar {
     display: none;
     flex-direction: column;
-    position: absolute;                
-    transform: translateX(calc(-50% + -2px)) translateY(-103px);
+    position: absolute;
+    top: 0; /* opens downwards from the face so the first comment's bar isn't cut off */
+    transform: translateX(calc(-50% + -2px));
     width: 20px;
     height: 66px;
     z-index: 100000;
@@ -360,6 +361,22 @@ button.reply, button.c-like {
     border-radius: 5px;
     padding: 2px;
     background: white;
+}
+
+/* both bars are placed from their own button so they line up on every screen height */
+.action-item {
+    position: relative;
+}
+
+.actions .like-bar {
+    top: 0;
+    right: -6px;
+}
+
+.actions .rate-bar {
+    top: 50%;
+    right: -6px;
+    transform: translateY(calc(-50% + 4px));
 }
 
 .like-bar img, .rate-bar img{
@@ -484,8 +501,137 @@ input[type="text"] {
     opacity: 0.6;
 }
 
-.col-wrap :hover .col-bar{
-    background-color: red;
-    display: flex;
-    pointer-events: all;
+@media (max-width: 768px) {
+    main {
+        margin-top: 3.6rem;
+    }
+
+    .pagecontainer {
+        flex-direction: column;
+        justify-content: flex-start;
+        height: auto;
+        min-height: calc(100vh - 3.6rem);
+        min-height: calc(100dvh - 3.6rem);
+    }
+
+    .metadata {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.2em 1.2em;
+        width: auto;
+        height: auto;
+        padding: 0.6em 1em 0;
+        font-size: 0.8em;
+    }
+
+    .content {
+        height: auto;
+        flex: 1;
+    }
+
+    .titles {
+        box-sizing: border-box;
+        padding: 0.5em 1em;
+    }
+
+    .title {
+        font-size: 1.6em;
+        overflow-wrap: anywhere;
+    }
+
+    .middle-container {
+        flex-direction: column;
+    }
+
+    .question {
+        box-sizing: border-box;
+        width: auto;
+        height: 56vh;
+        height: 56dvh;
+        margin: 0 1.6em;
+        padding-right: 1em;
+        font-size: 1em;
+    }
+
+    .question-text, .mark-scheme-text {
+        width: calc(100% - 1.5em);
+        height: 100%;
+    }
+
+    .maincwrapper {
+        width: auto;
+        height: 50vh;
+        height: 50dvh;
+        margin: 0.5em 1.6em 0;
+    }
+
+    .c-bar {
+        width: 100%;
+    }
+
+    .bottom-bar {
+        padding: 0.8em 0;
+    }
+
+    .mark-scheme {
+        width: auto;
+    }
+
+    .actions {
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        width: auto;
+        height: auto;
+        padding: 0.6em 0.3em;
+    }
+
+    /* the bars open above their own button so they never run off the screen */
+    .actions .like-bar, .actions .rate-bar {
+        top: auto;
+        bottom: 100%;
+        right: 0;
+        transform: none;
+    }
+
+    .col-bar {
+        position: fixed;
+        top: auto;
+        bottom: 5.5rem;
+        left: 5vw;
+        right: 5vw;
+        width: auto;
+        box-sizing: border-box;
+        height: 12em;
+    }
+
+    .arr1, .arr2 {
+        position: fixed;
+        top: 45vh;
+        height: 2rem;
+    }
+
+    .arr1 {
+        left: 0.25em;
+    }
+
+    .arr2 {
+        right: 0.25em;
+    }
+
+    .arr3 {
+        position: static;
+        align-self: center;
+        order: 5;
+        height: 2.2rem;
+        margin-bottom: 0.8em;
+    }
+
+    .content .displaywrapper {
+        width: auto;
+        height: 70vh;
+        height: 70dvh;
+        margin: 0 0.5em;
+    }
 }

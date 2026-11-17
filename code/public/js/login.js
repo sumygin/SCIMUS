@@ -1,6 +1,7 @@
-import {loadData, reportInvalid, success, warn, sendFormData} from './utils.js'
+import {loadData, reportInvalid, sendFormData} from './utils.js'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const tagRegex = /^[a-zA-Z0-9_.-]+$/
 function passwordCheck(pw) {
     const hasNumber = /[0-9]/.test(pw)
     const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};:'",.<>/?\\|~]/.test(pw)
@@ -24,7 +25,7 @@ for (const el of formElementList) {
 
 t2.style.opacity = 0.25
 
-logbtn.addEventListener("click",() => {
+function switchForms() { //swap between log-in and register
     if (state) {
         t1.style.opacity = 0.25
         t2.style.opacity = 1
@@ -39,7 +40,9 @@ logbtn.addEventListener("click",() => {
     }
 
     state = !state
-})
+}
+
+logbtn.addEventListener("click", switchForms)
 
 for (const el of Object.values(formData)) { //reset form invalidity after input edited
     el.addEventListener("input", () => {
@@ -48,13 +51,17 @@ for (const el of Object.values(formData)) { //reset form invalidity after input 
 }
 
 let countriesList
+let sending = false //stops forms being sent twice
+
 async function clientValidation() { 
-    countriesList = await loadData("../resources/countries.json")
+    countriesList = await loadData("/resources/countries.json")
     const multispace = document.getElementById("multispace")
     const hiddenSpace = document.getElementById("hiddenSpace")
     const errbar = document.getElementsByClassName("error")[0]
 
     regForm.addEventListener("submit", async e => { 
+        e.preventDefault() //prevent form being sent
+
         for (const el of Object.values(formData)) {
             el.setCustomValidity("")
         }
@@ -81,8 +88,16 @@ async function clientValidation() {
             reportInvalid(formData.username, "Username is too short", e)
             return
         }
+        if (formData.username.value.length > 20) {
+            reportInvalid(formData.username, "Username is too long! (max 20 characters)", e)
+            return
+        }
         if (formData.tag.value.length < 2) {
             reportInvalid(formData.tag, "Tag is too short", e)
+            return
+        }
+        if (formData.tag.value.length > 20) {
+            reportInvalid(formData.tag, "Tag is too long! (max 20 characters)", e)
             return
         }
 
@@ -98,7 +113,7 @@ async function clientValidation() {
             reportInvalid(formData.stage, "Please select a study stage", e)
             return
         }
-        if (multispace.innerText.length < 5) {
+        if (multispace.children.length == 0) {
             reportInvalid(formData.subject, "You must select at least one subject", e)
             return
         }
@@ -106,22 +121,27 @@ async function clientValidation() {
             reportInvalid(formData.tag, "Tag cannot contain spaces", e)
             return
         }
+        if (!tagRegex.test(formData.tag.value)) {
+            reportInvalid(formData.tag, "Tag can only contain letters, numbers, dots, dashes and underscores", e)
+            return
+        }
         
         hiddenSpace.value = multispace.textContent
 
-        e.preventDefault() //prevent form being sent
-
         //processing form data
 
+        if (sending) return
+        sending = true
         const result = await sendFormData(regForm.action, regForm, errbar, window, "Register successful", true)
+        sending = false
 
-        if (result && result.redirect) {
+        if (result && result.success) { //go to log-in with the new tag filled in
             setTimeout(() => {
-                window.location.href = "/login"
+                document.getElementById("tag_login").value = formData.tag.value.toLowerCase()
+                switchForms()
+                document.getElementById("password_login").focus()
             }, 1000)
         }
-
-        return
     })
 
     logForm.addEventListener("submit", async (e) => {
@@ -129,9 +149,10 @@ async function clientValidation() {
 
         //processing form data
 
+        if (sending) return
+        sending = true
         const result = await sendFormData(logForm.action, logForm, errbar, window, "Log-in successful", true)
-
-        console.log(result)
+        sending = false
 
         if (result && result.success) {
             setTimeout(() => {

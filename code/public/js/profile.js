@@ -1,40 +1,53 @@
-import { sendDataRequest, timeConverter } from "./utils.js"
+import { sendDataRequest, timeConverter, escapeHTML } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
-//fetch ID and check if valid
-let uID = window.location.href.split("/profile")[1].substring(1)
-if (uID == "") uID = -1
+//fetch tag from the url
+const uID = decodeURIComponent(window.location.pathname.split("/profile/")[1] || "")
 
 async function loadData() {
-    const user = await sendDataRequest(`/api/user/data/${uID}`, errbar, window, "")
+    if (uID == "") {
+        window.location.href = "/profile"
+        return
+    }
 
-    document.querySelector("main").innerHTML = `
-    <div class="content-wrapper">
+    const user = await sendDataRequest(`/api/user/data/${encodeURIComponent(uID)}`, errbar, window, "")
+
+    if (!user) {
+        document.querySelector(".content-wrapper").innerHTML = `
             <div class="div1">
                 <div class="usernames">
-                    <div class="username">${user.username}</div>
-                    <a href="/profile/${user.user_tag}"><div class="tag">@${user.user_tag}</div></a>
+                    <div class="tag">User not found</div>
+                </div>
+            </div>`
+        return
+    }
+
+    const tag = escapeHTML(user.user_tag)
+    const creator = encodeURIComponent(user.user_tag)
+
+    document.querySelector(".content-wrapper").innerHTML = `
+            <div class="div1">
+                <div class="usernames">
+                    <div class="username">${escapeHTML(user.username)}</div>
+                    <a href="/profile/${creator}"><div class="tag">@${tag}</div></a>
                 </div>
                 <div class="links">
-                    <a href="/search/?creator=${user.user_tag}&searchType=q">Go to created questions</a>
-                    <a href="/search/?creator=${user.user_tag}&searchType=c">Go to created collections</a>
+                    <a href="/search/?creator=${creator}&searchType=q">Go to created questions</a>
+                    <a href="/search/?creator=${creator}&searchType=c">Go to created collections</a>
                 </div>
             </div>
             <div class="stats">
-                <div class="skl">${user.school}</div>
-                <div class="country">${user.country}</div>
-                <div class="date">User since ${user.created_at.split(" at")[0]}</div>
+                <div class="skl">${escapeHTML(user.school)}</div>
+                <div class="country">${escapeHTML(user.country)}</div>
+                <div class="date">User since ${escapeHTML(String(user.created_at).split(" at")[0])}</div>
                 <br>
                 <div class="today-studied">${timeConverter(user.studied_today)} total studied today</div>
                 <div class="total-studied">${timeConverter(user.studied_total)} total studied all-time</div>
-                <div class="q-created">${user.created_total} questions created</div>
-                <div class="q-completed">${user.completed_total} questions completed</div>
-                <div class="avg-likes">${user.total_likes} total like rating</div>
-            </div>
-        </div>
-
-        <div class="error"></div>`
+                <div class="q-created">${Number(user.created_total) || 0} questions created</div>
+                <div class="q-completed">${Number(user.completed_total) || 0} questions completed</div>
+                <div class="avg-likes">${Number(user.total_likes) || 0} total like rating</div>
+            </div>`
     
     document.title = `${user.username} - SCIMUS`
 }

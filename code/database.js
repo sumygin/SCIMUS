@@ -9,17 +9,18 @@ const userSchema = new mongoose.Schema({
   full_name: String,
   email: { type: String, index: true },
   password_hash: String,
-  preference_data: { type: [Number], default: [] }, 
+  preference_data: { type: [Number], default: [] },
   created_at: { type: Date, default: Date.now },
   completed_today: Number,
   completed_total: Number,
   studied_today: Number,
   studied_total: Number,
   created_today: Number,
-  created_total: Number, 
+  created_total: Number,
   total_likes:Number,
   likes_today:Number,
   interaction_n:{type:Number, default:0},
+  last_study_credit: Date, //when study time was last added, stops time being credited faster than it passes
 });
 
 const subjectSchema = new mongoose.Schema({
@@ -109,7 +110,7 @@ const likeSchema = new mongoose.Schema({
   user_tag: { type: String, ref: 'User', required: true, index: true },
   item_id: { type: Number, required: true, index: true },
   item_type: { type: Number, enum: [0, 1] }, //0 = question, 1 = comment
-  value: { type: Number, enum: [1, -1] }, 
+  value: { type: Number, enum: [1, -1] },
   created_at: { type: Date, default: Date.now, index: true }
 });
 

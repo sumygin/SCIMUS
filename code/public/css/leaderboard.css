@@ -135,3 +135,33 @@ select.searchbar-item {
 #submit:hover {
     background-color: white;
 }
+
+@media (max-width: 768px) {
+    .searchbar {
+        padding: 1em 0.5em;
+    }
+
+    .displaywrapper {
+        height: 60vh;
+        height: 60dvh;
+    }
+
+    .lb-item {
+        font-size: 0.7rem;
+        height: auto;
+        min-height: 4rem;
+        overflow-wrap: anywhere;
+    }
+
+    #headers {
+        font-size: 1em;
+    }
+
+    .lb-item a {
+        width: 20%;
+    }
+
+    .lb-item a .lb-info {
+        width: 100%;
+    }
+}

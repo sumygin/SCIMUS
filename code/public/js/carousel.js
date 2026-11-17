@@ -1,4 +1,4 @@
-import { generateStarHTML, getSubjectColour, sendDataRequest } from "./utils.js"
+import { generateStarHTML, getSubjectColour, sendDataRequest, escapeHTML } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -116,18 +116,15 @@ function carTemplate(car) {
     const newCar = document.createElement("div") //new carousel element
     newCar.classList.add("carousel")
 
-    let name
+    let name = escapeHTML(car.name)
     if (car.href) { //generate link for title if applicable
-        name = `<a href="${car.href}">${car.name}</a>`
-    }
-    else {
-        name = car.name
+        name = `<a href="${escapeHTML(car.href)}">${name}</a>`
     }
 
     newCar.innerHTML = `
             <div class="car-title">${name}</div>
             <div class="car-container">
-                <img class="img1" src="resources/arrow.png" alt=""><img class="img2" src="resources/arrow.png" alt="">
+                <img class="img1" src="/resources/arrow.png" alt=""><img class="img2" src="/resources/arrow.png" alt="">
                 <div class="car-mask">
                     <div class="car-content">
                         
@@ -146,8 +143,8 @@ function carTemplate(car) {
 }
 
 function qTemplate(q) {
-    const newQ = document.createElement("a") //cerate question element
-    newQ.href = `/question/${q.question_id}`
+    const newQ = document.createElement("a") //create question element
+    newQ.href = `/question/${Number(q.question_id)}`
     newQ.classList.add("car-question")
 
     let emoji //decide like rating emoji depending on likes
@@ -162,18 +159,14 @@ function qTemplate(q) {
     }
 
     newQ.innerHTML = `
-                            <div class="car-q-header">${q.subject}<br><div class="topic">${q.topic}</div></div>
+                            <div class="car-q-header">${escapeHTML(q.subject)}<br><div class="topic">${escapeHTML(q.topic)}</div></div>
                                 <div class="car-q-content">
-                                    <div class="car-q-title">${q.name}</div>
+                                    <div class="car-q-title">${escapeHTML(q.name)}</div>
                                     <div class="car-q-rating">${generateStarHTML(q.avg_diff_rating)}</div>
-                                    <div class="car-q-info"><img src="/resources/view.PNG" alt="" class="icon">${q.views}   <img src="/resources/${emoji}.PNG" alt="" class="icon"> ${q.like_rating}</div>
+                                    <div class="car-q-info"><img src="/resources/view.PNG" alt="" class="icon">${Number(q.views)}   <img src="/resources/${emoji}.PNG" alt="" class="icon"> ${Number(q.like_rating)}</div>
                                 </div>
-                            </div>
                             `
     newQ.querySelector(".car-q-content").style.backgroundColor = getSubjectColour(q.subject_id) //colours
-
-    //generate question list
-    
 
     return newQ
 }
@@ -184,7 +177,7 @@ const carouselData = await sendDataRequest("/api/homepage", errbar, window, "")
 //then, need to generate amount of carousels needed and then put them onto the page
 
 const main = document.querySelector(".globalCarContainer") //get container
-for (const car of carouselData) { //insert into container
+for (const car of carouselData || []) { //insert into container
     if (car.questions.length > 0) {
         main.appendChild(carTemplate(car))
     }

@@ -4,7 +4,8 @@ export async function loadData(path) {
         return await res.json()
     }
     catch (err) {
-        console.log(err)
+        console.error(err)
+        return []
     }
 }
 
@@ -19,16 +20,94 @@ export function upperCaseify(text) {
     return text
 }
 
+//anything that came from a user has to go through this before being put into innerHTML
+export function escapeHTML(text) {
+    return String(text ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;")
+}
+
+//tags that questions and mark schemes are allowed to use for formatting
+const allowedTags = ["P", "BR", "B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "CODE", "PRE", "SUB", "SUP",
+    "TABLE", "THEAD", "TBODY", "TR", "TD", "TH"]
+
+//keeps formatting tags only, everything else is turned into plain text and all attributes are removed
+export function sanitizeHTML(html) {
+    const template = document.createElement("template")
+    template.innerHTML = String(html ?? "")
+
+    const clean = (node) => {
+        for (const child of [...node.childNodes]) {
+            if (child.nodeType == Node.TEXT_NODE) continue
+
+            if (child.nodeType != Node.ELEMENT_NODE || ["SCRIPT", "STYLE"].includes(child.tagName)) {
+                child.remove()
+                continue
+            }
+
+            clean(child)
+
+            if (!allowedTags.includes(child.tagName)) {
+                child.replaceWith(...child.childNodes) //keep the text inside
+                continue
+            }
+
+            for (const attr of [...child.attributes]) {
+                child.removeAttribute(attr.name)
+            }
+        }
+    }
+
+    clean(template.content)
+    return template.content
+}
+
+const mathDelimiters = [
+    //block
+    {left: '$$', right: '$$', display: true},
+    {left: '\\[', right: '\\]', display: true},
+    //inline
+    {left: '$', right: '$', display: false},
+    {left: '\\(', right: '\\)', display: false}
+]
+
+export function renderMath(el) { //render laTex inside an element
+    if (typeof renderMathInElement != "function") return //katex didn't load
+
+    renderMathInElement(el, {
+        delimiters: mathDelimiters,
+        throwOnError: false //stops page crashing if error
+    })
+}
+
+//resolves when all images on the page are done, so the page doesn't appear half-loaded
+export async function imagesLoaded() {
+    const images = Promise.all(
+        [...document.images].map(img =>
+            img.complete ? Promise.resolve() : new Promise(r => {
+                img.addEventListener("load", r, {once: true})
+                img.addEventListener("error", r, {once: true})
+            })
+        )
+    )
+    const timeout = new Promise(r => setTimeout(r, 3000)) //never keep the page hidden for too long
+
+    await Promise.race([images, timeout])
+}
+
 export async function getSubjectNames(val) {
-    return (await fetch(`/api/subjects/names/${val}`)).json()
+    return await loadData(`/api/subjects/names/${encodeURIComponent(val)}`)
 }
 
 export async function getSchoolNames(){
-    return (await fetch(`/api/schools/names`)).json()
+    return await loadData(`/api/schools/names`)
 }
 
 export async function getTopicNames(val){
-    return (await fetch(`/api/topics/names/${val}`)).json()
+    return await loadData(`/api/topics/names/${encodeURIComponent(val)}`)
 }
 
 export function reportInvalid(el, message, e) {
@@ -37,35 +116,41 @@ export function reportInvalid(el, message, e) {
     e.preventDefault()
 }
 
- export function success(errbar, message) {
-    errbar.innerHTML = message
-    errbar.style.color = "green"
+let errbarTimeout
+
+function showMessage(errbar, message, colour) {
+    if (!errbar) return
+
+    errbar.innerText = message
+    errbar.style.color = colour
     errbar.style.opacity = "1"
-    setTimeout(() => {
+
+    clearTimeout(errbarTimeout)
+    errbarTimeout = setTimeout(() => {
         errbar.style.opacity = "0"
     }, 3000)
- }
+}
 
- export function warn(errbar, message) {
-    errbar.style.color = "red"
-    errbar.innerHTML = message
-    errbar.style.opacity = "1"
-    setTimeout(() => {
-        errbar.style.opacity = "0"
-    }, 3000)
- }
+export function success(errbar, message) {
+    showMessage(errbar, message, "green")
+}
 
- export function generateStarHTML(val) {
+export function warn(errbar, message) {
+    showMessage(errbar, message || "Something went wrong", "red")
+}
+
+export function generateStarHTML(val) {
     const starEmpty = `<img src="/resources/star_empty.PNG" alt="" class="icon">`
     const starFull = `<img src="/resources/star_full.PNG" alt="" class="icon">`
 
+    val = Number(val)
     if (isNaN(val)) val = 0
-    
-    val = Math.floor(val)
+
+    val = Math.min(5, Math.max(0, Math.floor(val)))
     let result = ``
 
     for (let i = 0; i<val; i++) {
-        result += starFull   
+        result += starFull
     }
     for (let i = 0; i<(5-val); i++) {
         result += starEmpty
@@ -73,21 +158,39 @@ export function reportInvalid(el, message, e) {
     return result
 }
 
-export async function sendDataRequest(route, errbar, window, successMsg) {
-    const res = await fetch(route)
+//sends a request and reads the json response, returns [response, result]
+async function request(route, options, errbar) {
+    try {
+        const res = await fetch(route, options)
+        const result = await res.json()
+        return [res, result]
+    }
+    catch (err) {
+        console.error(err)
+        warn(errbar, "Could not reach the server, please try again")
+        return [undefined, undefined]
+    }
+}
 
-    const result = await res.json()
+function postOptions(data, method="POST") {
+    return {
+        method: method,
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data || {}),
+    }
+}
+
+export async function sendDataRequest(route, errbar, window, successMsg, method="GET", data) {
+    const [res, result] = await request(route, method == "GET" ? undefined : postOptions(data, method), errbar)
+    if (!res) return
 
     if (result.redirect) { //redirect if a link sent back
         window.location.href = result.redirect
     }
 
     if (!res.ok) { //not successful
-        if (result.error) {
+        if (result.error && !result.redirect) {
             warn(errbar, result.error)
-        }
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
         }
         return
     }
@@ -97,101 +200,52 @@ export async function sendDataRequest(route, errbar, window, successMsg) {
     return result
 }
 
+export async function sendData(route, data, errbar, window, successMsg, send_result, quiet) {
+    const [res, result] = await request(route, postOptions(data), quiet ? undefined : errbar)
+    if (!res) return
+
+    //display response
+
+    if (!res.ok) { //not successful
+        if (!quiet) warn(errbar, result.error)
+
+        if (result.redirect) {
+            window.location.href = result.redirect
+        }
+        return
+    }
+
+    if (successMsg != "") success(errbar, successMsg)
+
+    setTimeout(() => {
+        if (result.redirect) { //redirect if a link sent back
+            window.location.href = result.redirect
+        }
+    }, 1000)
+
+    if (send_result) return result
+}
+
 export async function sendFormData(route, form, errbar, window, successMsg, send_result) {
     const formdata = new FormData(form)
     const data = Object.fromEntries(formdata.entries())
 
-    const res = await fetch(route, { //send data
-        method:form.method,
-        headers: {"Content-Type": "application/json"},
-        body:JSON.stringify(data),
-    })
-
-    const result = await res.json()
-
-    //display response
-
-    if (!res.ok) { //not successful
-        warn(errbar, result.error)
-        return
-    }
-    
-    if (successMsg != "") success(errbar, successMsg)
-
-    console.log(result)
-
-    setTimeout(() => {    
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
-        }
-    }, 1000)
-
-    if (send_result) return result
+    return await sendData(route, data, errbar, window, successMsg, send_result)
 }
-
-export async function sendData(route, data, errbar, window, successMsg, send_result) {    
-    const res = await fetch(route, { //send data
-        method:"POST",
-        headers: {"Content-Type": "application/json"},
-        body:JSON.stringify(data),
-    })
-
-    const result = await res.json()
-
-    //display response
-
-    if (!res.ok) { //not successful
-        warn(errbar, result.error)
-        return
-    }
-    
-    if (successMsg != "") success(errbar, successMsg)
-
-    setTimeout(() => {    
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
-        }
-    }, 1000)
-
-    if (send_result) return result
-}
-
 
 export async function submitSearchData(form, errbar, window, successMsg, send_result,  history, type, deleteOld) {
     const formdata = new FormData(form)
 
     const params = new URLSearchParams(formdata)
-    if (deleteOld) history.replaceState(null, "", `/search/?${params.toString()}`) //only change url if new search has been done
+    if (deleteOld && type != "lb") history.replaceState(null, "", `/search/?${params.toString()}`) //only change url if new search has been done
 
-
-    let res 
-
-    if (type == "q") {
-        res = await fetch(`/api/search/question/?${params.toString()}`)
-    }
-    else if (type == "c") {
-        res = await fetch(`/api/search/collection/?${params.toString()}`)
-    }
-    else if (type == "lb") {
-        res = await fetch(`/api/lb/?${params.toString()}`)
+    const routes = {
+        q: "/api/search/question/",
+        c: "/api/search/collection/",
+        lb: "/api/lb/"
     }
 
-    const result = await res.json()
-
-    //display response
-
-    if (!res.ok) { //not successful
-        warn(errbar, result.error)
-        return
-    }
-    
-    if (successMsg != "") success(errbar, successMsg)
-
-    setTimeout(() => {    
-        if (result.redirect) { //redirect if a link sent back
-            window.location.href = result.redirect
-        }
-    }, 1000)
+    const result = await sendDataRequest(`${routes[type]}?${params.toString()}`, errbar, window, successMsg)
 
     if (send_result) return result
 }
@@ -219,6 +273,7 @@ export function convertStudyStage(val) {
             return 2
         }
     }
+    return ""
 }
 
 export function convertTag(val) {
@@ -240,9 +295,7 @@ export function convertTag(val) {
     else if (val == "official" || val == "Official") {
         return 0
     }
-    else{
-        console.log("TAG CONVERSION ERROR")
-    }
+    return ""
 }
 
 export function convertCollectionTag(val) {
@@ -258,33 +311,29 @@ export function convertCollectionTag(val) {
     else if (val == "user" || val == "User-made") {
         return 1
     }
-    else{
-        console.log("TAG CONVERSION ERROR")
-    }
+    return ""
 }
 
 export function likeConverter(val) { //convert overall like consensus from value
     val = Number(val)
-    let src
+    let src = "/resources/neutral.PNG"
     if (val > 10) {
         src = "/resources/smile.PNG"
     }
-    if (val < -10) {
+    else if (val < -10) {
         src =  "/resources/frown.PNG"
     }
-    else {
-        src =  "/resources/neutral.PNG"
-    }
-    return `<img src=${src} class="icon" id="-1">`
+    return `<img src="${src}" alt="" class="icon">`
 }
 
 export async function updatePaperNum(value, paper_field, errbar, window) { //generate HTML for paper number selects
     if (!value) return
-    const paperNum = Number(await sendDataRequest(`/api/subject/papers/${value}`, errbar, window, ""))
-    paper_field.innerHTML = '<option value="-1" style="display: none;" selected>paper number</option>'
+    const paperNum = Number(await sendDataRequest(`/api/subject/papers/${encodeURIComponent(value)}`, errbar, window, ""))
+    let options = '<option value="-1" style="display: none;" selected>paper number</option>'
     for (let i = 1; i<paperNum+1; i++) {
-        paper_field.innerHTML += `<option value="${i}" >Paper ${i}</option>`
+        options += `<option value="${i}" >Paper ${i}</option>`
     }
+    paper_field.innerHTML = options
 }
 
 export function timeConverter(time) {
@@ -293,10 +342,11 @@ export function timeConverter(time) {
     const day = [24*hour[0], "d"]
     const times = [day, hour, minute]
 
+    time = Number(time) || 0
     let result = ""
 
     for (let t of times) {
-        
+
         let number = Math.floor(time/t[0]) //figure out how many time units are in specified time
         time -= number*t[0] //calculate time left over
 
@@ -311,19 +361,74 @@ export function timeConverter(time) {
 
 export function getSubjectColour(subjectID) {
     const subjectColours = {
-        1: "hsla(0, 100%, 70%, 0.3)",     
-        2: "hsla(270, 100%, 70%, 0.3)",   
-        3: "hsla(120, 100%, 70%, 0.3)",   
-        4: "hsla(30, 100%, 70%, 0.3)",     
-        5: "hsla(210, 100%, 70%, 0.3)",     
-        6: "hsla(60, 100%, 70%, 0.3)",      
-        7: "hsla(0, 100%, 70%, 0.3)",     
-        8: "hsla(120, 100%, 70%, 0.3)",   
-        9: "hsla(30, 100%, 70%, 0.3)",     
-        10: "hsla(210, 100%, 70%, 0.3)",   
-        11: "hsla(270, 80%, 75%, 0.3)",    
-        13: "hsla(180, 100%, 70%, 0.3)",    
-        14: "hsla(300, 100%, 70%, 0.3)"     
+        1: "hsla(0, 100%, 70%, 0.3)",
+        2: "hsla(270, 100%, 70%, 0.3)",
+        3: "hsla(120, 100%, 70%, 0.3)",
+        4: "hsla(30, 100%, 70%, 0.3)",
+        5: "hsla(210, 100%, 70%, 0.3)",
+        6: "hsla(60, 100%, 70%, 0.3)",
+        7: "hsla(0, 100%, 70%, 0.3)",
+        8: "hsla(120, 100%, 70%, 0.3)",
+        9: "hsla(30, 100%, 70%, 0.3)",
+        10: "hsla(210, 100%, 70%, 0.3)",
+        11: "hsla(270, 80%, 75%, 0.3)",
+        13: "hsla(180, 100%, 70%, 0.3)",
+        14: "hsla(300, 100%, 70%, 0.3)"
     }
     return subjectColours[subjectID]
+}
+
+//shared by the search and collection pages
+export function questionTemplate(question) {
+    let insertData = ""
+    if (question.tag == 0) {
+        insertData =
+        `<div class="s-q-year s-q-item">${
+            question.year ? Number(question.year) : ""}</div>
+        <div class="s-q-paper s-q-item">${
+            question.paper_num ? "Paper " + Number(question.paper_num) : ""}</div>
+        <div class="s-q-questionNo s-q-item">${
+            question.question_num ? "Q" + Number(question.question_num) : ""}</div>`
+    }
+
+    const newQuestion = document.createElement("div")
+
+    newQuestion.innerHTML =`<a href="/question/${Number(question.question_id)}">
+        <div class="s-q">
+            <div class="s-q-text">
+                <div class="s-q-name">${escapeHTML(question.name)}</div>
+                <div class="s-q-content">${escapeHTML(question.content)}</div>
+            </div>
+            <div class="s-q-metadata">
+                <div class="row">
+                    ${question.user_tag ? `<div class="s-q-los s-q-item">@${escapeHTML(question.user_tag)}</div>` : ""}
+                    <div class="s-q-los s-q-item">${convertStudyStage(question.study_stage)}</div>
+                    <div class="s-q-subject s-q-item">${escapeHTML(question.subject)}</div>
+                    <div class="s-q-topic s-q-item">${escapeHTML(question.topic)}</div>
+                    <div class="s-q-tag s-q-item-last">${convertTag(question.tag)}</div>
+                </div>
+
+                <div class="row">
+                    <div class="s-q-views s-q-item"><img src="/resources/view.PNG" alt="" class="icon"> ${Number(question.views)}</div>
+
+
+                    <div class="s-q-comments s-q-item"><img src="/resources/comments.PNG" alt="" class="icon"> ${Number(question.num_comments)}</div>
+
+                    <div class="s-q-likes s-q-item">${likeConverter(question.like_rating)} ${Number(question.like_rating)}</div>
+
+                    <div class="s-q-rating s-q-item">${generateStarHTML(Number(question.total_diff_rating)/Number(question.num_diff_ratings))} ${Number(question.num_diff_ratings)}</div>
+
+                    ${insertData}
+
+                </div>
+            </div>
+        </div>
+    </a>`
+
+    newQuestion.style.backgroundColor = getSubjectColour(question.subject_id)
+    newQuestion.id = question.question_id
+
+    renderMath(newQuestion)
+
+    return newQuestion
 }

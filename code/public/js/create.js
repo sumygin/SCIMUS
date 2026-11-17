@@ -1,10 +1,6 @@
-import { upperCaseify, reportInvalid, success, warn, sendDataRequest, sendFormData} from "./utils.js"
-
-document.documentElement.style.visibility = "hidden"
+import { upperCaseify, reportInvalid, sendDataRequest, sendFormData} from "./utils.js"
 
 const qName = document.getElementById("qname")
-const qText = document.getElementById('qtext')
-const msText = document.getElementById("mstext")
 
 const qForm = document.getElementById("qform")
 const saveBtn = document.getElementById("save")
@@ -12,9 +8,10 @@ const publishBtn = document.getElementById("pub")
 
 const errbar = document.getElementsByClassName("error")[0]
 
-let qID = window.location.href.split("/create")[1].substring(1)
-if (isNaN(Number(qID))) qID = -1
+//fetch ID from the url. 0 = new question, -1 = invalid
+let qID = window.location.pathname.split("/create")[1].replaceAll("/", "")
 if (qID == "") qID = 0
+else if (!/^\d+$/.test(qID)) qID = -1
 
 let formElementList = ["stage", "subject", "topic", "tag", "qname", "qtext", "mstext"]
 let formData = {}
@@ -23,37 +20,32 @@ for (let el of formElementList) {
     formData[el] = document.getElementById(el)
 }
 
+for (const el of Object.values(formData)) { //reset form invalidity after input edited
+    el.addEventListener("input", () => {
+        el.setCustomValidity("")
+    })
+}
 
-qName.addEventListener("keyup", () => {
-    if (qName.value.length >= 41) {
-        qName.value = qName.value.substring(0, 40)
-    }
-    else {
-        qName.value = upperCaseify(qName.value)
-    }
+qName.addEventListener("input", () => {
+    //keep the cursor where it was, changing the value would otherwise move it to the end
+    const start = qName.selectionStart
+    const end = qName.selectionEnd
+
+    qName.value = upperCaseify(qName.value)
+    qName.setSelectionRange(start, end)
 })
 
-qText.addEventListener("keyup", () => {
-    if (qText.value.length >= 5001) {
-        qText.value = qText.value.substring(0, 5000)
-    }
-})
-
-msText.addEventListener("keyup", () => {
-    if (msText.value.length >= 5001) {
-        msText.value = msText.value.substring(0, 5000)
-    }
-})
+let sending = false //stops the form being sent twice
 
 function clientValidation() { 
+    qForm.addEventListener("submit", (e) => e.preventDefault())
+
     saveBtn.addEventListener("click", (e) => { 
         saveForm(e, false)
     })
 
     publishBtn.addEventListener("click", (e) => {
         saveForm(e, true)
-
-        //need to edit question data so that published is true
     })
 }
 
@@ -65,10 +57,19 @@ let saveForm = async (e, publish) => { //validates then sends form values
     }
 
     //client side validation
-    //["stage", "subject", "topic", "tag", "qname", "qtext", "mstext"]
 
     if (formData.stage.value == -1) { 
         reportInvalid(formData.stage, "Please select a study stage", e)
+        return
+    }
+
+    if (formData.subject.value.trim() == "") { 
+        reportInvalid(formData.subject, "Please select a subject", e)
+        return
+    }
+
+    if (formData.topic.value.trim() == "") { 
+        reportInvalid(formData.topic, "Please select a topic", e)
         return
     }
 
@@ -77,36 +78,27 @@ let saveForm = async (e, publish) => { //validates then sends form values
         return
     }
 
-    if (formData.qtext.value.length < 10) {
+    if (formData.qname.value.trim().length < 10) {
+        reportInvalid(formData.qname, "Name must be at least 10 characters", e)
+        return
+    }
+
+    if (formData.qtext.value.trim().length < 10) {
         reportInvalid(formData.qtext, "Question is too short", e)
         return
     }
 
-    if (formData.mstext.value.length < 10) {
+    if (formData.mstext.value.trim().length < 10) {
         reportInvalid(formData.mstext, "Mark scheme is too short", e)
         return
     }
 
-    if (formData.qname.value.length < 2) {
-        reportInvalid(formData.qname, "Title is too short", e)
-        return
-    }
-    
-    /*
-    if (!window.subjectList) return
-    if (!window.subjectList.includes(formData.subject.value)) { 
-        reportInvalid(formData.subject, "This is not a valid subject", e)
-        return
-    }
-    if (!window.topicList) return
-    if (!window.topicList.includes(formData.topic.value)) { 
-        reportInvalid(formData.topic, "This is not a valid topic", e)
-        return
-    }*/
-
     //processing form data
 
-    sendFormData(`/api/question/save/${qID}/${publish}`, qForm, errbar, window, "Question saved")
+    if (sending) return
+    sending = true
+    await sendFormData(`/api/question/save/${qID}/${publish}`, qForm, errbar, window, publish ? "Question published" : "Question saved")
+    sending = false
 }
 
 async function fetchData() {
@@ -119,18 +111,22 @@ async function fetchData() {
         return
     }
 
-    const result = await sendDataRequest(`/api/create/get/${qID}`, errbar, window, "Question data retrieved successfully")
+    const result = await sendDataRequest(`/api/create/get/${qID}`, errbar, window, "")
 
     if (!result) return
     
     for (let item in result) {
+        if (!formData[item]) continue
+
+        formData[item].value = result[item]
+
+        //let the autocomplete fields know so they load the right subject/topic lists
         if (item == "stage") {
             formData.stage.dispatchEvent(new Event("change"))
         }
         if (item == "subject") {
             formData.subject.dispatchEvent(new CustomEvent("subjectLoaded"))
         }
-        formData[item].value = result[item]
     }
 
     document.title = `Editing ${result.qname} - SCIMUS`
@@ -138,11 +134,13 @@ async function fetchData() {
 }
 
 async function showPage() {
-    await Promise.all([
-        fetchData(), 
+    try {
         clientValidation()
-    ])
-    document.documentElement.style.visibility = "visible"
+        await fetchData()
+    }
+    finally {
+        document.documentElement.style.visibility = "visible"
+    }
 }
 
 showPage()

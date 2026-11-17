@@ -41,3 +41,25 @@
     gap: 4rem;
     justify-content: center;
 }
+
+@media (max-width: 768px) {
+    .main-container {
+        height: auto;
+    }
+
+    #bigtitle {
+        padding-top: 1rem;
+    }
+
+    .review-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 3rem;
+    }
+
+    .review-item {
+        width: auto;
+        max-width: 20rem;
+    }
+}

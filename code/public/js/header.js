@@ -7,7 +7,6 @@ const tHover = document.getElementsByClassName("timer-hover")
 const canvas = document.getElementById("timer-arc")
 
 const ctx = canvas.getContext("2d")
-const markerLength = 30
 
 const backBtn = document.getElementById("b1")
 const playBtn = document.getElementById("b2")
@@ -19,47 +18,90 @@ const secsText = document.getElementById("secs")
 const timeInputs = document.getElementsByClassName("input-time")
 const headerTxt = document.getElementById("header-timer-text")
 
-const timerSound = new Audio("/resources/timersound.wav")
-
-document.getElementsByTagName("main")[0].scroll = true
+const timerSound = new Audio()
+timerSound.preload = "none" //only download the sound when it's actually needed
+timerSound.src = "/resources/timersound.wav"
 
 document.addEventListener("dragstart", e => e.preventDefault())
 
-//do later -> fetch from user data
+//HEADER MENUS
 
-//load timer data form local storage
+//there is no hover on touch screens, so the timer and profile menus open on tap instead
+const touchScreen = window.matchMedia("(hover: none)")
+const menus = [tHover[0], document.getElementsByClassName("profile-hover")[0]]
+
+document.addEventListener("click", (e) => {
+    if (!touchScreen.matches) return
+
+    for (const menu of menus) {
+        const popup = menu.querySelector("div")
+
+        if (popup.contains(e.target)) continue //using the menu itself
+
+        if (menu.contains(e.target)) {
+            menu.classList.toggle("open")
+        }
+        else {
+            menu.classList.remove("open")
+        }
+    }
+})
+
+function timerOpen() { //whether the timer popup is on screen
+    if (menus[0].classList.contains("open")) return true
+
+    for (const item of tHover) {//thover has 2 elements - if any of them are hovered the popup is showing
+        if (item.matches(":hover")) return true
+    }
+    return false
+}
+
+document.getElementById("logout").addEventListener("click", async (e) => {
+    e.preventDefault()
+    await sendDataRequest("/logout", errbar, window, "", "POST")
+})
+
+//TIMER
 
 function saveTimer() { //function to save the timer
-    localStorage.setItem("timer", JSON.stringify(timer))
+    try {
+        localStorage.setItem("timer", JSON.stringify(timer))
+    } catch (err) {} //storage can be blocked in private mode
 }
 
 class Timer {
-    constructor(workTime=50*60000, restTime=10*60000, startTime=0, mode = "work", running=false, pauseTime=0, totalPauseTime=0) {
+    constructor(workTime=50*60000, restTime=10*60000) {
         this.targetTime = workTime
-        this.startTime = startTime
-        this.pauseTime = pauseTime
+        this.startTime = 0
+        this.pauseTime = 0
         this.workTime = workTime
         this.restTime = restTime
-        this.mode = mode
-        this.running = running
-        this.totalPauseTime = totalPauseTime
+        this.mode = "work"
+        this.running = false
+        this.paused = false
+        this.totalPauseTime = 0
         this.timeLeft = workTime
     }
 
     play() {
+        const midRun = this.running && this.startTime != 0 //already going, e.g. coming back to the tab
         this.running = true
-        if (this.pauseTime == 0) { //if starting timer for first time in session
+        if (this.pauseTime == 0 && !midRun) { //if starting timer for first time in session
             this.startTime = Date.now()
         }
-        else {
+        else if (this.paused) {
             this.totalPauseTime += Date.now()-this.pauseTime //add time spent paused to total
         }
+        this.paused = false
         setTimerText(false)
         saveTimer()
     }
 
     pause() {
-        this.pauseTime = Date.now()
+        if (!this.paused) {
+            this.pauseTime = Date.now()
+        }
+        this.paused = true
         this.running = false
         setTimerText(true)
         saveTimer()
@@ -71,26 +113,35 @@ class Timer {
 
     back(){
         this.running = false
+        this.paused = false
         this.resetPauseTimes()
         this.timeLeft = this.targetTime //reset time to full
         headerTxt.style.color = "black"
         setTimerText(true)
+        saveTimer()
     }
 
     zero() {
+        //time actually spent, skipping forward doesn't count the rest
+        const studied = Math.round(Math.min(this.targetTime, Math.max(0, this.targetTime-this.timeLeft)))
+
         updatePlayButton("replay")
         this.running = false
+        this.paused = false
         this.timeLeft = 0
         this.resetPauseTimes()
         headerTxt.style.color = "green"
-        if (!tPopup.matches(":hover")) { //only play sound if user isnt hovering over timer
-            timerSound.play()
+        if (!timerOpen()) { //only play sound if user isnt looking at the timer
+            timerSound.play().catch(() => {}) //browsers block sound until the page has been clicked
         }
 
         //send studied time to server
-        console.log(timer.mode)
-        if (timer.mode == "work") {
-            sendDataRequest(`/api/timer/add/${this.targetTime-this.timeLeft}`, errbar, window, "")
+        if (this.mode == "work" && studied > 0) {
+            fetch(`/api/timer/add/${studied}`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: "{}"
+            }).catch(() => {})
         }
 
     }
@@ -100,14 +151,12 @@ class Timer {
         if (this.mode == "work") {
             this.mode = "rest"
             this.targetTime = this.restTime
-            modeBtn.innerHTML = '<img src="/resources/rest.PNG" alt="" class="icon">'
-            
         }
         else if (this.mode == "rest") {
             this.mode = "work"
             this.targetTime = this.workTime
-            modeBtn.innerHTML = "<img src='/resources/work.PNG' alt='' class='icon'>"
         }
+        updateModeButton()
         saveTimer()
     }
 
@@ -118,6 +167,8 @@ class Timer {
         headerTxt.style.color = "black"
         setTimerText(true)
         this.running = false
+        this.paused = false
+        saveTimer()
     }
 
     resetPauseTimes() {
@@ -127,24 +178,36 @@ class Timer {
     }
 }
 
-const saved = localStorage.getItem("timer") //get saved data
-const data = JSON.parse(saved)
-let timer = new Timer()
-
-if (data) { //if there is saved data, 
-    const prefs = await sendDataRequest("/api/preferences/get", errbar, window, "")
-    if (prefs){ //set users preferences to timer values 
-        data.workTime = prefs[0]*1000*60
-        data.restTime = prefs[1]*1000*60
+function loadSavedTimer() { //load timer data from local storage
+    try {
+        return JSON.parse(localStorage.getItem("timer"))
+    } catch (err) {
+        return null
     }
-    if (isNaN(data.workTime) || isNaN(data.restTime) || !data.workTime || !data.restTime) { //fallback to defaults if prefs are invalid
-        data.workTime = 50 * 1000 * 60
-        data.restTime = 10 * 1000 * 60
-    }
+}
 
-    Object.assign(timer, data)
+//set users preferences to timer values, fallback to defaults if prefs are invalid
+const prefs = await sendDataRequest("/api/preferences/get", errbar, window, "")
+let workTime = Number(prefs?.[0])*1000*60
+let restTime = Number(prefs?.[1])*1000*60
+if (!workTime || !restTime || workTime < 0 || restTime < 0) {
+    workTime = 50 * 1000 * 60
+    restTime = 10 * 1000 * 60
+}
+
+const timer = new Timer(workTime, restTime)
+const data = loadSavedTimer()
+
+if (data && typeof data == "object") { //if there is saved data, carry on from where the timer was
+    for (const key of ["targetTime", "startTime", "pauseTime", "totalPauseTime", "timeLeft"]) {
+        if (Number.isFinite(data[key])) timer[key] = data[key]
+    }
+    if (data.mode == "rest") timer.mode = "rest"
+    timer.running = data.running === true
+    timer.paused = data.paused === true
 
     if (timer.running) {
+        if (timer.paused && !document.hidden) timer.play() //was paused while moving between pages
         updatePlayButton("pause")
     }
 
@@ -153,10 +216,7 @@ if (data) { //if there is saved data,
         updatePlayButton("replay")
     }
 
-     if (timer.mode == "rest") {
-        modeBtn.innerHTML = '<img src="/resources/rest.PNG" alt="" class="icon">'
-        
-    }
+    updateModeButton()
 }
 
 
@@ -166,21 +226,15 @@ function setTimerText(bool) { //toggle whether time inputs are editable
     }
 }
 
+function updateModeButton() {
+    modeBtn.innerHTML = `<img src="/resources/${timer.mode == "rest" ? "rest" : "work"}.PNG" alt="" class="icon">`
+}
+
 function updatePlayButton(update) { 
-    switch (update) {
-        case "play":
-            playBtn.innerHTML = "<img src='/resources/play.PNG' alt='' class='icon' id='play'>"
-            playBtn.style.fontSize = "1rem"
-            break
-        case "pause":
-            playBtn.innerHTML = "<img src='/resources/pause.PNG' alt='' class='icon' id='pause'>"
-            playBtn.style.fontSize = "1rem"
-            break
-        case "replay":
-            playBtn.innerHTML = "<img src='/resources/replay.PNG' alt='' class='icon' id='replay'>"
-            playBtn.style.fontSize = "1rem"
-            break
-    }
+    if (!["play", "pause", "replay"].includes(update)) return
+
+    playBtn.innerHTML = `<img src='/resources/${update}.PNG' alt='' class='icon' id='${update}'>`
+    playBtn.style.fontSize = "1rem"
 }
 
 
@@ -222,49 +276,52 @@ modeBtn.addEventListener("click", function() {
 
 let timeInputSelected = false
 
+function twoDigits(val) {
+    return val < 10 ? "0" + val : String(val)
+}
+
 for (const el of timeInputs) {
     el.addEventListener("focus", function() {
         timeInputSelected = true
     })
-}
 
-for (const el of timeInputs) {
     el.addEventListener("blur", function(){
         timeInputSelected = false
 
-        timer.pauseTime = 0
-
-        let mins = parseInt(minsTxt.innerText || "0", 10) //convert to ints
-        let secs = parseInt(secsText.innerText || "0", 10)
+        let mins = parseInt(minsTxt.innerText, 10) || 0 //convert to ints
+        let secs = parseInt(secsText.innerText, 10) || 0
 
         //clamp time between 0 and 90 mins
         timer.timeLeft = (mins * 60000) + (secs * 1000)
         timer.timeLeft = Math.max(timer.timeLeft, 0)
         timer.timeLeft = Math.min(timer.timeLeft, 90*60000)
 
-        let minutes = Math.floor(timer.timeLeft/60000)
-        let seconds = Math.floor((timer.timeLeft%60000)/1000)
-
-        minsTxt.innerHTML = minutes < 10 ? "0" + minutes  : minutes
-        secsText.innerHTML = seconds < 10 ? "0" + seconds  : seconds
+        minsTxt.innerText = twoDigits(Math.floor(timer.timeLeft/60000))
+        secsText.innerText = twoDigits(Math.floor((timer.timeLeft%60000)/1000))
 
         timer.targetTime = timer.timeLeft //set target time to time inside
+        timer.paused = false
         timer.resetPauseTimes()
     })
     
     el.addEventListener("keydown", function(e) { //prevent anything except digits getting typed
-        let isDigit = /\d/.test(e.key)
-
-        if ( e.key === "Backspace" || e.key === "Delete" || e.key === "ArrowLeft" || e.key === "ArrowRight" ) return
-
-        if (!isDigit || (el.innerText.length >= 3)) {
+        if (e.key === "Enter") {
             e.preventDefault()
+            el.blur()
+            return
         }
 
+        if (e.key.length > 1 || e.ctrlKey || e.metaKey) return //backspace, arrows, shortcuts etc
+
+        if (!/\d/.test(e.key) || (el.innerText.length >= 3)) {
+            e.preventDefault()
+        }
     })
+
+    el.addEventListener("paste", e => e.preventDefault())
 }
 
-window.addEventListener("visibilitychange", function() { //change when page is switched
+document.addEventListener("visibilitychange", function() { //change when page is switched
     if (document.hidden && timer.running) {
         updatePlayButton("play")
         timer.pause()
@@ -278,80 +335,75 @@ window.addEventListener("visibilitychange", function() { //change when page is s
     }
 })
 
+function drawArc() {
+    let theta = -(Math.PI*(timer.timeLeft/(timer.targetTime))) //angle proportional to time remaining
+    if (timer.timeLeft == 0 || !Number.isFinite(theta)) {
+        theta = 0
+    }
+    let c = [canvas.width/2, canvas.height-10]
+    let l = 25
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    //draw filled arc showing time elapsed
+    ctx.beginPath()
+    ctx.arc(c[0], c[1], 120, theta, 0, false)
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = 25
+    ctx.stroke()
+    ctx.closePath()
+
+    //draw outline arc showing time remaining
+    ctx.beginPath()
+    ctx.arc(c[0], c[1], 130, -Math.PI, theta, false)
+    ctx.moveTo(c[0]-110, c[1])
+    ctx.lineTo(c[0]-130, c[1])
+    ctx.arc(c[0], c[1], 110, -Math.PI, theta, false)
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = 3
+    ctx.fillStyle = "white"
+    ctx.stroke()
+
+    //draw tick marker at current position
+    ctx.beginPath()
+    ctx.moveTo(c[0]-((120-l)*Math.cos(Math.PI-theta)), c[1] + ((120-l)*Math.sin(Math.PI-theta))) //P1
+    ctx.lineTo(c[0]-((120+l)*Math.cos(Math.PI-theta)), c[1] + ((120+l)*Math.sin(Math.PI-theta))) //P2
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = 5
+    ctx.stroke()
+    ctx.closePath()
+}
+
+function setText(el, text) { //only touch the page when something actually changed
+    if (el.innerText != text) el.innerText = text
+}
 
 function mainLoop() {
 
-    if (timer.running && timer.timeLeft != 0) {
+    if (timer.running && !timer.paused && timer.timeLeft != 0) {
         if (timer.timeLeft < 1) {
-            timer.zero(timer.timeLeft)
-            timer.time
+            timer.zero()
         }
         else {
             timer.timeLeft = timer.startTime == 0 ? timer.targetTime : timer.targetTime-(Date.now() 
             - timer.startTime - timer.totalPauseTime) //elapsed = now - start - total pause time
         }
-
-        
     }
 
-    let renderArc = false
-    for (const item of tHover) {//thover has 2 elements - if any of them are hovered we need to render arc
-        if (item.matches(":hover")) {
-            renderArc = true
-        }
-    }
-
-    if (renderArc){
-        let theta = -(Math.PI*(timer.timeLeft/(timer.targetTime))) //angle proportional to time remaining
-        if (timer.timeLeft == 0) {
-            theta = 0
-        }
-        let c = [canvas.width/2, canvas.height-10]
-        let l = 25
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-        //draw filled arc showing time elapsed
-        ctx.beginPath()
-        ctx.arc(c[0], c[1], 120, theta, 0, false)
-        ctx.strokeStyle = "black"
-        ctx.lineWidth = 25
-        ctx.stroke()
-        ctx.closePath()
-
-        //draw outline arc showing time remaining
-        ctx.beginPath()
-        ctx.arc(c[0], c[1], 130, -Math.PI, theta, false)
-        ctx.moveTo(c[0]-110, c[1])
-        ctx.lineTo(c[0]-130, c[1])
-        ctx.arc(c[0], c[1], 110, -Math.PI, theta, false)
-        ctx.strokeStyle = "black"
-        ctx.lineWidth = 3
-        ctx.fillStyle = "white"
-        ctx.stroke()
-
-        //draw tick marker at current position
-        ctx.beginPath()
-        ctx.moveTo(c[0]-((120-l)*Math.cos(Math.PI-theta)), c[1] + ((120-l)*Math.sin(Math.PI-theta))) //P1
-        ctx.lineTo(c[0]-((120+l)*Math.cos(Math.PI-theta)), c[1] + ((120+l)*Math.sin(Math.PI-theta))) //P2
-        ctx.strokeStyle = "black"
-        ctx.lineWidth = 5
-        ctx.stroke()
-        ctx.closePath()
+    if (timerOpen()){
+        drawArc()
     }
 
     //update header and input display
-    let minutes = Math.floor(timer.timeLeft/60000)
-    let seconds = Math.floor((timer.timeLeft%60000)/1000)
-    headerTxt.innerHTML = `${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds: seconds}`
+    const shown = Math.max(timer.timeLeft, 0)
+    const minutes = twoDigits(Math.floor(shown/60000))
+    const seconds = twoDigits(Math.floor((shown%60000)/1000))
+    setText(headerTxt, `${minutes}:${seconds}`)
 
     if (!timeInputSelected){
-        minsTxt.innerHTML = minutes < 10 ? "0" + minutes  : minutes
-        secsText.innerHTML = seconds < 10 ? "0" + seconds  : seconds
+        setText(minsTxt, minutes)
+        setText(secsText, seconds)
     }
-
-
 
     requestAnimationFrame(mainLoop) //loop animation
 }

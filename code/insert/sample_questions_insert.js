@@ -1,16 +1,10 @@
 const mongoose = require("mongoose")
 const {Question, Watch, Solve, Rate, Like, QuestionCollection, Comment} = require("../database")
-const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
-mongoose.connect(hostUrl)
-        .then(() => {
-            console.log("mongodb connected")})
-        .catch(err => console.error(err))
-
-async function del() {
-  await Question.deleteMany({})
-}
+const connect = require("./connect")
 
 async function addQuestions() {
+  await connect()
+
   const questions = [
 {
   question_id: 2001,
@@ -5624,28 +5618,25 @@ factorial n = factTail n 1
 
   ];
 
-  await del()
+  await Question.deleteMany({})
 
-  await Question.insertMany(questions).then(() => {})
+  for (const question of questions) { //all sample questions belong to the admin account
+    question.user_tag = "admin"
+  }
 
-  await Question.updateMany(
-    {user_tag: "@admin"},
-    {$set: {user_tag:"admin"}}
-  )
+  await Question.insertMany(questions)
 
-  await Question.updateMany(
-    {},
-    {$set: {user_tag:"admin"}}
-  )
-  
   console.log("Inserted " + questions.length + " questions.");
 
+  //interactions with the old questions don't mean anything anymore
   await Watch.deleteMany({})
   await Solve.deleteMany({})
   await Rate.deleteMany({})
   await Like.deleteMany({})
   await Comment.deleteMany({})
   await QuestionCollection.deleteMany({})
+
+  await mongoose.disconnect()
 }
 
 addQuestions()

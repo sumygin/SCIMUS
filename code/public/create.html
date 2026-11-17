@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-hold>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCIMUS</title>
+    <title>Create - SCIMUS</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/question.css">
     <link rel="stylesheet" href="/css/create.css">
-    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/resources/apple-touch-icon.png">
 </head>
 <body>
     <header id="header">
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="meta-item">
-                    <label for="stage">Type</label>
+                    <label for="tag">Type</label>
                     <select name="tag" id="tag" required>
                         <option value="-1" style="display: none;" selected>-</option>
                         <option value="user">User-made</option>
@@ -59,16 +59,16 @@
 
             <div class="content">
                 <div class="titles">
-                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" id="qname" name="qname">
+                    <input required type="text" class="title" autocapitalize="words" placeholder="Question name" id="qname" name="qname" maxlength="40" autocomplete="off">
                 </div>
                 <div class="question">
                     <div class="question-text">
-                        <textarea required type="text" placeholder="Enter question here. Surround equations with $$equation$$ for block and $equation$ for inline." id="qtext" name="qtext"></textarea>
+                        <textarea required maxlength="5000" placeholder="Enter question here. Surround equations with $$equation$$ for block and $equation$ for inline." id="qtext" name="qtext"></textarea>
                     </div>  
                 </div>
                 <div class="question">
                     <div class="question-text">
-                        <textarea required type="text" placeholder="Enter mark scheme here..." id="mstext" class="ms-text" name="mstext"></textarea>
+                        <textarea required maxlength="5000" placeholder="Enter mark scheme here..." id="mstext" class="ms-text" name="mstext"></textarea>
                     </div>                   
                 </div>
                 
@@ -87,7 +87,7 @@
     </main>
 
     <script src="/js/headerinsert.js"></script>
-    <script  type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/createlaunch.js"></script>
 </body>
 </html>

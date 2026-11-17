@@ -1,19 +1,18 @@
 const mongoose = require("mongoose")
 const {School} = require("../database")
-const hostUrl = "mongodb://127.0.0.1:27017/SCIMUS"
+const connect = require("./connect")
 
-mongoose.connect(hostUrl)
-        .then(() => {
-            console.log("mongodb connected")})
-        .catch(err => console.error(err))
+async function seed() {
+    await connect()
 
-async function del() {
-  await School.deleteMany({})
+    await School.deleteMany({})
+    await School.insertMany([
+        {school_id:1, name:"St Olave's Grammar School"},
+        {school_id:2, name:"Newstead Wood School"}
+    ])
+
+    console.log("done")
+    await mongoose.disconnect()
 }
 
-del()
-
-School.insertMany([
-    {school_id:1, name:"St Olave's Grammar School"},
-    {school_id:2, name:"Newstead Wood School"}
-])
+seed()

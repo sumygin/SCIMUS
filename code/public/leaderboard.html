@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboards - SCIMUS</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/leaderboard.css">
-    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/resources/apple-touch-icon.png">
 </head>
 <body>
     <header id="header">
@@ -32,18 +32,18 @@
                     <option value="1">Today</option>
                 </select>
                 <div class="autocomplete-input school searchbar-item">
-                    <input type="text" placeholder="school" name="school" id="school" class="">
+                    <input type="text" placeholder="school" name="school" id="school">
                     <div class="space">
                     </div>
                 </div>
                 
                 <div class="autocomplete-input country searchbar-item">
-                    <input type="text" placeholder="country" name="country" id="country" class="">
+                    <input type="text" placeholder="country" name="country" id="country">
                     <div class="space">
                     </div>
                 </div>
 
-                <input type="text" style="display:none;" id="page" value="1" name="page">
+                <input type="hidden" id="page" value="1" name="page">
 
                 <input type="submit" id="submit" value="Search" class="searchbar-item">
 
@@ -61,7 +61,7 @@
     </main>
 
     <script src="/js/headerinsert.js"></script>
-    <script  type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/autocomplete.js"></script>
     <script type="module" src="/js/leaderboard.js"></script>
 </body>

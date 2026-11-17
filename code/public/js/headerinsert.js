@@ -1,6 +1,6 @@
 document.documentElement.style.visibility = "hidden"
 
-let headerHMTL = `<a href="/"><button><img id="headerIMG" src="/resources/HEADER_logo.png" alt="SCIMUS" srcset=""></button></a> 
+const headerHTML = `<a href="/"><button><img id="headerIMG" src="/resources/HEADER_logo.png" alt="SCIMUS"></button></a> 
     
     <div id="header-items">
       <a class="header-item" href="/search"><button>SEARCH</button></a>
@@ -12,7 +12,7 @@ let headerHMTL = `<a href="/"><button><img id="headerIMG" src="/resources/HEADER
           
           <canvas id="timer-arc"></canvas>
           <span id="time-text">
-            <span id="mins" contenteditable="true" class="input-time">30</span>:<span contenteditable="true" id="secs" class="input-time">00</span>
+            <span id="mins" contenteditable="true" inputmode="numeric" class="input-time">30</span>:<span contenteditable="true" inputmode="numeric" id="secs" class="input-time">00</span>
           </span>
           
           <div id="control-btns">
@@ -36,21 +36,24 @@ let headerHMTL = `<a href="/"><button><img id="headerIMG" src="/resources/HEADER
             <a href="/preferences"><button>Preferences</button></a>
           </span>
           <span class="profile-hover-item">
-            <a href="/logout"><button>Log out</button></a>
+            <a href="/" id="logout"><button>Log out</button></a>
           </span>
         </div>
       </span> 
     </div>`
 
-document.getElementById("header").innerHTML = headerHMTL
+document.getElementById("header").innerHTML = headerHTML
 
-async function showPage() {
-    await Promise.all(
-      [...document.images].map(img =>
-          img.complete ? Promise.resolve() : new Promise(r => img.onload = r)
-      )
-    )
+//keep the page hidden until its images are ready, but never for long
+function showPage() {
+    if (document.documentElement.hasAttribute("data-hold")) return //these pages show themselves once their data is in
     document.documentElement.style.visibility = "visible"
 }
 
-showPage()
+const pending = [...document.images].filter(img => !img.complete).map(img => new Promise(r => {
+    img.addEventListener("load", r, {once: true})
+    img.addEventListener("error", r, {once: true})
+}))
+
+Promise.all(pending).then(showPage)
+setTimeout(showPage, 3000)

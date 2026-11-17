@@ -1,5 +1,6 @@
 body {
     margin: 0;
+    -webkit-user-select: none;
     user-select: none;
     display: flex;
     flex-direction: column;
@@ -60,9 +61,16 @@ body {
     gap: 0.5rem;
 }
 
-.timer-hover:hover #timer-popup {
+.timer-hover.open #timer-popup {
     opacity: 1;
     pointer-events: all;
+}
+
+@media (hover: hover) {
+    .timer-hover:hover #timer-popup {
+        opacity: 1;
+        pointer-events: all;
+    }
 }
 
 #timer-settings {
@@ -148,9 +156,16 @@ button:active {
     text-align: right;
 }
 
-.profile-hover:hover #profile-popup {
+.profile-hover.open #profile-popup {
     opacity: 1;
     pointer-events: all;
+}
+
+@media (hover: hover) {
+    .profile-hover:hover #profile-popup {
+        opacity: 1;
+        pointer-events: all;
+    }
 }
 
 main {
@@ -290,6 +305,18 @@ img {
     user-select: none;
 }
 
+/* typing needs selection, even though the rest of the page turns it off */
+input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* questions typed without any formatting keep their line breaks */
+.plain-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 select {
     color: rgba(0,0,0,0.6);
 }
@@ -306,4 +333,80 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield;
+}
+
+/* PHONES */
+
+@media (max-width: 768px) {
+    #header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+        padding: 0.7rem 0.5rem;
+        min-height: 3.5rem;
+    }
+
+    #header button {
+        scale: 100%;
+        font-size: 0.72rem;
+        padding: 0.2rem;
+    }
+
+    #header-items {
+        position: static;
+        align-items: center;
+    }
+
+    .header-item {
+        padding-left: 0.3rem;
+        padding-right: 0.3rem;
+    }
+
+    #header-timer-text {
+        font-size: 0.85rem;
+    }
+
+    #pfp {
+        top: 0;
+        height: 32px;
+        display: block;
+    }
+
+    #timer-popup, #profile-popup {
+        top: 100%;
+        right: 0.3rem;
+    }
+
+    #profile-popup button, #timer-popup button {
+        font-size: 0.9rem;
+    }
+
+    main {
+        margin-top: 4.5rem;
+        padding: 0.6em;
+    }
+
+    .error {
+        top: 4rem;
+        max-width: 90vw;
+        z-index: 900;
+    }
+
+    /* anything smaller makes iphones zoom in when a field is tapped */
+    input, select, textarea {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 380px) {
+    #header button {
+        font-size: 0.62rem;
+        padding: 0.1rem;
+    }
+
+    .header-item {
+        padding-left: 0.15rem;
+        padding-right: 0.15rem;
+    }
 }

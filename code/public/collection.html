@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-hold>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/search.css">
     <link rel="stylesheet" href="/css/question.css">
-    
-    <link rel="icon" href="/resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+    <script defer src="/vendor/katex/katex.min.js"></script>
+    <script defer src="/vendor/katex/contrib/auto-render.min.js"></script>
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/resources/apple-touch-icon.png">
 </head>
 <body>
     <header id="header">
@@ -18,13 +20,8 @@
 
     <main>
         <div class="pagecontainer">
-            <a href="">
-                <img class="arr1" src="/resources/arrow.png" alt="" srcset="" id="arr1">
-            </a>
-            <a href="">
-                <img class="arr2" src="/resources/arrow.png" alt="" srcset="" id="arr2">
-            </a>
-            
+            <img class="arr1" src="/resources/arrow.png" alt="Previous collection" id="arr1">
+            <img class="arr2" src="/resources/arrow.png" alt="Next collection" id="arr2">
             
             <div class="metadata">
                 <a class="meta-item" id="tag"></a>
@@ -36,19 +33,16 @@
                     <div class="title" id="name">
                     </div>
                     <a href="" id="user_tag">
-                        <div class="creator" id="creator">
-                        </div>
                     </a>
                 </div>
-                    <div class="displaywrapper">
-                        <div id="displaySpace">
-                            
-                        </div>
+                <div class="displaywrapper">
+                    <div id="displaySpace">
+                        
                     </div>
                 </div>
-                <div class="actions">
-                
-                </div>
+            </div>
+            <div class="actions">
+            
             </div>
         </div>
 
@@ -56,7 +50,7 @@
     </main>
 
     <script src="/js/headerinsert.js"></script>
-    <script  type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/collection.js"></script>
 </body>
 </html>

@@ -122,3 +122,14 @@ main {
 .car-q-content img {
     height: 18px;
 }
+
+@media (max-width: 768px) {
+    .img1, .img2 {
+        height: 3em;
+        top: 5.5em;
+    }
+
+    .img2 {
+        opacity: 0.6;
+    }
+}

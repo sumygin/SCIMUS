@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search - SCIMUS</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/search.css">
-    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/resources/apple-touch-icon.png">
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+    <script defer src="/vendor/katex/katex.min.js"></script>
+    <script defer src="/vendor/katex/contrib/auto-render.min.js"></script>
 </head>
 <body>
     <header id="header">
@@ -18,7 +18,7 @@
     </header>
 
     <main>
-        <button id="qc-switch"> <span>Questions</span> | <span>Collections</span></button><br><br>
+        <button id="qc-switch" type="button"> <span>Questions</span> | <span>Collections</span></button><br><br>
         <div class="searchwrapper">
         <div id="questionSearch" >
             <form class="searchbar" id="questionForm" method="GET">
@@ -40,7 +40,7 @@
                     <option value="-1" style="display: none;" selected>paper number</option>
                 </select>
 
-                <input type="text" placeholder="year" name="year" id="year" class="searchbar-item">
+                <input type="text" inputmode="numeric" maxlength="4" placeholder="year" name="year" id="year" class="searchbar-item">
 
                 <select name="tag" id="tag" class="searchbar-item">
                     <option value="-1" style="display: none;" selected>question type</option>
@@ -72,8 +72,8 @@
 
                 <input type="submit" id="qSubmit" value="Search" class="searchbar-item">
 
-                <input type="text" style="display:none;" id="page" value="1" name="page">
-                <input type="text" style="display:none;" id="searchType" value="q" name="searchType">
+                <input type="hidden" id="page" value="1" name="page">
+                <input type="hidden" id="searchType" value="q" name="searchType">
             </form>
         </div>
 
@@ -97,7 +97,7 @@
                     <option value="-1" style="display: none;" selected>paper number</option>
                 </select>
 
-                <input type="text" placeholder="year" name="year" id="year1" class="searchbar-item">
+                <input type="text" inputmode="numeric" maxlength="4" placeholder="year" name="year" id="year1" class="searchbar-item">
 
                 <select name="tag" id="tag1" class="searchbar-item">
                     <option value="-1" style="display: none;" selected>collection type</option>
@@ -123,8 +123,8 @@
 
                 <input type="submit" id="cSubmit" value="Search" class="searchbar-item">
 
-                <input type="text" style="display:none;" id="page1" value="1" name="page">
-                <input type="text" style="display:none;" id="searchType1" value="q" name="searchType">
+                <input type="hidden" id="page1" value="1" name="page">
+                <input type="hidden" id="searchType1" value="q" name="searchType">
             </form>
         </div>
     </div>
@@ -147,8 +147,8 @@
         <div class="error"></div>
     </main>
 
-    <script src="/js/headerinsert.js" type="module"></script>
-    <script  type="module" src="/js/header.js" type="module"></script>
+    <script src="/js/headerinsert.js"></script>
+    <script type="module" src="/js/header.js"></script>
     <script src="/js/searchlaunch.js" type="module"></script>
 </body>
 </html>

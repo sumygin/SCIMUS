@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-hold>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCIMUS</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/question.css">
-    <link rel="shortcut icon" href="/resources/SMALL_logo.png" type="image/x-icon">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/resources/apple-touch-icon.png">
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+    <script defer src="/vendor/katex/katex.min.js"></script>
+    <script defer src="/vendor/katex/contrib/auto-render.min.js"></script>
 </head>
 <body>
     <header id="header">
@@ -21,19 +20,17 @@
     <main>
         <div id="question-card">
             <div class="pagecontainer">
-                    <img class="arr1" id="arr1" src="/resources/arrow.png" alt="" srcset="">
-                    <img class="arr2" id="arr2" src="/resources/arrow.png" alt="" srcset="">
-                    <img class="arr3" id="arr3" src="/resources/arrow.png" alt="" srcset="">
+                <img class="arr1" id="arr1" src="/resources/arrow.png" alt="Previous question">
+                <img class="arr2" id="arr2" src="/resources/arrow.png" alt="Next question">
+                <img class="arr3" id="arr3" src="/resources/arrow.png" alt="Next recommended question">
                 <div class="metadata">
                     <a class="meta-item" id="tag" href=""></a>
                     <a class="meta-item" id="stage" href=""></a>
-                    <a class="meta-item" id="subject"href=""></a>
+                    <a class="meta-item" id="subject" href=""></a>
                     <a class="meta-item" id="topic" href=""></a>
-                    <a class="meta-item" id="paper"href=""></a>
+                    <a class="meta-item" id="paper" href=""></a>
                     <a class="meta-item" id="question" href=""></a>
                     <a class="meta-item" id="year" href=""></a>
-                    
-                    
                 </div>
                 <div class="content">
                     <div class="titles">
@@ -43,15 +40,14 @@
                         <div class="rating" id="rating"></div>
                         <div id="creator_link" class="creatorin"><a href="" id="user_tag">
                         </a></div>
-                            
                         
                         <div>
-                            <img src="/resources/view.PNG" alt="" class="icon">
+                            <img src="/resources/view.PNG" alt="Views" class="icon">
                             <span class="views" id="views"></span>
                         </div>
                     </div>
                     <div class="middle-container">
-                        <div class="question" id="question">
+                        <div class="question">
                             <div class="question-text" id="qtext">
                             </div>
                             <div class="mark-scheme-text" id="mstext">
@@ -66,94 +62,80 @@
                                     
                                 </div>
                                 
-                                <form class="c-bar" id="cForm" method="POST", action="/api/comments/create">
+                                <form class="c-bar" id="cForm" method="post">
                                     <div id="replybar">
-                                        <div>replying to  </div><div id="rbaruser">capedcrusader</div> 
-                                        <button id="rcancel">x</button>
+                                        <div>replying to  </div><div id="rbaruser"></div> 
+                                        <button type="button" id="rcancel" aria-label="Cancel reply">x</button>
                                     </div>
-                                    <textarea name="com" id="cinput" rows="3" required></textarea>
+                                    <textarea name="com" id="cinput" rows="3" maxlength="200" required aria-label="Comment"></textarea>
                                     <button type="submit" id="csubmit">Comment</button>
-                                    <input type="text" style="display:none;" id="page" value="1" name="page">
+                                    <input type="hidden" id="page" value="1" name="page">
                                 </form>
                             </div>
                         </div>
                     </div>
 
                     <div class="bottom-bar">
-                        <a href="" id="formula" target="_blank"><button class="formula-sheet">f(x)</button></a>
+                        <a href="" id="formula" target="_blank" rel="noopener noreferrer"><button class="formula-sheet">f(x)</button></a>
                         <button class="mark-scheme" id="msBtn">Mark scheme</button>
-                        <a href="" id="spec" target="_blank"><button class="spec">Spec</button></a>
+                        <a href="" id="spec" target="_blank" rel="noopener noreferrer"><button class="spec">Spec</button></a>
                     </div>
                 </div>
                 <div class="actions">
                     <div class="action-item">
-                        <span class="val" id="likes"></span><button class="like-ic">
-                            <span class="facewrap">
-                                <img id="face" src="/resources/neutral.PNG" alt="" class="icon"></button>
-                                
-                                <span class="like-bar" id="likebar">
-                                    <img src="/resources/smile.PNG" class="icon" id="1">
-                                    <img src="/resources/neutral.PNG" class="icon" id="0">
-                                    <img src="/resources/frown.PNG" class="icon" id="-1">
-                                </span>
-                            </span>
+                        <span class="val" id="likes"></span><button class="like-ic" aria-label="Like"><span class="facewrap"><img id="face" src="/resources/neutral.PNG" alt="" class="icon"></span></button>
+                        <span class="like-bar" id="likebar">
+                            <img src="/resources/smile.PNG" alt="Like" class="icon" data-value="1">
+                            <img src="/resources/neutral.PNG" alt="Neutral" class="icon" data-value="0">
+                            <img src="/resources/frown.PNG" alt="Dislike" class="icon" data-value="-1">
+                        </span>
                     </div>
                     <div class="action-item">
-                        <span class="val" id="watches"></span><button class="watch-ic">
+                        <span class="val" id="watches"></span><button class="watch-ic" aria-label="Watch">
                             <img src="/resources/watch_empty.PNG" alt="" class="icon" id="watch">
                         </button>
                     </div>
                     <div class="action-item">
-                        <span class="val" id="solves"></span><button class="solved-ic">
+                        <span class="val" id="solves"></span><button class="solved-ic" aria-label="Mark as solved">
                             <img src="/resources/check_empty.PNG" alt="" class="icon" id="check">
                         </button>
                     </div>
                     <div class="action-item">
-                        <span class="val" id="ratings"></span><button class="rate-ic">
-                            <span class="ratewrap">
-                                <img src="/resources/star_empty.PNG" alt="" class="icon" id="star"></button>
-
-                                <span class="rate-bar" id="ratebar">
-                                    <img src="/resources/star_empty.PNG" class="icon" id="05">
-                                    <img src="/resources/star_empty.PNG" class="icon" id="04">
-                                    <img src="/resources/star_full.PNG" class="icon" id="03">
-                                    <img src="/resources/star_full.PNG" class="icon" id="02">
-                                    <img src="/resources/star_full.PNG" class="icon" id="01">
-                                </span>
-                            </span>
+                        <span class="val" id="ratings"></span><button class="rate-ic" aria-label="Rate difficulty"><span class="ratewrap"><img src="/resources/star_empty.PNG" alt="" class="icon" id="star"></span></button>
+                        <span class="rate-bar" id="ratebar">
+                            <img src="/resources/star_empty.PNG" alt="5 stars" class="icon" data-value="5">
+                            <img src="/resources/star_empty.PNG" alt="4 stars" class="icon" data-value="4">
+                            <img src="/resources/star_full.PNG" alt="3 stars" class="icon" data-value="3">
+                            <img src="/resources/star_full.PNG" alt="2 stars" class="icon" data-value="2">
+                            <img src="/resources/star_full.PNG" alt="1 star" class="icon" data-value="1">
+                        </span>
                     </div>
 
                     <div class="action-item">
-                        <span class="val" id="comments"></span><button class="comment-ic">
+                        <span class="val" id="comments"></span><button class="comment-ic" aria-label="Comments">
                             <img src="/resources/comments.PNG" alt="" class="icon" id="commentBtn">
                         </button>
                     </div>
 
-
                     <div class="action-item">
-                        <span class="val" id="collections"></span><button class="collection-ic">
-                            <span class="colwrap">
-                                <img src="/resources/plus.PNG" alt="" class="icon colHover" id="plus"></button>
+                        <span class="val" id="collections"></span><button class="collection-ic" aria-label="Add to collection"><span class="colwrap"><img src="/resources/plus.PNG" alt="" class="icon colHover" id="plus"></span></button>
+                        <div class="col-bar colHover">
+                            <div class="collection-wrapper">
 
-                                <div class="col-bar colHover">
-                                    <div class="collection-wrapper">
+                            </div>
 
-                                    </div>
-
-                                    <img src="/resources/plus.PNG" alt="" class="icon" id="addcol">
-                                </div>
-                            </span>
+                            <img src="/resources/plus.PNG" alt="New collection" class="icon" id="addcol">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            </div>
             <div class="error"></div>
         </div>
     </main>
 
-    <script src="/js/headerinsert.js" type="module"></script>
-    <script  type="module" src="/js/header.js" type="module"></script>
+    <script src="/js/headerinsert.js"></script>
+    <script type="module" src="/js/header.js"></script>
     <script src="/js/question.js" type="module"></script>
 </body>
 </html>

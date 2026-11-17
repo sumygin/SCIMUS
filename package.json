@@ -1,33 +1,36 @@
 {
   "name": "scimus",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "description": "Collaborative study platform with recommended practice questions",
+  "main": "code/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "lsof -t -i:3000 -i:8000 | xargs kill -9 || true",
-    "start": "npm run clean && node code/app.js",
-    "dev": "npm run clean && nodemon code/app.js"
+    "start": "node code/app.js",
+    "dev": "npm run clean && node --watch code/app.js",
+    "seed": "node code/insert/subject_insert.js && node code/insert/topic_insert.js && node code/insert/schools_insert.js && node code/insert/sample_questions_insert.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sumygin/SCIMUS.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
   "bugs": {
     "url": "https://github.com/sumygin/SCIMUS/issues"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "body-parser": "^2.2.1",
     "connect-mongo": "^6.0.0",
     "express": "^5.2.1",
-    "express-session": "^1.18.2",
+    "express-rate-limit": "^8.7.4",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "katex": "^0.19.1",
     "leo-profanity": "^1.9.0",
-    "mongoose": "^9.0.0",
+    "mongoose": "^9.12.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "validator": "^13.15.26"

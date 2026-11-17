@@ -1,30 +1,23 @@
-from fastapi import FastAPI, HTTPException # server tools
-from pydantic import BaseModel #handle requests 
+import os
+
+from fastapi import FastAPI, Header, HTTPException # server tools
+from pydantic import BaseModel, Field #handle requests 
 import numpy as np #math
 from typing import List
-from fastapi.responses import RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+MODEL_KEY = os.environ.get("MODEL_KEY", "") #if set, the node server has to send the same key
 
 global_lr = 0.025 #learning rate
 target_c = 0.6 #target correctness value
-cap = 10 #cap value for comments and collections
 
 user_new_limit = 20
 question_new_limit = 30
 
 class interactionData(BaseModel): #data that is received from an interaction
-    m: list[float]
-    w: list[float]     
+    m: List[float] = Field(min_length=8, max_length=8)
+    w: List[float] = Field(min_length=9, max_length=9)
     s_i:float #user ability
     d: float #question difficulty
     user_interactions: int
@@ -35,6 +28,10 @@ class recommendationData(BaseModel):
     user_interactions: int
     sbj_id: int
 
+def check_key(key):
+    if MODEL_KEY and key != MODEL_KEY:
+        raise HTTPException(status_code=401, detail="Invalid key")
+
 def sigmoid(x):
     x = np.clip(x, -50, 50)
     return 1 / (1 + np.exp(-x))
@@ -44,103 +41,101 @@ def normalise_log(x, cap):
     return (np.log(1+x))/(np.log(1+cap))
 
 @app.post("/api/interaction")
-def interaction(data: interactionData):
-    try:
-        [m, w, s_i, d, u_i, q_i] = [data.m, data.w, data.s_i, data.d, data.user_interactions, data.question_interactions]
-        #convert to arrays
-        m = np.array(m)
-        w = np.array(w) #HAS to be length 9
+def interaction(data: interactionData, x_model_key: str = Header(default="")):
+    check_key(x_model_key)
 
-        lr = global_lr
+    [m, w, s_i, d, u_i, q_i] = [data.m, data.w, data.s_i, data.d, data.user_interactions, data.question_interactions]
+    #convert to arrays
+    m = np.array(m)
+    w = np.array(w) #HAS to be length 9
 
-        #check user + questions are new?
-        if u_i < user_new_limit or q_i < question_new_limit:
-            lr*= 1.5
+    lr = global_lr
 
-        #NORMALISING MARKERS
-        #w array: [rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]
-        #difficulty rating
-        if m[0] ==  0:
-            m[0] = 3
-        m[0]  = (m[0]-1)/4
+    #check user + questions are new?
+    if u_i < user_new_limit or q_i < question_new_limit:
+        lr*= 1.5
 
-        #like
-        m[3] = (m[3]+1)/2
+    #NORMALISING MARKERS
+    #m array: [rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]
+    #difficulty rating
+    if m[0] ==  0:
+        m[0] = 3
+    m[0]  = (m[0]-1)/4
 
-        #comments
-        m[4] = normalise_log(m[4], 10)
+    #like
+    m[3] = (m[3]+1)/2
 
-        #collections
-        m[5] = normalise_log(m[5], 10)
+    #comments
+    m[4] = normalise_log(max(m[4], 0), 10)
 
-        #view duration
-        m[6] = normalise_log(m[6], 30)
+    #collections
+    m[5] = normalise_log(max(m[5], 0), 10)
 
-        m = np.concatenate((m, [1])) #constant
+    #view duration
+    m[6] = normalise_log(max(m[6], 0), 30)
 
-        #inferred correctness value
-        c_i = sigmoid(np.dot(m, w)) #dot product then sigmoid
+    m = np.concatenate((m, [1])) #constant
 
-        #expected correctness value
-        c_e = sigmoid(s_i - d)
+    #inferred correctness value
+    c_i = sigmoid(np.dot(m, w)) #dot product then sigmoid
 
-        #calculate delta and update weights
-        delta = c_i - c_e
-        delta_s_i = (lr*delta) #new user ability
-        delta_d = (lr*delta) #new question diff
-        delta_w = (-lr*delta*m) #new weights
+    #expected correctness value
+    c_e = sigmoid(s_i - d)
 
-        #clip values to ranges
-        new_w = w + delta_w
-        new_w = np.clip(new_w, -3, 3)
+    #calculate delta and update weights
+    delta = c_i - c_e
+    delta_s_i = (lr*delta) #new user ability
+    delta_d = (lr*delta) #new question diff
+    delta_w = (-lr*delta*m) #new weights
 
-        new_s = np.clip(s_i + delta_s_i, -4, 4)
-        new_d = np.clip(d + delta_d, -4, 4)
+    #clip values to ranges
+    new_w = w + delta_w
+    new_w = np.clip(new_w, -3, 3)
 
-        return {
-            "status": "success",
-            "s_i": (new_s - s_i),
-            "d": (new_d - d),
-            "w": (new_w - w).tolist()
-        }
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    new_s = np.clip(s_i + delta_s_i, -4, 4)
+    new_d = np.clip(d + delta_d, -4, 4)
+
+    return {
+        "status": "success",
+        "s_i": float(new_s - s_i),
+        "d": float(new_d - d),
+        "w": (new_w - w).tolist()
+    }
     
 @app.post("/api/recommendation")
-def recommendation(data: List[recommendationData]):
-    try:
-        print(data)
-        result = {}#total result
-        for item in data:
-            [s_i, u_i, sbj_id] = [item.s_i, item.user_interactions, item.sbj_id]
-            
-            d_T = s_i + np.log((1/target_c) - 1) #target question difficulty
+def recommendation(data: List[recommendationData], x_model_key: str = Header(default="")):
+    check_key(x_model_key)
 
-            #define bands
-            bands = {
-                "regular": [d_T-0.5, d_T+0.5],
-                "hard": [d_T+0.5, d_T+1],
-                "easy": [d_T-1, d_T-0.5]
-            }
+    if len(data) > 100:
+        raise HTTPException(status_code=400, detail="Too many subjects")
 
-            #check if user is new, scale bands accordingly
-            if u_i < user_new_limit:
-                scale = 2 / np.sqrt(u_i + 1)
-                for key in bands:
-                    lower, upper = bands[key]
-                    bands[key][0] = d_T + (lower - d_T) * scale
-                    bands[key][1] = d_T + (upper - d_T) * scale
+    result = {}#total result
+    for item in data:
+        [s_i, u_i, sbj_id] = [item.s_i, item.user_interactions, item.sbj_id]
         
-            result[sbj_id] = bands #append to result
-            
-        return {
-            "success":True,
-            "result":result #return full result
+        d_T = s_i + np.log((1/target_c) - 1) #target question difficulty
+
+        #define bands
+        bands = {
+            "regular": [d_T-0.5, d_T+0.5],
+            "hard": [d_T+0.5, d_T+1],
+            "easy": [d_T-1, d_T-0.5]
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        #check if user is new, scale bands accordingly
+        if u_i < user_new_limit:
+            scale = 2 / np.sqrt(max(u_i, 0) + 1)
+            for key in bands:
+                lower, upper = bands[key]
+                bands[key][0] = float(d_T + (lower - d_T) * scale)
+                bands[key][1] = float(d_T + (upper - d_T) * scale)
+    
+        result[sbj_id] = bands #append to result
+        
+    return {
+        "success":True,
+        "result":result #return full result
+    }
 
 @app.get("/api/health")
 @app.head("/api/health")  # explicitly catches HEAD requests
@@ -148,5 +143,6 @@ def health():
     return {"status": "alive"}
 
 @app.get("/")
+@app.head("/")
 def root():
     return {"status": "alive"}

@@ -1,4 +1,4 @@
-import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, sendDataRequest, updatePaperNum} from './utils.js'
+import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, updatePaperNum} from './utils.js'
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -40,7 +40,9 @@ class AutoHandler {
     init () {
         this.hideSpace()
 
-        this.input.addEventListener("keyup", () => {
+        this.input.setAttribute("autocomplete", "off") //browser suggestions would cover ours
+
+        const showMatches = () => {
             this.selected = false //mark it as non-selected so form cannot be submitted
 
             //detect matching items in list
@@ -84,7 +86,7 @@ class AutoHandler {
                 this.space.appendChild(newEl)
             }
 
-            if (this.creatable && !this.list.includes(this.query)) { //ADD EXTRA "ADD" RESULT
+            if (this.creatable && this.input.value.trim() != "" && !this.list.includes(upperCaseify(this.input.value))) { //ADD EXTRA "ADD" RESULT
 
                 let upperQuery = upperCaseify(this.input.value)
                 
@@ -100,11 +102,18 @@ class AutoHandler {
                 })
                 this.space.appendChild(newEl)
             }
-    
+
+            if (this.space.children.length == 0) this.hideSpace()
+        }
+
+        this.input.addEventListener("input", showMatches)
+        this.input.addEventListener("focus", showMatches)
+        this.input.addEventListener("blur", () => {
+            setTimeout(() => this.hideSpace(), 200) //small delay so a click on an option still counts
         })
 
         document.addEventListener("click", (e) => { //close when clicked off of
-            if (e != this.space) {
+            if (e.target != this.input) {
                 this.hideSpace()
             }
         })
@@ -129,9 +138,6 @@ class AutoHandler {
                     this.list.length = 0
                     this.list.push(...await getSubjectNames(this.fields.stageSelect.value))
                 }
-                else {
-                    console.log("fail", this.fields.stageSelect.value)
-                }
             })
         }
     }
@@ -149,13 +155,19 @@ class AutoHandler {
 
         if (this.selectMultiple) { //if multiple subjects can be selected
             this.input.value = ""
-            if (!this.multiSpace.innerText.includes(text)) { //create new element to be pushed to space
+            if (!this.multiSpace.textContent.includes(text)) { //create new element to be pushed to space
                 let newEl = document.createElement("div")
                 newEl.classList.add("sbj")
-                newEl.innerHTML = `${text} <button class="x">×</button>`
-                newEl.querySelector(".x").addEventListener("click", () => {
+
+                const removeBtn = document.createElement("button")
+                removeBtn.type = "button" //otherwise it would submit the form
+                removeBtn.classList.add("x")
+                removeBtn.innerText = "×"
+                removeBtn.addEventListener("click", () => {
                     newEl.remove()
                 })
+
+                newEl.append(`${text} `, removeBtn)
                 this.multiSpace.appendChild(newEl)
             }
         } else {
@@ -226,7 +238,7 @@ async function createHandlers() { //create all handlers depending on their class
         }
 
         else if (el.classList.contains("country")) { //countries
-            inplist = await loadData("../resources/countries.json")
+            inplist = await loadData("/resources/countries.json")
             type = "country"
         }
 
@@ -265,6 +277,3 @@ async function createHandlers() { //create all handlers depending on their class
 }
 
 createHandlers()
-
-
-

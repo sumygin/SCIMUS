@@ -1,17 +1,19 @@
-import { sendDataRequest, submitSearchData} from "./utils.js"
+import { sendDataRequest, escapeHTML } from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
-const elList = ["displaySpace"]
-
-let elData = {}
-
-for (let el of elList) {
-    elData[el] = document.getElementById(el)
-}
+const displaySpace = document.getElementById("displaySpace")
 
 let hasMore = true
 let isLoading = false
-let page
+let page = 1
+
+//messages are plain text apart from links to profiles, which the server writes as <a href="/profile/tag">@tag</a>
+function messageHTML(message) {
+    return escapeHTML(message).replace(
+        /&lt;a href=&quot;\/profile\/([a-z0-9_.-]+)&quot;&gt;@([a-z0-9_.-]+)&lt;\/a&gt;/g,
+        (match, tag, name) => `<a href="/profile/${tag}">@${name}</a>`
+    )
+}
 
 function notifTemplate(notif) {
     let newNotif = document.createElement("div")
@@ -19,14 +21,14 @@ function notifTemplate(notif) {
 
     newNotif.innerHTML = `
                             <div class="msg-text">
-                        <div class="message">${notif.message}</div>
+                        <div class="message">${messageHTML(notif.message)}</div>
                     </div>
                     <div class="timestamp">
-                        ${notif.created_at}
+                        ${escapeHTML(notif.created_at)}
                     </div>
-                    <a href="/question/${notif.question_id}" class="hyperlink">
+                    ${notif.question_id ? `<a href="/question/${Number(notif.question_id)}" class="hyperlink">
                         GO TO
-                    </a>`
+                    </a>` : `<span class="hyperlink"></span>`}`
     
     if (!notif.viewed) {
         newNotif.style.fontWeight = "bolder"
@@ -35,14 +37,7 @@ function notifTemplate(notif) {
     return newNotif
 }
 
-async function sendFilters (deleteOld) { //function to request user data
-    if (deleteOld) {
-        page = "1"
-        elData.displaySpace.innerHTML = ""
-        hasMore = true
-        isLoading = false
-    }
-
+async function loadNotifications() { //function to request notifications
     const oldBottomEl = document.getElementById("bottomDetect")
 
     if (oldBottomEl){
@@ -50,21 +45,21 @@ async function sendFilters (deleteOld) { //function to request user data
         oldBottomEl.remove() //remove old bottom detector
     }
 
-    let result = await sendDataRequest(`api/inbox/${page}`, errbar, window, "")
+    let result = await sendDataRequest(`/api/inbox/${page}`, errbar, window, "")
 
     if (!result) return
 
     for (const notif of result) { //append new data
-        elData.displaySpace.appendChild(notifTemplate(notif))
+        displaySpace.appendChild(notifTemplate(notif))
     }
 
-    if (result.length >= 20) { //if tehre is potential for more data to be loaded later
-        elData.displaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
+    if (result.length >= 20) { //if there is potential for more data to be loaded later
+        displaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
         const bottomEl = document.getElementById("bottomDetect")
         observer.observe(bottomEl)
     }
     else {
-        hasMore = false //tehre is no more data to load
+        hasMore = false //there is no more data to load
     }
 }
 
@@ -72,9 +67,9 @@ async function loadMoreItems() {
     if (!isLoading && hasMore) { //if its already loading or there are no more to be loaded
         isLoading = true
 
-        elData.page = Number(elData.page.value) + 1 //increment page
+        page++ //increment page
 
-        await sendFilters(false) //send current filters to server and request data back
+        await loadNotifications()
 
         isLoading = false
     }
@@ -87,8 +82,8 @@ const observer = new IntersectionObserver((entries) => {
     }
 }, {
     root: null, 
-    rootMargin: '1000px', //data load from 100px from bottom
+    rootMargin: '1000px', //start loading before the bottom is reached
     threshold: 0.1
 })
 
-sendFilters(true)
+loadNotifications()

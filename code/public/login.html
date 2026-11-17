@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login/register - SCIMUS</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/login.css">
-    <link rel="shortcut icon" href="resources/SMALL_logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/resources/apple-touch-icon.png">
 </head>
 <body>
     <header id="header">
@@ -15,66 +15,63 @@
     </header>
 
     <main>
-        <button id="log-switch"> <span>Log-in</span> | <span>Register</span></button><br><br>
+        <button id="log-switch" type="button"> <span>Log-in</span> | <span>Register</span></button><br><br>
 
         <form id="loginForm" class="form" action="/login" method="post">
             <div class="log-forms-container">
                 <div class="log-item">
-                    <label class for="tag_login">User tag</label>
-                    <input type="text" id="tag_login" name="tag_login" required class="log-item-field" autocomplete="username">
+                    <label for="tag_login">User tag</label>
+                    <input type="text" id="tag_login" name="tag_login" required class="log-item-field" autocomplete="username" autocapitalize="none" spellcheck="false">
                 </div>
                
                 <div class="log-item">
                     <label for="password_login">Password</label>
-                    <input type="password" id="password_login" name="password_login" required class="log-item-field" autocomplete="password">
+                    <input type="password" id="password_login" name="password_login" required class="log-item-field" autocomplete="current-password">
                 </div>
                 
                 <div class="login">
                     <button type="submit">Login</button>
                 </div>
             </div>
-        </div>
-
-            
         </form>
 
         <form id="regForm" class="form" action="/register" method="post">
             <div class="log-forms-container">
                 <div class="log-item">
-                    <label class for="name">Full name</label>
-                    <input type="text" id="name" name="name"  autocomplete="name" required class="log-item-field">
+                    <label for="name">Full name</label>
+                    <input type="text" id="name" name="name" autocomplete="name" required maxlength="60" class="log-item-field">
                 </div>
                 
                 <div class="log-item">
                     <label for="username">Display name</label>
-                    <input type="text" id="username" name="username" required  autocomplete="username" class="log-item-field">
+                    <input type="text" id="username" name="username" required autocomplete="nickname" maxlength="20" class="log-item-field">
                 </div>
                 <div class="log-item">
                     <label for="tag">User tag</label>
-                    <input type="text" id="tag" name="tag" required class="log-item-field">
+                    <input type="text" id="tag" name="tag" required maxlength="20" autocomplete="username" autocapitalize="none" spellcheck="false" class="log-item-field">
                 </div>
                 <div class="log-item">
                     <label for="email">Email</label>
-                    <input type="text" id="email" name="email" required  autocomplete="email" class="log-item-field">
+                    <input type="text" inputmode="email" id="email" name="email" required autocomplete="email" autocapitalize="none" spellcheck="false" class="log-item-field">
                 </div>
                 <div class="log-item">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required class="log-item-field">
+                    <input type="password" id="password" name="password" required autocomplete="new-password" class="log-item-field">
                 </div>
                 <div class="log-item">
                     <label for="password_1">Confirm password</label>
-                    <input type="password" id="password_1" name="password_1" required  class="log-item-field">
+                    <input type="password" id="password_1" name="password_1" required autocomplete="new-password" class="log-item-field">
                 </div>
                 <div class="log-item">
-                    <label for="name">School</label>
+                    <label for="school">School</label>
                     <div class="autocomplete-input school creatable">
-                        <input type="text" id="school" name="school" class="log-item-field" required>
+                        <input type="text" id="school" name="school" class="log-item-field" maxlength="80" required>
                         <div class="space">
                         </div>
                     </div>
                 </div>
                 <div class="log-item">
-                    <label for="name">Country</label>
+                    <label for="country">Country</label>
                     <div class="autocomplete-input country">
                         <input type="text" id="country" name="country" class="log-item-field" required>
                         <div class="space">
@@ -91,9 +88,9 @@
                     </select>
                 </div>
                 <div class="log-item">
-                    <label for="name">Subjects</label>
+                    <label for="subject">Subjects</label>
                     <div class="autocomplete-input subject multiple">
-                        <input type="text" id="subject" name="subject" class="log-item-field" class="subjectFIELD">
+                        <input type="text" id="subject" name="subject" class="log-item-field subjectFIELD">
                         <div class="space">
                         </div>
                     </div>
@@ -103,24 +100,18 @@
 
                 </div>
                 <input type="hidden" name="subjects" id="hiddenSpace">
-                
 
-                
                 <div class="login">
                     <button type="submit">Register</button>
                 </div>
             </div>
         </form>
 
-    
-
-
-    </div>
-    <div class="error"></div>
+        <div class="error"></div>
     </main>
 
-    <script src="/js/headerinsert.js" ></script>
-    <script  type="module" src="/js/header.js"></script>
+    <script src="/js/headerinsert.js"></script>
+    <script type="module" src="/js/header.js"></script>
     <script src="/js/login.js" type="module"></script>
     <script src="/js/autocomplete.js" type="module"></script>
 </body>

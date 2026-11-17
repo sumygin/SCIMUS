@@ -1,4 +1,4 @@
-import { sendDataRequest, submitSearchData, timeConverter} from "./utils.js"
+import { submitSearchData, timeConverter, escapeHTML} from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
 const elList = ["time", "sort", "school", "country", "displaySpace", "page"
@@ -16,7 +16,7 @@ function headerHTML() {
                         <a href="/profile">
                             <div class="lb-info tag">Tag</div>
                         </a>
-                        <div class="lb-info filter">${elData.sort.options[elData.sort.selectedIndex].text}</div>
+                        <div class="lb-info filter">${escapeHTML(elData.sort.options[elData.sort.selectedIndex].text)}</div>
                         <div class="lb-info school">School</div>
                         <div class="lb-info country">Country</div>
                     </div>`
@@ -48,15 +48,15 @@ function userTemplate(user) {
     }
 
     newUser.innerHTML = `
-                            <div class="lb-info rank">${user.rank}</div>
-                            <a href="/profile/${user.user_tag}">
-                                <div class="lb-info tag">@${user.user_tag}</div>
+                            <div class="lb-info rank">${Number(user.rank)}</div>
+                            <a href="/profile/${encodeURIComponent(user.user_tag)}">
+                                <div class="lb-info tag">@${escapeHTML(user.user_tag)}</div>
                             </a>
                             <div class="lb-info filter">${
-                                sortItem
+                                escapeHTML(sortItem ?? 0)
                             }</div>
-                            <div class="lb-info school">${user.school}</div>
-                            <div class="lb-info country">${user.country}</div>`
+                            <div class="lb-info school">${escapeHTML(user.school)}</div>
+                            <div class="lb-info country">${escapeHTML(user.country)}</div>`
     
         return newUser
 }
@@ -84,16 +84,14 @@ async function sendFilters (deleteOld) { //function to request user data
         elData.displaySpace.appendChild(userTemplate(user))
     }
 
-    if (result.length >= 20) { //if tehre is potential for more data to be loaded later
+    if (result.length >= 20) { //if there is potential for more data to be loaded later
         elData.displaySpace.insertAdjacentHTML('beforeend', '<div id="bottomDetect" style="height: 10px; opacity: 0;"></div>')
         const bottomEl = document.getElementById("bottomDetect")
         observer.observe(bottomEl)
     }
     else {
-        hasMore = false //tehre is no more data to load
+        hasMore = false //there is no more data to load
     }
-
-    
 }
 
 async function loadMoreItems() {
@@ -115,7 +113,7 @@ const observer = new IntersectionObserver((entries) => {
     }
 }, {
     root: null, 
-    rootMargin: '1000px', //data load from 100px from bottom
+    rootMargin: '1000px', //start loading before the bottom is reached
     threshold: 0.1
 })
 
