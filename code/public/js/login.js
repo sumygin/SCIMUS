@@ -44,6 +44,10 @@ function switchForms() { //swap between log-in and register
 
 logbtn.addEventListener("click", switchForms)
 
+if (new URLSearchParams(window.location.search).has("register")) { //"create an account" links open the register form
+    switchForms()
+}
+
 for (const el of Object.values(formData)) { //reset form invalidity after input edited
     el.addEventListener("input", () => {
         el.setCustomValidity("")

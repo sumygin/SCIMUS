@@ -54,7 +54,7 @@ const tagPattern = /^[a-z0-9_.-]{2,20}$/
 const reservedTags = ["admin", "self", "scimus"]
 
 //data anyone can read without an account. everything else, and anything that changes data, needs a login
-const publicApi = ["/subjects/names/", "/schools/names", "/topics/names/", "/subject/papers/", "/preferences/get", "/me",
+const publicApi = ["/subjects/names/", "/schools/names", "/topics/names/", "/subject/papers/", "/preferences/get", "/me", "/stats",
     "/homepage", "/search/", "/question/get/", "/collection/get/", "/comments/get/", "/replies/get/", "/lb/", "/user/data/"]
 
 //an error that is safe to show to the user
@@ -319,6 +319,26 @@ module.exports = function(app) {
 
     app.get("/api/me", (req, res) => { //lets pages know whether someone is logged in
         res.json({user_tag: req.user?.user_tag || null})
+    })
+
+    //totals for the welcome page, worked out at most every 10 minutes
+    let stats
+
+    app.get("/api/stats", async (req, res) => {
+        if (!stats || Date.now() - stats.time > 10*minute) {
+            const [questions, subjects, boards] = await Promise.all([
+                Question.countDocuments({published:true}),
+                Subject.countDocuments({}),
+                Subject.distinct("exam_board"),
+            ])
+
+            //"OCR A" and "OCR MEI" are both OCR
+            const boardNames = [...new Set(boards.filter(b => b).map(b => b.split(" ")[0]))].sort()
+
+            stats = {time: Date.now(), data: {questions, subjects, boards: boardNames}}
+        }
+
+        res.json(stats.data)
     })
 
     //errors thrown with fail() end up here

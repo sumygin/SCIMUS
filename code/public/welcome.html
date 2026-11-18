@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SCIMUS - the social media website for studying. Practice questions recommended for you, study timers and leaderboards.">
-    <title>SCIMUS</title>
+    <title>SCIMUS - practice questions that match your level</title>
+    <meta name="description" content="Free practice questions for GCSE, A-level and admissions tests, with mark schemes. SCIMUS learns what you find hard and picks the next questions to match.">
+    <meta property="og:title" content="SCIMUS - the social media website for studying">
+    <meta property="og:description" content="Free practice questions with mark schemes, picked to match your level.">
+    <meta property="og:type" content="website">
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/welcome.css">
     <link rel="icon" href="/resources/favicon.png" type="image/png">
@@ -14,32 +17,115 @@
     <header id="header">
     </header>
 
-    <main class="main-container">
-        <div class="titlecontainer">
+    <main class="welcome">
+        <section class="hero">
             <h1><img id="bigtitle" src="/resources/TITLE_logo.png" alt="SCIMUS"></h1>
             <h2>The social media website for studying.</h2>
-            <a href="/login" id="loginbtn"><button>LOGIN / REGISTER</button></a>
-        </div>
-        <div class="review-container">
-            <div class="review-item">
-                <div class="review-username">Maxim, student  <img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"></div> 
-                <div class="review-content">I really love what this website is doing for the younger generation. 
-                    The concept of integrating studying with scrolling has been a pleasure to use.</div>
+            <p class="lead">Practice questions with mark schemes, picked to match your level. The more you use it, the better it gets at choosing what to revise next.</p>
+
+            <div class="cta-row">
+                <a href="/login?register" class="cta">CREATE A FREE ACCOUNT</a>
+                <a href="/search" class="cta-plain">BROWSE QUESTIONS &rarr;</a>
             </div>
-            <div class="review-item">
-                <div class="review-username">Vy, student  <img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"></div> 
-                <div class="review-content">Having recommended questions is so incredible and a feature not offered by many other sites.</div>
+            <a href="/login" class="have-account">Already have an account? Log in</a>
+
+            <div class="stats" id="stats"></div>
+        </section>
+
+        <section class="block reveal" id="preview-block">
+            <div class="block-head">
+                <h3>Try a question</h3>
+                <a href="/search/?sort=likes&searchType=q" class="see-all">See all &rarr;</a>
             </div>
-            <div class="review-item">
-                <div class="review-username">Melody, student  <img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"></div> 
-                <div class="review-content">I love the use of AI to maximise my studying potential.</div>
+            <p class="block-sub">No account needed to read questions and mark schemes.</p>
+            <div class="preview" id="preview"></div>
+        </section>
+
+        <section class="block reveal">
+            <h3>What you get</h3>
+            <div class="features">
+                <div class="feature">
+                    <img src="/resources/star_full.PNG" alt="" class="feature-icon">
+                    <div class="feature-title">Questions at your level</div>
+                    <p>Every question you rate, solve or skip tells SCIMUS how you're getting on in that subject, so the next ones are pitched just right: not too easy, not out of reach.</p>
+                </div>
+                <div class="feature">
+                    <img src="/resources/check_full.PNG" alt="" class="feature-icon">
+                    <div class="feature-title">A mark scheme for every question</div>
+                    <p>Have a go, then flip to the mark scheme. Keep track of what you've solved and save questions into collections for later.</p>
+                </div>
+                <div class="feature">
+                    <img src="/resources/comments.PNG" alt="" class="feature-icon">
+                    <div class="feature-title">Ask, answer, discuss</div>
+                    <p>Stuck on a step? Comment on any question, reply to other students, or post your own question and ask for a solution.</p>
+                </div>
+                <div class="feature">
+                    <img src="/resources/work.PNG" alt="" class="feature-icon">
+                    <div class="feature-title">Timer and leaderboards</div>
+                    <p>The built-in work/rest timer counts your study time. See how you compare with your school and country.</p>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <section class="block reveal">
+            <h3>How it works</h3>
+            <ol class="steps">
+                <li>
+                    <span class="step-num">1</span>
+                    <div class="step-title">Pick your subjects</div>
+                    <p>Choose your stage and what you're studying when you sign up.</p>
+                </li>
+                <li>
+                    <span class="step-num">2</span>
+                    <div class="step-title">Work through questions</div>
+                    <p>Answer, check the mark scheme, rate how hard it was.</p>
+                </li>
+                <li>
+                    <span class="step-num">3</span>
+                    <div class="step-title">Get better questions</div>
+                    <p>Your home page fills up with questions chosen for where you are now.</p>
+                </li>
+            </ol>
+        </section>
+
+        <section class="block reveal" id="subjects-block">
+            <h3>Subjects</h3>
+            <div id="subjects"></div>
+        </section>
+
+        <section class="block reveal">
+            <h3>What students say</h3>
+            <div class="review-container">
+                <div class="review-item">
+                    <div class="review-username">Maxim, student  <img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"></div> 
+                    <div class="review-content">I really love what this website is doing for the younger generation. 
+                        The concept of integrating studying with scrolling has been a pleasure to use.</div>
+                </div>
+                <div class="review-item">
+                    <div class="review-username">Vy, student  <img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"></div> 
+                    <div class="review-content">Having recommended questions is so incredible and a feature not offered by many other sites.</div>
+                </div>
+                <div class="review-item">
+                    <div class="review-username">Melody, student  <img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"><img src="/resources/star_full.PNG" alt="" class="icon"></div> 
+                    <div class="review-content">I love the use of AI to maximise my studying potential.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="final reveal">
+            <h3>Ready to start revising?</h3>
+            <p class="block-sub">It's free, and takes about a minute.</p>
+            <div class="cta-row">
+                <a href="/login?register" class="cta">CREATE A FREE ACCOUNT</a>
+                <a href="/search" class="cta-plain">BROWSE FIRST &rarr;</a>
+            </div>
+        </section>
 
         <div class="error"></div>
     </main>
 
     <script src="/js/headerinsert.js"></script>
     <script type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/welcome.js"></script>
 </body>
 </html>
