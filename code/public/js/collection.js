@@ -1,4 +1,4 @@
-import {sendDataRequest, convertCollectionTag, questionTemplate, imagesLoaded, emptyState} from "./utils.js"
+import {sendDataRequest, convertCollectionTag, questionTemplate, imagesLoaded, emptyState, showPage as revealPage} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 const displaySpace = document.getElementById("displaySpace")
@@ -121,8 +121,7 @@ async function showPage() {
         await imagesLoaded()
     }
     finally {
-        document.documentElement.style.visibility = "visible"
-        document.documentElement.classList.add("shown")
+        revealPage()
     }
 }
 

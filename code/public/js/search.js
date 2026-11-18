@@ -1,4 +1,4 @@
-import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate, emptyState, plural} from "./utils.js"
+import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate, emptyState, plural, skeletons, loader, clearLoading} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -190,12 +190,20 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
         oldBottomEl.remove() //remove old bottom detector
     }
 
+    //placeholders for a new search, a small loader when more is being added at the bottom
+    displayspace.appendChild(deleteOld ? skeletons("skeleton-result", 4) : loader("Loading more"))
+
     //the url only follows the search that is currently on screen
     const onScreen = (form == qForm) == state
 
     let result = await submitSearchData(form, errbar, window, "", true, history, form == qForm ? "q" : "c", deleteOld && onScreen)
 
-    if (!result) return
+    clearLoading(displayspace)
+
+    if (!result) {
+        if (deleteOld) displayspace.appendChild(emptyState("Couldn't load results. Try again."))
+        return
+    }
 
     if (form == qForm) {
         qIDList.push(...result.map(q => Number(q.question_id))) //generate list of question ids

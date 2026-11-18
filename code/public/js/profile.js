@@ -1,4 +1,4 @@
-import { sendDataRequest, timeConverter, escapeHTML, plural } from "./utils.js"
+import { sendDataRequest, timeConverter, escapeHTML, plural, loader } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -10,6 +10,8 @@ async function loadData() {
         window.location.href = "/profile"
         return
     }
+
+    document.querySelector(".content-wrapper").replaceChildren(loader())
 
     const user = await sendDataRequest(`/api/user/data/${encodeURIComponent(uID)}`, errbar, window, "")
 

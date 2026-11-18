@@ -171,8 +171,45 @@ export function emptyState(text) {
 
 //shows the page once it's ready, with a short fade in
 export function showPage() {
-    document.documentElement.style.visibility = "visible"
-    document.documentElement.classList.add("shown")
+    const html = document.documentElement
+    const wasLoading = html.classList.contains("page-loading")
+
+    html.classList.remove("page-loading")
+    html.style.visibility = "visible"
+    html.classList.add("shown")
+
+    if (wasLoading) { //fade the content in now that it has replaced the loading message
+        const main = document.querySelector("main")
+        main.style.animation = "none"
+        void main.offsetWidth
+        main.style.animation = ""
+    }
+}
+
+//"Loading" with three pulsing dots
+export function loader(text = "Loading") {
+    const el = document.createElement("div")
+    el.classList.add("loader")
+    el.setAttribute("role", "status")
+    el.innerHTML = `<span class="loader-text"></span><span class="dots"><i></i><i></i><i></i></span>`
+    el.querySelector(".loader-text").innerText = text
+    return el
+}
+
+//grey shimmering blocks that stand in for content until it arrives
+export function skeletons(className, count) {
+    const group = document.createDocumentFragment()
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement("div")
+        el.classList.add("skeleton", className)
+        group.appendChild(el)
+    }
+    return group
+}
+
+//takes away any loading messages or placeholders inside an element
+export function clearLoading(el) {
+    el.querySelectorAll(":scope > .loader, :scope > .skeleton, :scope > .skeleton-carousel").forEach(item => item.remove())
 }
 
 export function success(errbar, message) {

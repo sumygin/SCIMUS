@@ -1,4 +1,4 @@
-import { loadData, escapeHTML, generateStarHTML, getSubjectColour, renderMath } from "./utils.js"
+import { loadData, escapeHTML, generateStarHTML, getSubjectColour, renderMath, skeletons, clearLoading } from "./utils.js"
 
 const stages = ["GCSE", "A-level", "University+"]
 
@@ -46,14 +46,17 @@ function questionCard(q) {
 }
 
 async function showPreview() {
+    const space = document.getElementById("preview")
+    space.appendChild(skeletons("q-card-skeleton", 6))
+
     const questions = await loadData("/api/search/question/?sort=likes")
+    clearLoading(space)
 
     if (!Array.isArray(questions) || questions.length == 0) {
         document.getElementById("preview-block").remove()
         return
     }
 
-    const space = document.getElementById("preview")
     for (const q of questions.slice(0, 8)) {
         space.appendChild(questionCard(q))
     }

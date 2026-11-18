@@ -45,8 +45,17 @@ const headerHTML = `<a href="/"><button><img id="headerIMG" src="/resources/HEAD
 document.getElementById("header").innerHTML = headerHTML
 
 //keep the page hidden until its images are ready, but never for long
+//pages that load their content afterwards show "Loading" until it is in
+const holding = document.documentElement.hasAttribute("data-hold")
+
+if (holding) {
+    document.documentElement.classList.add("page-loading")
+    document.querySelector("main").insertAdjacentHTML("afterbegin",
+        `<div class="loader page-loader" role="status"><span class="loader-text">Loading</span><span class="dots"><i></i><i></i><i></i></span></div>`)
+}
+
 function showPage() {
-    if (document.documentElement.hasAttribute("data-hold")) return //these pages show themselves once their data is in
+    if (document.documentElement.classList.contains("shown")) return //the page already showed itself
     document.documentElement.style.visibility = "visible"
     document.documentElement.classList.add("shown")
 }

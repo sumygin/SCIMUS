@@ -557,6 +557,115 @@ a:hover .s-q {
     animation: fade-in 0.4s var(--ease);
 }
 
+/* LOADING */
+
+@keyframes shimmer {
+    from { background-position: 150% 0; }
+    to { background-position: -50% 0; }
+}
+
+@keyframes dot-pulse {
+    0%, 80%, 100% { opacity: 0.2; }
+    40% { opacity: 1; }
+}
+
+.loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 2.5em 1em;
+    font-family: monospace;
+    font-size: 0.95rem;
+    opacity: 0.65;
+    width: 100%;
+    box-sizing: border-box;
+    animation: fade-in 0.3s var(--ease) 0.15s backwards; /* quick loads never flash it */
+}
+
+.loader .dots {
+    display: inline-flex;
+    gap: 0.3em;
+}
+
+.loader .dots i {
+    width: 0.4em;
+    height: 0.4em;
+    border-radius: 50%;
+    background: black;
+    animation: dot-pulse 1.2s ease-in-out infinite both;
+}
+
+.loader .dots i:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.loader .dots i:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #ececec 25%, #f6f6f6 50%, #ececec 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+    border-radius: 5px;
+}
+
+/* whole page waiting for its content: header stays, the rest waits behind "Loading" */
+.page-loader {
+    display: none;
+}
+
+html.page-loading .page-loader {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    padding: 0;
+}
+
+html.page-loading main > :not(.page-loader) {
+    visibility: hidden;
+}
+
+/* home page rows */
+.skeleton-title {
+    width: 12em;
+    max-width: 60%;
+    height: 1.1em;
+    margin-bottom: 1rem;
+}
+
+.skeleton-row {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.6rem;
+    overflow: hidden;
+}
+
+.skeleton-card {
+    flex: 0 0 10em;
+    height: 11.5em;
+}
+
+/* search results */
+.skeleton-result {
+    height: 8.5em;
+    margin: 0.3em;
+}
+
+/* welcome page question row */
+.q-card-skeleton {
+    flex: 0 0 13rem;
+    height: 15rem;
+}
+
+@media (max-width: 768px) {
+    .q-card-skeleton {
+        flex-basis: 70%;
+    }
+}
+
 /* anyone who has asked their device for less motion gets none of the above */
 @media (prefers-reduced-motion: reduce) {
     html {
@@ -567,6 +676,11 @@ a:hover .s-q {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    .loader .dots i {
+        animation: none !important;
+        opacity: 0.6;
     }
 }
 

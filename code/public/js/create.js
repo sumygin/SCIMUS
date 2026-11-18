@@ -1,4 +1,4 @@
-import { upperCaseify, reportInvalid, sendDataRequest, sendFormData, setBusy} from "./utils.js"
+import { upperCaseify, reportInvalid, sendDataRequest, sendFormData, setBusy, showPage as revealPage} from "./utils.js"
 
 const qName = document.getElementById("qname")
 
@@ -147,8 +147,7 @@ async function showPage() {
         await fetchData()
     }
     finally {
-        document.documentElement.style.visibility = "visible"
-        document.documentElement.classList.add("shown")
+        revealPage()
     }
 }
 

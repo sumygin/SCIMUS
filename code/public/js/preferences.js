@@ -1,10 +1,16 @@
-import { sendDataRequest, escapeHTML } from "./utils.js"
+import { sendDataRequest, escapeHTML, loader, emptyState } from "./utils.js"
 
 async function loadData() {
     const errbar = document.getElementsByClassName("error")[0]
 
+    const wrapper = document.querySelector(".content-wrapper")
+    wrapper.replaceChildren(loader())
+
     const user = await sendDataRequest(`/api/user/data/self`, errbar, window, "")
-    if (!user) return
+    if (!user) {
+        wrapper.replaceChildren(emptyState("Couldn't load your preferences. Try refreshing the page."))
+        return
+    }
 
     document.querySelector(".content-wrapper").innerHTML = `
     <div class="div1">

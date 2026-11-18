@@ -1,4 +1,4 @@
-import { submitSearchData, timeConverter, escapeHTML, emptyState} from "./utils.js"
+import { submitSearchData, timeConverter, escapeHTML, emptyState, loader, clearLoading} from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
 const elList = ["time", "sort", "school", "country", "displaySpace", "page"
@@ -76,7 +76,11 @@ async function sendFilters (deleteOld) { //function to request user data
         oldBottomEl.remove() //remove old bottom detector
     }
 
+    elData.displaySpace.appendChild(loader(deleteOld ? "Loading" : "Loading more"))
+
     let result = await submitSearchData(lForm, errbar, window, "", true, history, "lb", false)
+
+    clearLoading(elData.displaySpace)
 
     if (!result) return
 

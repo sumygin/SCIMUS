@@ -1,5 +1,5 @@
 import {generateStarHTML, warn, sendDataRequest, convertTag, convertStudyStage, sendData, reportInvalid,
-    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin, setBusy, emptyState} from "./utils.js"
+    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin, setBusy, emptyState, loader, clearLoading, showPage as revealPage} from "./utils.js"
 
 //guests can read questions, mark schemes and comments. anything else takes them to log in
 const user = await getUser()
@@ -297,8 +297,16 @@ elData.cinput.addEventListener("input", () => {
 //COMMENT LIKES
 
 async function loadReplies(btn, space){ //if load replies clicked, they are loaded
+    if (btn.disabled) return
+    btn.disabled = true
+    btn.innerText = "[ loading... ]"
+
     const result = await sendDataRequest(`/api/replies/get/${btn.dataset.id}`, errbar, window, "")
-    if (!result) return
+    if (!result) {
+        btn.disabled = false
+        btn.innerText = "[ load replies ]"
+        return
+    }
 
     btn.remove()
     space.appendChild(generateFullCommentHTML(result))
@@ -405,7 +413,11 @@ async function getComments (deleteOld) { //function to request comment data
         oldBottomEl.remove() //remove old bottom detector
     }
 
+    elData.commentSpace.appendChild(loader(deleteOld ? "Loading comments" : "Loading more"))
+
     let result = await sendDataRequest(`/api/comments/get/${qID}/${elData.page.value}`, errbar, window, "")
+
+    clearLoading(elData.commentSpace)
 
     if (!result) return
 
@@ -629,10 +641,17 @@ async function fetchData() {
 
     document.title = `${result.name} - SCIMUS`
 
-    //fetch the user's collections for the collection menu
-    const collections = user ? await sendDataRequest(`/api/collections/get/${qID}`, errbar, window, "") : []
+    //the collection menu is only needed once + is pressed, so it doesn't hold up the page
+    if (user) loadCollections()
+}
 
-    //insert collection data
+async function loadCollections() { //fetch the user's collections for the collection menu
+    collectionSpace.replaceChildren(loader())
+
+    const collections = await sendDataRequest(`/api/collections/get/${qID}`, errbar, window, "")
+
+    clearLoading(collectionSpace)
+
     for (const c of collections || []) {
         collectionSpace.appendChild(collectionTemplate(c))
     }
@@ -710,8 +729,7 @@ async function showPage() {
         await imagesLoaded()
     }
     finally {
-        document.documentElement.style.visibility = "visible"
-        document.documentElement.classList.add("shown")
+        revealPage()
     }
 }
 

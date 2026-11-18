@@ -1,4 +1,4 @@
-import { sendDataRequest, escapeHTML, emptyState } from "./utils.js"
+import { sendDataRequest, escapeHTML, emptyState, loader, clearLoading } from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
 const displaySpace = document.getElementById("displaySpace")
@@ -45,7 +45,11 @@ async function loadNotifications() { //function to request notifications
         oldBottomEl.remove() //remove old bottom detector
     }
 
+    displaySpace.appendChild(loader(page == 1 ? "Loading" : "Loading more"))
+
     let result = await sendDataRequest(`/api/inbox/${page}`, errbar, window, "")
+
+    clearLoading(displaySpace)
 
     if (!result) return
 

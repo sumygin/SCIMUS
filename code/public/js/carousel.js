@@ -1,4 +1,4 @@
-import { generateStarHTML, getSubjectColour, sendDataRequest, escapeHTML } from "./utils.js"
+import { generateStarHTML, getSubjectColour, sendDataRequest, escapeHTML, emptyState } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -171,17 +171,36 @@ function qTemplate(q) {
     return newQ
 }
 
+const main = document.querySelector(".globalCarContainer") //get container
+
+//grey placeholder rows while the questions load
+for (let i = 0; i < 3; i++) {
+    main.insertAdjacentHTML("beforeend", `
+        <div class="carousel skeleton-carousel" aria-hidden="true">
+            <div class="skeleton skeleton-title"></div>
+            <div class="car-container">
+                <div class="skeleton-row">${'<div class="skeleton skeleton-card"></div>'.repeat(8)}</div>
+            </div>
+        </div>`)
+}
+
 //first, need to generate sources for all carousels
 const carouselData = await sendDataRequest("/api/homepage", errbar, window, "")
 
-//then, need to generate amount of carousels needed and then put them onto the page
+main.querySelectorAll(".skeleton-carousel").forEach(el => el.remove())
 
-const main = document.querySelector(".globalCarContainer") //get container
+//then, need to generate amount of carousels needed and then put them onto the page
 for (const car of carouselData || []) { //insert into container
     if (car.questions.length > 0) {
         main.appendChild(carTemplate(car))
     }
-    
+}
+
+if (!carouselData) {
+    main.appendChild(emptyState("Couldn't load questions right now. Try refreshing the page."))
+}
+else if (main.children.length == 0) {
+    main.appendChild(emptyState("No questions yet"))
 }
 
 function setWidths() { //reset carousel widths on resize
