@@ -53,7 +53,9 @@ const questionListFields = {
 const tagPattern = /^[a-z0-9_.-]{2,20}$/
 const reservedTags = ["admin", "self", "scimus"]
 
-const publicApi = ["/subjects/names/", "/schools/names", "/preferences/get"] //needed before logging in
+//data anyone can read without an account. everything else, and anything that changes data, needs a login
+const publicApi = ["/subjects/names/", "/schools/names", "/topics/names/", "/subject/papers/", "/preferences/get", "/me",
+    "/homepage", "/search/", "/question/get/", "/collection/get/", "/comments/get/", "/replies/get/", "/lb/", "/user/data/"]
 
 //an error that is safe to show to the user
 function fail(status, message, redirect) {
@@ -302,13 +304,21 @@ module.exports = function(app) {
 
     function isLoggedIn(req, res, next) {
         if (req.isAuthenticated()) return next()
-        res.redirect("/login")
+        res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`) //come back here after logging in
     }
 
-    //every api route needs a logged in user unless listed as public
+    //every api route needs a logged in user unless it only reads public data
     app.use("/api", apiLimiter, (req, res, next) => {
-        if (req.isAuthenticated() || publicApi.some(p => req.path.startsWith(p))) return next()
+        if (req.isAuthenticated()) return next()
+
+        const isPublic = req.method == "GET" && req.path != "/user/data/self" && publicApi.some(p => req.path.startsWith(p))
+        if (isPublic) return next()
+
         res.status(401).json({error: "Please log in first", redirect: "/login"})
+    })
+
+    app.get("/api/me", (req, res) => { //lets pages know whether someone is logged in
+        res.json({user_tag: req.user?.user_tag || null})
     })
 
     //errors thrown with fail() end up here
@@ -393,7 +403,7 @@ module.exports = function(app) {
 
     app.get("/api/create/get/:id", async (req, res) => {
         const qID = toID(req.params.id)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         const question = isNaN(qID) ? null : await Question.findOne( //query question
             {question_id:qID},
@@ -444,7 +454,7 @@ module.exports = function(app) {
 
     app.get("/api/question/get/:id", async (req, res) => {
         const qID = toID(req.params.id)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         const question = await getVisibleQuestion(qID, userTag,
             {name:1, topic_id:1, content:1, tag:1, mark_scheme:1, _id:0, year:1,
@@ -490,13 +500,17 @@ module.exports = function(app) {
             {$inc: {views:1}}
         )
 
-        const userLiked = (await Like.findOne({item_id:qID, user_tag:userTag, item_type:0}, {_id:0, value:1}))?.value
+        let extra = {like:0, watch:false, solve:false, rate:false} //guests haven't done anything to it
 
-        const extra = {
-            like: userLiked == undefined ? 0 : userLiked,
-            watch: !!(await Watch.exists({question_id:qID, user_tag:userTag})),
-            solve: !!(await Solve.exists({question_id:qID, user_tag:userTag})),
-            rate: !!(await Rate.exists({question_id:qID, user_tag:userTag})),
+        if (userTag) {
+            const userLiked = (await Like.findOne({item_id:qID, user_tag:userTag, item_type:0}, {_id:0, value:1}))?.value
+
+            extra = {
+                like: userLiked == undefined ? 0 : userLiked,
+                watch: !!(await Watch.exists({question_id:qID, user_tag:userTag})),
+                solve: !!(await Solve.exists({question_id:qID, user_tag:userTag})),
+                rate: !!(await Rate.exists({question_id:qID, user_tag:userTag})),
+            }
         }
 
         return res.json({
@@ -527,7 +541,7 @@ module.exports = function(app) {
 
     app.post("/api/watch/add/:qid", async (req, res) => {
         const qID = toID(req.params.qid)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         if (!await getVisibleQuestion(qID, userTag)) { //check question exists
             return res.status(404).json({ error: "Question does not exist!"})
@@ -552,7 +566,7 @@ module.exports = function(app) {
 
     app.post("/api/solve/add/:qid", async (req, res) => {
         const qID = toID(req.params.qid)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         if (!await getVisibleQuestion(qID, userTag)) { //check question exists
             return res.status(404).json({ error: "Question does not exist!"})
@@ -582,7 +596,7 @@ module.exports = function(app) {
 
     app.post("/api/watch/remove/:qid", async (req, res) => {
         const qID = toID(req.params.qid)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         if (isNaN(qID) || !(await Watch.exists({question_id:qID, user_tag:userTag}))) { //check there is a watch
             return res.status(409).json({ error: "Question not already marked as watched!"})
@@ -603,7 +617,7 @@ module.exports = function(app) {
 
     app.post("/api/solve/remove/:qid", async (req, res) => {
         const qID = toID(req.params.qid)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         if (isNaN(qID) || !(await Solve.exists({question_id:qID, user_tag:userTag}))) { //check there is a solve
             return res.status(409).json({ error: "Question not already marked as solved!"})
@@ -665,7 +679,7 @@ module.exports = function(app) {
     app.post("/api/like/:qid/:value", async (req, res) => {
         const qID = toID(req.params.qid)
         const val = Number(req.params.value)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         const question = await getVisibleQuestion(qID, userTag, {_id:0, like_rating:1, name:1})
 
@@ -711,7 +725,7 @@ module.exports = function(app) {
     app.post("/api/rate/:qid/:value", async (req, res) => {
         const qID = toID(req.params.qid)
         const val = Number(req.params.value)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         const question = await getVisibleQuestion(qID, userTag,
             {_id:0, num_diff_ratings:1, total_diff_rating:1})
@@ -781,7 +795,7 @@ module.exports = function(app) {
     })
 
     app.post("/api/timer/add/:time", async (req, res) => { //add time studied to user account
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
         let time = toID(req.params.time)
 
         if (isNaN(time) || time > 90*minute) {
@@ -828,7 +842,7 @@ module.exports = function(app) {
 
         if (data.creator.startsWith("@")) data.creator = data.creator.slice(1) //remove @ at the start
         data.creator = data.creator.toLowerCase()
-        data.own = data.creator == userTag //only the creator can see their unpublished stuff
+        data.own = !!userTag && data.creator == userTag //only the creator can see their unpublished stuff
 
         if (data.year != "" && isNaN(toID(data.year))){ //check that year is a number
             throw fail(400, "Invalid year number!")
@@ -914,11 +928,11 @@ module.exports = function(app) {
     }
 
     app.get("/api/search/question/", async (req, res) => { //respond to question searches
-        return res.json(await searchQuestions(req.query, req.user.user_tag))
+        return res.json(await searchQuestions(req.query, req.user?.user_tag))
     })
 
     app.get("/api/search/collection/", async (req, res) => { //respond to collection searches
-        const data = await readSearch(req.query, req.user.user_tag)
+        const data = await readSearch(req.query, req.user?.user_tag)
 
         const filter = {}
 
@@ -1041,7 +1055,7 @@ module.exports = function(app) {
     })
 
     app.get("/api/collections/get/:id", async (req, res) => { //all of the user's collections, marked if they contain the question
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
         const qID = toID(req.params.id)
 
         //find collections
@@ -1079,7 +1093,7 @@ module.exports = function(app) {
     }
 
     app.post("/api/collection/create", collectionLimiter, async (req, res) => {
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         if (await Collection.exists({user_tag:userTag, name:"New collection"})) {
             return res.status(409).json({ error: "You have already created a collection recently!" })
@@ -1103,7 +1117,7 @@ module.exports = function(app) {
     })
 
     app.post("/api/collection/rename/:id", collectionLimiter, async (req, res) => {
-        const collection = await getOwnCollection(req.params.id, req.user.user_tag)
+        const collection = await getOwnCollection(req.params.id, req.user?.user_tag)
         const newName = toText(req.body?.name, 100)
 
         //validate name
@@ -1124,7 +1138,7 @@ module.exports = function(app) {
     })
 
     app.post("/api/collection/visibility/:id", collectionLimiter, async (req, res) => { //change collection visibility
-        const collection = await getOwnCollection(req.params.id, req.user.user_tag)
+        const collection = await getOwnCollection(req.params.id, req.user?.user_tag)
 
         await Collection.updateOne({collection_id:collection.collection_id}, {
             $set:{published:!collection.published}
@@ -1134,7 +1148,7 @@ module.exports = function(app) {
     })
 
     app.post("/api/collection/question/:qID/:id", collectionLimiter, async (req, res) => { //add/remove question to collection
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
         const qID = toID(req.params.qID)
 
         const collection = await getOwnCollection(req.params.id, userTag)
@@ -1250,7 +1264,7 @@ module.exports = function(app) {
         //get data from questions, leaving out other people's drafts
         const questions = await Question.find({
             question_id: {$in:questionIDArray},
-            $or: [{published:true}, {user_tag:userTag}]
+            ...(userTag ? {$or: [{published:true}, {user_tag:userTag}]} : {published:true})
         }, questionListFields)
         .sort({created_at:-1})
         .lean()
@@ -1268,7 +1282,7 @@ module.exports = function(app) {
     }
 
     app.get("/api/collection/get/:id", async (req, res) => {
-        const data = await getCollectionData(toID(req.params.id), req.user.user_tag)
+        const data = await getCollectionData(toID(req.params.id), req.user?.user_tag)
 
         //if doesn't exist or private, but not owned by the user, then redirect to home
         if (!data) {
@@ -1302,7 +1316,7 @@ module.exports = function(app) {
         const childrenObj = Object.fromEntries(children.map(c => [c.parent_comment_id, true]))
 
         //also fetch which likes the user left on which comments
-        const likes = await Like.find({user_tag:userTag, item_type:1, item_id:{$in:commentIDs}},
+        const likes = !userTag ? [] : await Like.find({user_tag:userTag, item_type:1, item_id:{$in:commentIDs}},
             {item_id:1, value:1, _id:0}
         ).lean()
 
@@ -1321,7 +1335,7 @@ module.exports = function(app) {
 
     app.get("/api/comments/get/:qID/:page", async (req, res) => { //load base comments for a question
         const qID = toID(req.params.qID)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         //check question exists
         if (!(await getVisibleQuestion(qID, userTag))) {
@@ -1342,7 +1356,7 @@ module.exports = function(app) {
 
     app.get("/api/replies/get/:cID", async (req, res) => { //load reply comments for a comment
         const cID = toID(req.params.cID) //get parent comment id
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         //check comment exists
         const parent = isNaN(cID) ? null : await Comment.findOne({comment_id:cID}, {question_id:1})
@@ -1363,7 +1377,7 @@ module.exports = function(app) {
     app.post("/api/comment/like/:cid/:value", async (req, res) => {
         const cID = toID(req.params.cid)
         const val = Number(req.params.value)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         const comment = isNaN(cID) ? null :
             await Comment.findOne({comment_id:cID}, {_id:0, like_rating:1, question_id:1, user_tag:1, content:1})
@@ -1408,7 +1422,7 @@ module.exports = function(app) {
     })
 
     app.get("/api/inbox/:page", async (req, res) => {
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
 
         const notifications = await Notification.find({user_tag:userTag}, //send back 20 notifications for user
             {_id:0, question_id:1, notif_id:1, message:1, created_at:1, viewed:1}
@@ -1450,9 +1464,9 @@ module.exports = function(app) {
     }
 
     app.get("/api/user/data/self", async (req, res) => { //return the logged in user's data
-        const data = await getUserData(req.user.user_tag)
+        const data = await getUserData(req.user?.user_tag)
 
-        const prefs = await User.findOne({user_tag:req.user.user_tag}, {preference_data:1}).lean()
+        const prefs = await User.findOne({user_tag:req.user?.user_tag}, {preference_data:1}).lean()
         data.preference_data = prefs.preference_data
 
         return res.json(data)
@@ -1476,7 +1490,7 @@ module.exports = function(app) {
             return res.status(400).json({ error: `Invalid ${name} time entered!`})
         }
 
-        await User.updateOne({user_tag:req.user.user_tag}, { //update preference
+        await User.updateOne({user_tag:req.user?.user_tag}, { //update preference
             $set:{[`preference_data.${index}`]:value}
         })
 
@@ -1494,7 +1508,7 @@ module.exports = function(app) {
             return res.json(defaults)
         }
 
-        const data = await User.findOne({user_tag:req.user.user_tag},
+        const data = await User.findOne({user_tag:req.user?.user_tag},
             {preference_data:1}
         ).lean()
 
@@ -1515,43 +1529,54 @@ module.exports = function(app) {
     }
 
     app.get("/api/homepage", async (req, res) => { //return all homepage questions
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
         const emptySearch = {creator:"", topic:"", subject:"", paper:"-1", stage:"-1", year:"", search:""}
 
         const result = []
+        let userCollections = []
+        let solveLater
 
-        let recommended = []
-        try {
-            recommended = await getRecommendedQuestions(userTag)
-        } catch (err) {
-            console.error("Recommendations failed:", err.message) //rest of the homepage still works without the model
-        }
-
-        result.push({
-            name:"Recommended",
-            questions: recommended
-        })
-
-        result.push({
-            name:"Recently watched questions",
-            questions: await getLatest(Watch, userTag)
-        })
-
-        result.push({
-            name:"Recently solved questions",
-            questions: await getLatest(Solve, userTag),
-        })
-
-        const userCollections = await Collection.find({user_tag:userTag}, {collection_id:1, name:1}).lean()
-
-        const solveLater = userCollections.find(c => c.name == "Solve Later")
-
-        if (solveLater) { //if they have a solve later collection
+        if (!userTag) { //guests get the most popular questions instead of personal ones
             result.push({
-                name:"Solve Later",
-                questions: (await getCollectionData(solveLater.collection_id, userTag))?.question_data || [],
-                href:`/collection/${solveLater.collection_id}`
+                name:"Most viewed",
+                questions: await searchQuestions({...emptySearch, sort:"views", tag:"-1"}, userTag),
+                href:"/search/?stage=-1&subject=&paper=-1&year=&tag=-1&creator=&topic=&search=&sort=views&page=1&searchType=q"
             })
+        }
+        else {
+            let recommended = []
+            try {
+                recommended = await getRecommendedQuestions(userTag)
+            } catch (err) {
+                console.error("Recommendations failed:", err.message) //rest of the homepage still works without the model
+            }
+
+            result.push({
+                name:"Recommended",
+                questions: recommended
+            })
+
+            result.push({
+                name:"Recently watched questions",
+                questions: await getLatest(Watch, userTag)
+            })
+
+            result.push({
+                name:"Recently solved questions",
+                questions: await getLatest(Solve, userTag),
+            })
+
+            userCollections = await Collection.find({user_tag:userTag}, {collection_id:1, name:1}).lean()
+
+            solveLater = userCollections.find(c => c.name == "Solve Later")
+
+            if (solveLater) { //if they have a solve later collection
+                result.push({
+                    name:"Solve Later",
+                    questions: (await getCollectionData(solveLater.collection_id, userTag))?.question_data || [],
+                    href:`/collection/${solveLater.collection_id}`
+                })
+            }
         }
 
         result.push({
@@ -1585,7 +1610,7 @@ module.exports = function(app) {
     //SCROLL INTERACTION
 
     app.post("/api/scroll/interaction", async (req, res) => {
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
         const qID = toID(req.body?.qID)
         const markers = req.body?.markers
 
@@ -1743,7 +1768,7 @@ module.exports = function(app) {
 
     app.post("/api/scroll/recommendation", async (req, res) => {
         try {
-            return res.json(await getRecommendedQuestions(req.user.user_tag))
+            return res.json(await getRecommendedQuestions(req.user?.user_tag))
         } catch (err) {
             console.error("Recommendations failed:", err.message)
             return res.status(503).json({error: "Recommendations are not available right now"})
@@ -1753,7 +1778,7 @@ module.exports = function(app) {
     app.post("/api/question/save/:id/:publish", saveLimiter, async (req, res) => {
         let qID = toID(req.params.id)
         const publish = req.params.publish == "true"
-        const clientTag = req.user.user_tag
+        const clientTag = req.user?.user_tag
 
         //parsing data
         const body = req.body || {}
@@ -1866,7 +1891,7 @@ module.exports = function(app) {
 
     app.post("/api/comments/create/:qID/:rID", commentLimiter, async (req, res) => {
         const text = toText(req.body?.com, 1000)
-        const userTag = req.user.user_tag
+        const userTag = req.user?.user_tag
         const qID = toID(req.params.qID)
         const rID = toID(req.params.rID) //0 if not a reply
 
@@ -2170,7 +2195,7 @@ module.exports = function(app) {
         res.sendFile(page("login"))
     })
 
-    app.get("/home", isLoggedIn, (req, res) => {
+    app.get("/home", (req, res) => {
         res.sendFile(page("home"))
     })
 
@@ -2186,31 +2211,31 @@ module.exports = function(app) {
         res.sendFile(page("inbox"))
     })
 
-    app.get("/search", isLoggedIn, (req, res) => {
+    app.get("/search", (req, res) => {
         res.sendFile(page("search"))
     })
 
-    app.get("/question", isLoggedIn, (req, res) => {
+    app.get("/question", (req, res) => {
         res.redirect("/home")
     })
 
-    app.get("/question/:id", isLoggedIn, (req, res) => {
+    app.get("/question/:id", (req, res) => {
         res.sendFile(page("question"))
     })
 
-    app.get("/collection", isLoggedIn, (req, res) => {
+    app.get("/collection", (req, res) => {
         res.redirect("/home")
     })
 
-    app.get("/collection/:id", isLoggedIn, (req, res) => {
+    app.get("/collection/:id", (req, res) => {
         res.sendFile(page("collection"))
     })
 
     app.get("/profile", isLoggedIn, (req, res) => {
-        res.redirect(`/profile/${encodeURIComponent(req.user.user_tag)}`)
+        res.redirect(`/profile/${encodeURIComponent(req.user?.user_tag)}`)
     })
 
-    app.get("/profile/:id", isLoggedIn, (req, res) => {
+    app.get("/profile/:id", (req, res) => {
         res.sendFile(page("profile"))
     })
 
@@ -2222,7 +2247,7 @@ module.exports = function(app) {
         res.sendFile(page("create"))
     })
 
-    app.get("/leaderboards", isLoggedIn, (req, res) => {
+    app.get("/leaderboards", (req, res) => {
         res.sendFile(page("leaderboard"))
     })
 

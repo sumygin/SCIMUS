@@ -1,5 +1,14 @@
 import {generateStarHTML, warn, sendDataRequest, convertTag, convertStudyStage, sendData, reportInvalid,
-    escapeHTML, sanitizeHTML, renderMath, imagesLoaded} from "./utils.js"
+    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin} from "./utils.js"
+
+//guests can read questions, mark schemes and comments. anything else takes them to log in
+const user = await getUser()
+
+function needsAccount() {
+    if (user) return false
+    goToLogin()
+    return true
+}
 
 let BtnValues = { //values of the sidebar (for animation purposes)
     like:0,
@@ -57,7 +66,7 @@ msBtn.addEventListener("click", async () => { //ms show/hide
         elData.mstext.style.display = "block"
         msBtn.innerText = "Question"
 
-        if (!BtnValues.solve) { //looking at the mark scheme counts as solving
+        if (!BtnValues.solve && user) { //looking at the mark scheme counts as solving
             setSolved(true)
         }
     }
@@ -145,6 +154,7 @@ function collectionTemplate(c) { //one row of the collection menu
 //COLLECTION MENU TOGGLE
 
 elData.plus.addEventListener("click", () =>{
+    if (needsAccount()) return
     if (collectionMenu.style.display == "block") {
         collectionMenu.style.display = "none"
     }
@@ -203,6 +213,8 @@ let openBar
 
 function optionBar(trigger, bar, onPick) {
     trigger.addEventListener("pointerdown", () => {
+        if (needsAccount()) return
+
         if (openBar && openBar.bar != bar) openBar.bar.style.display = "none"
 
         openBar = {trigger:trigger, bar:bar, onPick:onPick, justOpened:bar.style.display != "flex"}
@@ -238,6 +250,7 @@ function faceImage(value) {
 
 elData.cForm.addEventListener("submit", async e => {
     e.preventDefault() //prevent form being sent
+    if (needsAccount()) return
 
     elData.cinput.setCustomValidity("")
 
@@ -267,6 +280,10 @@ elData.cForm.addEventListener("submit", async e => {
         elData.comments.innerText = Number(elData.comments.innerText) + 1
         getComments(true) //show the new comment
     }
+})
+
+elData.cinput.addEventListener("focus", () => { //starting to write a comment
+    needsAccount()
 })
 
 elData.cinput.addEventListener("input", () => {
@@ -342,6 +359,7 @@ function commentTemplate(c){
     })
 
     newComment.querySelector(".reply").addEventListener("click", () => {
+        if (needsAccount()) return
         showReplyBar(`@${c.user_tag}`, c.comment_id)
     })
 
@@ -509,9 +527,13 @@ async function setSolved(solved) {
     elData.solves.innerText = Math.max(0, Number(elData.solves.innerText) + (solved ? 1 : -1))
 }
 
-elData.watch.addEventListener("click", () => setWatched(!BtnValues.watch))
+elData.watch.addEventListener("click", () => {
+    if (!needsAccount()) setWatched(!BtnValues.watch)
+})
 
-elData.check.addEventListener("click", () => setSolved(!BtnValues.solve))
+elData.check.addEventListener("click", () => {
+    if (!needsAccount()) setSolved(!BtnValues.solve)
+})
 
 //  =================
 //  IDS AND FETCHING
@@ -599,8 +621,8 @@ async function fetchData() {
 
     document.title = `${result.name} - SCIMUS`
 
-    //fetch collection data
-    const collections = await sendDataRequest(`/api/collections/get/${qID}`, errbar, window, "")
+    //fetch the user's collections for the collection menu
+    const collections = user ? await sendDataRequest(`/api/collections/get/${qID}`, errbar, window, "") : []
 
     //insert collection data
     for (const c of collections || []) {
@@ -701,7 +723,7 @@ async function scroll(vertical) { //vertical means if its a vertical scroll, red
     const data = {qID:qID, markers:markersToSend}
 
     //send markers to server if time spent above 10seconds
-    if (timeSpent > (1/6)) {
+    if (timeSpent > (1/6) && user) {
         await sendData("/api/scroll/interaction", data, errbar, window, "", true, true)
     }
 
@@ -729,7 +751,7 @@ async function scroll(vertical) { //vertical means if its a vertical scroll, red
 }
 
 elData.arr3.addEventListener("click", async function(){ //event listener for bottom arrow
-    if (moving) return
+    if (moving || needsAccount()) return //recommendations are made for the user
     moving = true
 
     if (!(await scroll(true))) moving = false

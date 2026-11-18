@@ -98,6 +98,25 @@ export async function imagesLoaded() {
     await Promise.race([images, timeout])
 }
 
+//sends guests to the login page, which brings them back here afterwards
+export function goToLogin() {
+    const here = window.location.pathname + window.location.search
+    window.location.href = `/login?next=${encodeURIComponent(here)}`
+}
+
+let userRequest
+
+//the logged in user's tag, or null for guests. only asks the server once per page
+export function getUser() {
+    if (!userRequest) {
+        userRequest = fetch("/api/me")
+            .then(res => res.json())
+            .then(result => result.user_tag || null)
+            .catch(() => null)
+    }
+    return userRequest
+}
+
 export async function getSubjectNames(val) {
     return await loadData(`/api/subjects/names/${encodeURIComponent(val)}`)
 }
@@ -184,6 +203,11 @@ export async function sendDataRequest(route, errbar, window, successMsg, method=
     const [res, result] = await request(route, method == "GET" ? undefined : postOptions(data, method), errbar)
     if (!res) return
 
+    if (res.status == 401) { //needs an account
+        goToLogin()
+        return
+    }
+
     if (result.redirect) { //redirect if a link sent back
         window.location.href = result.redirect
     }
@@ -203,6 +227,11 @@ export async function sendDataRequest(route, errbar, window, successMsg, method=
 export async function sendData(route, data, errbar, window, successMsg, send_result, quiet) {
     const [res, result] = await request(route, postOptions(data), quiet ? undefined : errbar)
     if (!res) return
+
+    if (res.status == 401) { //needs an account
+        goToLogin()
+        return
+    }
 
     //display response
 

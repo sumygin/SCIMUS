@@ -1,4 +1,4 @@
-import { sendDataRequest } from "./utils.js"
+import { sendDataRequest, getUser } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -56,7 +56,17 @@ function timerOpen() { //whether the timer popup is on screen
     return false
 }
 
-document.getElementById("logout").addEventListener("click", async (e) => {
+const user = await getUser()
+
+if (!user) { //guests only get the option to log in
+    const next = encodeURIComponent(window.location.pathname + window.location.search)
+    document.getElementById("profile-popup").innerHTML = `
+          <span class="profile-hover-item">
+            <a href="/login?next=${next}"><button>Log in</button></a>
+          </span>`
+}
+
+document.getElementById("logout")?.addEventListener("click", async (e) => {
     e.preventDefault()
     await sendDataRequest("/logout", errbar, window, "", "POST")
 })
@@ -136,7 +146,7 @@ class Timer {
         }
 
         //send studied time to server
-        if (this.mode == "work" && studied > 0) {
+        if (this.mode == "work" && studied > 0 && user) {
             fetch(`/api/timer/add/${studied}`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},

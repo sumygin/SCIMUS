@@ -50,6 +50,21 @@ for (const el of Object.values(formData)) { //reset form invalidity after input 
     })
 }
 
+//where to go after logging in. only pages on this site, so the link can't send people elsewhere
+function nextPage() {
+    const next = new URLSearchParams(window.location.search).get("next")
+    if (!next) return "/home"
+
+    try {
+        const url = new URL(next, window.location.origin)
+        if (url.origin == window.location.origin && url.pathname != "/login") {
+            return url.pathname + url.search
+        }
+    } catch (err) {}
+
+    return "/home"
+}
+
 let countriesList
 let sending = false //stops forms being sent twice
 
@@ -156,7 +171,7 @@ async function clientValidation() {
 
         if (result && result.success) {
             setTimeout(() => {
-                window.location.href = "/home"
+                window.location.href = nextPage()
             }, 1000)
         }
         
