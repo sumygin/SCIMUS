@@ -183,6 +183,12 @@ export function warn(errbar, message) {
     showMessage(errbar, message || "Something went wrong", "red")
 }
 
+//"1 question", "2 questions"
+export function plural(count, word) {
+    count = Number(count) || 0
+    return `${count} ${word}${count == 1 ? "" : "s"}`
+}
+
 export function generateStarHTML(val) {
     const starEmpty = `<img src="/resources/star_empty.PNG" alt="" class="icon">`
     const starFull = `<img src="/resources/star_full.PNG" alt="" class="icon">`

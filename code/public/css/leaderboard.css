@@ -165,3 +165,30 @@ select.searchbar-item {
         width: 100%;
     }
 }
+
+/* FIELDS */
+
+.searchbar input, .searchbar select {
+    background-color: white;
+    border: 1px solid #767676;
+    border-radius: 2px;
+    color: black;
+}
+
+.searchbar select {
+    padding-right: 2em;
+}
+
+#submit {
+    border: 1px solid black;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.2s, color 0.2s, transform 0.12s;
+}
+
+#submit:hover {
+    background-color: black;
+    color: white;
+    opacity: 1;
+}
+

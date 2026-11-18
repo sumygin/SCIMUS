@@ -206,6 +206,8 @@ main {
     font-size: 0.9em;
     background: lightgray;
     border-radius: 5px;
+    padding: 0.3em 1.2em;
+    margin-top: 0.3em;
 }
 
 

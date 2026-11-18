@@ -152,3 +152,7 @@ label {
         overflow-y: auto;
     }
 }
+
+.meta-item select {
+    padding-right: 2em;
+}

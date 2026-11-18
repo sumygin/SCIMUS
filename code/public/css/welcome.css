@@ -95,6 +95,47 @@
     opacity: 0.4;
 }
 
+/* "scroll down" prompt */
+
+@keyframes nudge {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 6px; }
+}
+
+.scroll-hint {
+    scale: 1;
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    font-family: monospace;
+    font-size: 0.8rem;
+    opacity: 0.55;
+    transition: opacity 0.3s var(--ease);
+    animation: nudge 2s var(--ease) infinite;
+}
+
+.scroll-hint:hover {
+    opacity: 1;
+}
+
+.scroll-hint img {
+    height: 2.2rem;
+    width: auto;
+    rotate: 90deg;
+}
+
+.scroll-hint.gone {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.block {
+    scroll-margin-top: 5rem;
+}
+
 /* SECTIONS */
 
 .block {
@@ -380,6 +421,15 @@
 
     .block {
         padding-top: 2.5rem;
+    }
+
+    /* exam boards on their own line instead of wrapping after a stray dot */
+    .stats .dot:has(+ .boards) {
+        display: none;
+    }
+
+    .stats .boards {
+        flex-basis: 100%;
     }
 
     .features, .steps, .review-container {

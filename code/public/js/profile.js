@@ -1,4 +1,4 @@
-import { sendDataRequest, timeConverter, escapeHTML } from "./utils.js"
+import { sendDataRequest, timeConverter, escapeHTML, plural } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -44,8 +44,8 @@ async function loadData() {
                 <br>
                 <div class="today-studied">${timeConverter(user.studied_today)} total studied today</div>
                 <div class="total-studied">${timeConverter(user.studied_total)} total studied all-time</div>
-                <div class="q-created">${Number(user.created_total) || 0} questions created</div>
-                <div class="q-completed">${Number(user.completed_total) || 0} questions completed</div>
+                <div class="q-created">${plural(user.created_total, "question")} created</div>
+                <div class="q-completed">${plural(user.completed_total, "question")} completed</div>
                 <div class="avg-likes">${Number(user.total_likes) || 0} total like rating</div>
             </div>`
     

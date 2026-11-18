@@ -12,7 +12,7 @@ async function showStats() {
         `<span><b>${Number(stats.subjects)}</b> subjects</span>`,
     ]
     if (stats.boards?.length) {
-        parts.push(`<span>${stats.boards.map(escapeHTML).join(", ")}</span>`)
+        parts.push(`<span class="boards">${stats.boards.map(escapeHTML).join(", ")}</span>`)
     }
 
     document.getElementById("stats").innerHTML = parts.join(`<span class="dot">&middot;</span>`)
@@ -119,6 +119,20 @@ function revealOnScroll() {
     check()
 }
 
+//arrow at the bottom of the first screen, goes away once the page has been scrolled
+function scrollHint() {
+    const hint = document.getElementById("scroll-hint")
+    hint.addEventListener("click", () => {
+        document.querySelector(".hero + .block").scrollIntoView({behavior: "smooth", block: "start"})
+    })
+
+    document.addEventListener("scroll", () => {
+        const scrolled = Math.max(document.body.scrollTop, document.documentElement.scrollTop) > 60
+        hint.classList.toggle("gone", scrolled)
+    }, {capture: true, passive: true})
+}
+
+scrollHint()
 revealOnScroll()
 showStats()
 showPreview()

@@ -1,4 +1,4 @@
-import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate, emptyState} from "./utils.js"
+import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate, emptyState, plural} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -107,7 +107,7 @@ function collectionTemplate(collection){
                 </div>
                     
                 <div class="row">
-                    <div class="s-q-rating s-q-item">${Number(collection.question_num)} questions</div>
+                    <div class="s-q-rating s-q-item">${plural(collection.question_num, "question")}</div>
 
                     ${insertData}
 
@@ -323,7 +323,34 @@ async function fillForm() { //update filters according to URL data
     }
 }
 
+//on phones only the text search shows until "more filters" is pressed, unless filters are already in use
+function setUpFilterToggles() {
+    const URLdata = new URLSearchParams(window.location.search)
+    const defaults = {stage:"-1", paper:"-1", tag:"-1", subject:"", topic:"", year:"", creator:""}
+    const filtered = Object.entries(defaults).some(([key, value]) => (URLdata.get(key) ?? value) != value)
+
+    for (const form of [qForm, cForm]) {
+        const toggle = document.createElement("button")
+        toggle.type = "button"
+        toggle.classList.add("filter-toggle")
+
+        const update = () => {
+            toggle.innerText = form.classList.contains("collapsed") ? "More filters \u25BE" : "Fewer filters \u25B4"
+        }
+
+        toggle.addEventListener("click", () => {
+            form.classList.toggle("collapsed")
+            update()
+        })
+
+        if (!filtered) form.classList.add("collapsed")
+        update()
+        form.appendChild(toggle)
+    }
+}
+
 async function loadPage () {
+    setUpFilterToggles()
     await fillForm()
     await sendFilters(true, qForm, qFormData, QdisplaySpace)
     await sendFilters(true, cForm, cFormData, CdisplaySpace)
