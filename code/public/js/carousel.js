@@ -5,112 +5,43 @@ const errbar = document.getElementsByClassName("error")[0]
 let carousels = []
 
 
+//a row of questions that scrolls sideways (swipe, trackpad, shift + mouse wheel, or the arrows)
 class Carousel {
     constructor(name, el) { //construct object
         this.name = name
         this.el = el
 
-        this.animating = false
-        
-
-        this.pos = 0
-        this.children = []
-
         this.left = this.el.parentElement.parentElement.children[0]
         this.right = this.el.parentElement.parentElement.children[1]
-        this.mask = this.el.parentElement
+        this.mask = this.el.parentElement //the part that actually scrolls
 
-        this.right.addEventListener("click", () => {
-                if (!this.animating) {
-                    this.animating = true
-                    this.pos = Math.min(this.pos+(this.w*0.8), this.totalw)
-                    this.el.style.transform = `translateX(${-this.pos}px)` //translate width
+        this.right.addEventListener("click", () => this.move(1))
+        this.left.addEventListener("click", () => this.move(-1))
 
-                    //left arrow styles
-                    this.mask.style.marginLeft = "1.5em"
-                    setTimeout(() => {
-                        this.mask.style.webkitMaskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
-                        this.mask.style.maskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
-                    }, 250)
-                    setTimeout(() => { //show left arrow
-                        this.left.style.opacity = 1
-                        
-                    }, 500)
-
-                    //right arrow styles
-                    if (this.pos == this.totalw) {
-                        this.mask.style.marginRight = "0"
-                        this.right.style.opacity = 0
-                        setTimeout(() => {
-                            this.mask.style.webkitMaskImage = "linear-gradient(to right, transparent, black 5%)";
-                            this.mask.style.maskImage = "linear-gradient(to right, transparent, black 5%)";
-                        }, 250)
-                    }
-
-                    setTimeout(() => {
-                        this.animating = false
-                    }, 1000)
-                }
-            })
-        
-        this.left.addEventListener("click", () => {
-            if (!this.animating) {
-                this.animating = true
-                this.pos = Math.max(this.pos-(this.w*0.8), 0)
-                this.el.style.transform = `translateX(${-this.pos}px)` //translate width
-
-                //right arrow styles
-                this.mask.style.marginRight = "1.5em"
-                setTimeout(() => {
-                    this.mask.style.webkitMaskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
-                    this.mask.style.maskImage = "linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)";
-                }, 250)
-                setTimeout(() => { //show left arrow
-                    this.right.style.opacity = 1
-                }, 500)
-
-                if (this.pos == this.totalw) {
-                    this.right.style.opacity = 0
-                }
-
-                //left arrow styles
-                if (this.pos == 0) {
-                    this.mask.style.marginLeft = "0"
-                    this.left.style.opacity = 0
-                    setTimeout(() => {
-                        this.mask.style.webkitMaskImage = "linear-gradient(to left, transparent, black 5%)";
-                        this.mask.style.maskImage = "linear-gradient(to left, transparent, black 5%)";
-                    }, 250)
-                }
-                setTimeout(() => {
-                    this.animating = false
-                }, 1000)
-            }
-        })
-
-        
-        }
-
-    setWidth() {
-        this.w = this.el.clientWidth
-        this.totalw = this.el.scrollWidth - this.el.clientWidth
-
-        if (this.totalw <= 0) {
-            this.right.style.transition = "none"
-            this.right.style.opacity = 0
-        }
+        this.mask.addEventListener("scroll", () => this.updateArrowVisibility(), {passive: true})
     }
 
+    move(direction) { //arrows scroll most of a screen's width at a time
+        this.mask.scrollBy({left: direction * this.mask.clientWidth * 0.8, behavior: "smooth"})
+    }
 
-updateArrowVisibility() {
-    // hide left arrow if at start
-    this.left.style.opacity = (this.pos <= 0) ? 0 : 1
+    setWidth() {
+        this.updateArrowVisibility()
+    }
 
-    // hide right arrow if content fits container
-    this.right.style.opacity = (this.totalw <= 0 || this.pos >= this.totalw) ? 0 : 1
+    updateArrowVisibility() {
+        const maxScroll = this.mask.scrollWidth - this.mask.clientWidth
+        const atStart = this.mask.scrollLeft <= 12
+        const atEnd = this.mask.scrollLeft >= maxScroll - 12
+
+        //arrows only where there is more to see, and the edge fades only on those sides
+        this.left.classList.toggle("hidden", atStart)
+        this.right.classList.toggle("hidden", atEnd || maxScroll <= 0)
+        this.left.style.opacity = atStart ? 0 : 1
+        this.right.style.opacity = atEnd || maxScroll <= 0 ? 0 : 1
+        this.mask.dataset.fade = maxScroll <= 0 ? "none" : atStart ? "right" : atEnd ? "left" : "both"
+    }
 }
-}
-    
 
 function carTemplate(car) {
     const newCar = document.createElement("div") //new carousel element

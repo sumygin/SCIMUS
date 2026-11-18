@@ -1,5 +1,5 @@
 import {generateStarHTML, warn, sendDataRequest, convertTag, convertStudyStage, sendData, reportInvalid,
-    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin, setBusy, emptyState, loader, clearLoading, showPage as revealPage} from "./utils.js"
+    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin, setBusy, emptyState, loader, clearLoading, showPage as revealPage, openAnimated, closeAnimated, bump} from "./utils.js"
 
 //guests can read questions, mark schemes and comments. anything else takes them to log in
 const user = await getUser()
@@ -100,6 +100,7 @@ async function checkedToggle(btn, cID) {
     if (!request) return
 
     elData.collections.innerText = request.newColnum
+    bump(elData.collections)
 
     if (btn.classList.contains("checked")) { ///uncheck
         markers.collectionVal = Math.max(0, markers.collectionVal-1) //update markers
@@ -155,17 +156,26 @@ function collectionTemplate(c) { //one row of the collection menu
 
 elData.plus.addEventListener("click", () =>{
     if (needsAccount()) return
-    if (collectionMenu.style.display == "block") {
-        collectionMenu.style.display = "none"
+    if (collectionMenu.style.display == "block" && !collectionMenu.classList.contains("closing")) {
+        closeAnimated(collectionMenu)
     }
     else {
-        collectionMenu.style.display = "block"
+        openAnimated(collectionMenu, "block")
     }
 })
 
 document.addEventListener("click", (e) => { //close when clicked off of
     if (e.target != elData.plus && !collectionMenu.contains(e.target)) {
-        collectionMenu.style.display = "none"
+        closeAnimated(collectionMenu)
+    }
+})
+
+document.addEventListener("keydown", (e) => { //escape closes whatever is open
+    if (e.key != "Escape") return
+    closeAnimated(collectionMenu)
+    if (openBar) {
+        closeAnimated(openBar.bar)
+        openBar = undefined
     }
 })
 
@@ -194,11 +204,11 @@ commentsBtn.addEventListener("click", () => { //comment show/hide
     }
     if (!cOpen) {
         sessionStorage.setItem("commentsOpen", "true")
-        commentsTab.style.display = "block" //show comments
+        openAnimated(commentsTab, "block") //show comments
     }
     else {
         sessionStorage.setItem("commentsOpen", "false")
-        commentsTab.style.display = "none" //hide comments
+        closeAnimated(commentsTab) //hide comments
     }
     cOpen = !cOpen
 })
@@ -215,10 +225,11 @@ function optionBar(trigger, bar, onPick) {
     trigger.addEventListener("pointerdown", () => {
         if (needsAccount()) return
 
-        if (openBar && openBar.bar != bar) openBar.bar.style.display = "none"
+        if (openBar && openBar.bar != bar) closeAnimated(openBar.bar)
 
-        openBar = {trigger:trigger, bar:bar, onPick:onPick, justOpened:bar.style.display != "flex"}
-        bar.style.display = "flex"
+        const alreadyOpen = bar.style.display == "flex" && !bar.classList.contains("closing")
+        openBar = {trigger:trigger, bar:bar, onPick:onPick, justOpened:!alreadyOpen}
+        openAnimated(bar, "flex")
     })
 }
 
@@ -230,7 +241,7 @@ document.addEventListener("pointerup", (e) => {
         return
     }
 
-    openBar.bar.style.display = "none"
+    closeAnimated(openBar.bar)
 
     if (e.target.tagName == "IMG" && openBar.bar.contains(e.target)) {
         openBar.onPick(e.target)
@@ -282,9 +293,27 @@ elData.cForm.addEventListener("submit", async e => {
         hideReplyBar()
 
         elData.comments.innerText = Number(elData.comments.innerText) + 1
-        getComments(true) //show the new comment
+        bump(elData.comments)
+
+        await getComments(true)
+        showPosted(result.id, replyID)
     }
 })
+
+//scrolls to a comment that was just posted and briefly highlights it. replies are inside their comment, so that opens first
+async function showPosted(commentID, parentID) {
+    if (parentID != 0) {
+        const parent = elData.commentSpace.querySelector(`.comment-wrapper[data-id="${Number(parentID)}"]`)
+        const loadBtn = parent?.querySelector(":scope > .c-replies > .c-load")
+        if (loadBtn) await loadReplies(loadBtn, parent.querySelector(":scope > .c-replies"))
+    }
+
+    const posted = elData.commentSpace.querySelector(`.comment-wrapper[data-id="${Number(commentID)}"]`)
+    if (!posted) return
+
+    posted.scrollIntoView({behavior: "smooth", block: "nearest"})
+    posted.classList.add("just-posted")
+}
 
 elData.cinput.addEventListener("focus", () => { //starting to write a comment
     needsAccount()
@@ -315,6 +344,7 @@ async function loadReplies(btn, space){ //if load replies clicked, they are load
 function commentTemplate(c){
     let newComment = document.createElement("div")
     newComment.classList.add("comment-wrapper")
+    newComment.dataset.id = c.comment_id
 
     newComment.innerHTML =`
                                 <div class="comment">
@@ -367,6 +397,8 @@ function commentTemplate(c){
             lastLikeValue = value
             face.src = faceImage(value)
             likeValue.innerText = result.newLikes
+            bump(likeValue)
+            bump(face)
         }
     })
 
@@ -464,14 +496,14 @@ const observer = new IntersectionObserver((entries) => {
 //REPLYING TO COMMENTS
 
 function showReplyBar(tag, cID) { //if a reply button is clicked, set label to their tag and show replybar
-    elData.replybar.style.display = "flex"
+    openAnimated(elData.replybar, "flex")
     elData.replybar.data = cID
     elData.rbaruser.innerText = tag
     elData.cinput.focus()
 }
 
 function hideReplyBar() {
-    elData.replybar.style.display = "none"
+    closeAnimated(elData.replybar)
     elData.replybar.data = ""
 }
 
@@ -495,6 +527,8 @@ optionBar(elData.face, elData.likebar, async (img) => { //send like to server
     BtnValues.like = value
     elData.face.src = faceImage(value)
     elData.likes.innerText = result.newLikes
+    bump(elData.likes)
+    bump(elData.face)
 })
 
 function fillStars(value) { //fill the rate bar up to the chosen star
@@ -522,6 +556,8 @@ optionBar(elData.star, elData.ratebar, async (img) => { //handle ratings
     BtnValues.rate = true
     elData.star.src = "/resources/star_full.PNG"
     elData.ratings.innerText = result.newRate
+    bump(elData.ratings)
+    bump(elData.star)
     elData.rating.innerHTML = generateStarHTML(Number(result.newAvg))
 })
 
@@ -537,6 +573,8 @@ async function setWatched(watched) {
     BtnValues.watch = watched
     elData.watch.src = `/resources/watch_${watched ? "full" : "empty"}.PNG`
     elData.watches.innerText = Math.max(0, Number(elData.watches.innerText) + (watched ? 1 : -1))
+    bump(elData.watches)
+    bump(elData.watch)
 }
 
 async function setSolved(solved) {
@@ -545,6 +583,8 @@ async function setSolved(solved) {
     BtnValues.solve = solved
     elData.check.src = `/resources/check_${solved ? "full" : "empty"}.PNG`
     elData.solves.innerText = Math.max(0, Number(elData.solves.innerText) + (solved ? 1 : -1))
+    bump(elData.solves)
+    bump(elData.check)
 }
 
 elData.watch.addEventListener("click", () => {
@@ -682,16 +722,33 @@ function saveToStorage() {
     sessionStorage.setItem("commentsOpen", cOpen)
 }
 
+//  ==========================
+//  MOVING BETWEEN QUESTIONS
+//  ==========================
+
+//slides the question off the screen and loads the next one, which then slides in from the other side.
+//direction is where the new question comes from: "below", "above", "right" or "left"
+function goTo(id, direction) {
+    sessionStorage.setItem("enterFrom", direction)
+    saveToStorage()
+    clear = false
+
+    document.documentElement.classList.add(`leave-to-${{below:"top", above:"bottom", right:"left", left:"right"}[direction]}`)
+
+    setTimeout(() => {
+        window.location.href = `/question/${Number(id)}`
+    }, 230)
+}
+
 async function moveTo(newIndex) { //go to another question in the list that the user came from
     if (moving || !Array.isArray(qIDS) || qIDS[newIndex] == undefined) return
     moving = true
 
-    await scroll(false)
+    await sendInteraction()
 
+    const direction = newIndex > index ? "right" : "left"
     index = newIndex
-    saveToStorage()
-    clear = false
-    window.location.href = `/question/${Number(qIDS[index])}`
+    goTo(qIDS[index], direction)
 }
 
 function setArrowListeners() {
@@ -717,8 +774,8 @@ function setArrowListeners() {
             sessionStorage.removeItem("qIDS")
             sessionStorage.removeItem("qIndex")
             sessionStorage.removeItem("recommendQueue")
+            sessionStorage.removeItem("scrollTrail")
         }
-
     })
 }
 
@@ -730,6 +787,7 @@ async function showPage() {
     }
     finally {
         revealPage()
+        wheelReadyAt = Date.now() + 700 //ignore the end of the scroll that brought the user here
     }
 }
 
@@ -738,51 +796,196 @@ if (openC == "true") {
     commentsBtn.dispatchEvent(new Event("click"))
 }
 
-
-//VERTICAL SCROLL
-async function scroll(vertical) { //vertical means if its a vertical scroll, redirect to next question
-    //gather scroll data (markers)
+//sends what the user did with this question to the recommendation model, if they spent more than 10 seconds on it
+async function sendInteraction() {
     const timeSpent = (Date.now() - markers.viewStart)/60000 //time spent in minutes
 
     //[rating, watch, solve, like, commentNum, collectionNum, viewDuration, skip]
     const markersToSend = [markers.rateVal, BtnValues.watch, BtnValues.solve, BtnValues.like, markers.commentVal, markers.collectionVal, timeSpent, markers.skipVal]
 
-    const data = {qID:qID, markers:markersToSend}
-
-    //send markers to server if time spent above 10seconds
     if (timeSpent > (1/6) && user) {
-        await sendData("/api/scroll/interaction", data, errbar, window, "", true, true)
+        await sendData("/api/scroll/interaction", {qID:qID, markers:markersToSend}, errbar, window, "", true, true)
     }
+}
 
+//VERTICAL SCROLL
 
-    if (vertical) {
-        //if last question item, then need to load more data
-        if (rcQueue.length == 0) { //if end of queue, get more questions
+//questions reached by scrolling, so scrolling back up returns to them in order
+const cameByScroll = ["below", "above"].includes(document.documentElement.dataset.enterFrom)
+let trail = cameByScroll ? readStorage("scrollTrail", null) : null
+if (!trail || !Array.isArray(trail.ids) || trail.ids[trail.pos] != qID) {
+    trail = {ids:[qID], pos:0}
+}
+
+function saveTrail() {
+    sessionStorage.setItem("scrollTrail", JSON.stringify(trail))
+}
+
+async function nextQuestion() { //scroll down
+    if (moving || !user) return
+    moving = true
+    hideNextHint()
+
+    await sendInteraction()
+
+    let nextID = trail.ids[trail.pos+1] //scrolled back up earlier, so the next one is already known
+
+    if (nextID == undefined) {
+        //if end of queue, get more questions
+        if (rcQueue.length == 0) {
             const recommended = await sendData("/api/scroll/recommendation", {}, errbar, window, "", true)
-            rcQueue = (recommended || []).map(q => q.question_id).filter(id => id != qID) //get list of ids
+            rcQueue = (recommended || []).map(q => q.question_id).filter(id => id != qID && !trail.ids.includes(id)) //get list of ids
         }
 
         if (rcQueue.length == 0) {
             warn(errbar, "No more recommended questions right now")
-            return false
+            moving = false
+            return
         }
 
-        //redirect to next question
-        const nextPage = rcQueue.shift() //get next page
-        saveToStorage()
-        clear = false
-        window.location.href = `/question/${Number(nextPage)}`
+        nextID = rcQueue.shift() //get next page
+        trail.ids = trail.ids.slice(0, trail.pos+1)
+        trail.ids.push(nextID)
     }
 
-    return true
+    trail.pos++
+    saveTrail()
+    goTo(nextID, "below")
 }
 
-elData.arr3.addEventListener("click", async function(){ //event listener for bottom arrow
-    if (moving || needsAccount()) return //recommendations are made for the user
+async function previousQuestion() { //scroll up
+    if (moving || trail.pos == 0) return
     moving = true
 
-    if (!(await scroll(true))) moving = false
+    await sendInteraction()
+
+    trail.pos--
+    saveTrail()
+    goTo(trail.ids[trail.pos], "above")
+}
+
+elData.arr3.addEventListener("click", function(){ //event listener for bottom arrow
+    if (needsAccount()) return //recommendations are made for the user
+    nextQuestion()
 })
+
+//whether a scroll would move something on the page (a long question, the comments, the page itself) rather than go to another question
+function scrollsSomething(el, deltaY) {
+    for (; el && el != document.documentElement; el = el.parentElement) {
+        const style = getComputedStyle(el)
+        const scrollable = /(auto|scroll)/.test(style.overflowY) || el == document.body
+        if (!scrollable || el.scrollHeight <= el.clientHeight + 1) continue
+
+        if (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true
+        if (deltaY < 0 && el.scrollTop > 0) return true
+    }
+    return false
+}
+
+function somethingOpen() { //menus and bars that a scroll shouldn't close the page under
+    return !!openBar || collectionMenu.style.display == "block"
+}
+
+//MOUSE WHEEL / TRACKPAD
+let wheelReadyAt = Infinity //set once the page is showing
+let wheelTotal = 0
+let wheelReset
+let lastInnerScroll = 0
+
+document.addEventListener("wheel", (e) => {
+    if (!user || moving || e.ctrlKey || somethingOpen()) return
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return //sideways scrolling
+
+    const now = Date.now()
+
+    if (scrollsSomething(e.target, e.deltaY)) { //let the box or page scroll as normal
+        lastInnerScroll = now
+        wheelTotal = 0
+        return
+    }
+
+    //the same flick that just reached the end of a box doesn't count, a new scroll does
+    if (now < wheelReadyAt || now - lastInnerScroll < 450) {
+        lastInnerScroll = Math.max(lastInnerScroll, now)
+        return
+    }
+
+    const delta = e.deltaY * (e.deltaMode == 1 ? 16 : e.deltaMode == 2 ? window.innerHeight : 1)
+    wheelTotal += delta
+
+    clearTimeout(wheelReset)
+    wheelReset = setTimeout(() => wheelTotal = 0, 300)
+
+    if (wheelTotal > 60) {
+        wheelTotal = 0
+        nextQuestion()
+    }
+    else if (wheelTotal < -60) {
+        wheelTotal = 0
+        if (trail.pos > 0) previousQuestion()
+    }
+}, {passive: true})
+
+//SWIPING ON PHONES: swipe up once the bottom of the page is reached
+let touchStart
+
+document.addEventListener("touchstart", (e) => {
+    if (e.touches.length != 1) return
+    touchStart = {y: e.touches[0].clientY, time: Date.now(), atEnd: !scrollsSomething(e.target, 1)}
+}, {passive: true})
+
+document.addEventListener("touchend", (e) => {
+    if (!touchStart || !user || moving || somethingOpen()) return
+
+    const distance = touchStart.y - e.changedTouches[0].clientY
+    const quick = Date.now() - touchStart.time < 700
+
+    if (touchStart.atEnd && quick && distance > 70 && !scrollsSomething(e.target, 1)) {
+        nextQuestion()
+    }
+    touchStart = undefined
+}, {passive: true})
+
+//KEYBOARD: up/down for scrolling questions, left/right for the list arrows
+document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || somethingOpen()) return
+    if (e.target.closest("input, textarea, select, [contenteditable='true']")) return
+
+    if (e.key == "ArrowDown" && !scrollsSomething(document.activeElement || document.body, 1)) {
+        if (user) {
+            e.preventDefault()
+            nextQuestion()
+        }
+    }
+    else if (e.key == "ArrowUp" && trail.pos > 0 && !scrollsSomething(document.activeElement || document.body, -1)) {
+        e.preventDefault()
+        previousQuestion()
+    }
+    else if (e.key == "ArrowRight" && elData.arr2.style.display != "none" && Array.isArray(qIDS)) {
+        moveTo(index+1)
+    }
+    else if (e.key == "ArrowLeft" && elData.arr1.style.display != "none" && Array.isArray(qIDS)) {
+        moveTo(index-1)
+    }
+})
+
+//"scroll for next question" under the bottom arrow, until the user has done it a few times
+const nextHint = document.getElementById("next-hint")
+let hintUses = 0
+try {
+    hintUses = Number(localStorage.getItem("nextHintUses")) || 0
+} catch (err) {}
+
+if (user && hintUses < 3) {
+    nextHint.innerText = window.matchMedia("(hover: none)").matches ? "swipe up for the next question" : "scroll for the next question"
+    nextHint.classList.add("show")
+}
+
+function hideNextHint() {
+    try {
+        localStorage.setItem("nextHintUses", hintUses + 1)
+    } catch (err) {}
+}
 
 
 showPage()

@@ -47,6 +47,12 @@ document.addEventListener("click", (e) => {
     }
 })
 
+document.addEventListener("keydown", (e) => { //escape closes the header menus
+    if (e.key != "Escape") return
+    for (const menu of menus) menu.classList.remove("open")
+    if (document.activeElement?.closest("#header")) document.activeElement.blur()
+})
+
 function timerOpen() { //whether the timer popup is on screen
     if (menus[0].classList.contains("open")) return true
 

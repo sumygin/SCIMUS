@@ -45,6 +45,15 @@ const headerHTML = `<a href="/"><button><img id="headerIMG" src="/resources/HEAD
 document.getElementById("header").innerHTML = headerHTML
 
 //keep the page hidden until its images are ready, but never for long
+//moving between questions slides the next one in from the side it came from
+try {
+    const enterFrom = sessionStorage.getItem("enterFrom")
+    if (["below", "above", "left", "right"].includes(enterFrom)) {
+        document.documentElement.dataset.enterFrom = enterFrom
+    }
+    sessionStorage.removeItem("enterFrom")
+} catch (err) {}
+
 //pages that load their content afterwards show "Loading" until it is in
 const holding = document.documentElement.hasAttribute("data-hold")
 

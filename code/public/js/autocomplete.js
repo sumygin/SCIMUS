@@ -1,4 +1,4 @@
-import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, updatePaperNum} from './utils.js'
+import {loadData, upperCaseify, getSchoolNames, getTopicNames, getSubjectNames, updatePaperNum, openAnimated, closeAnimated} from './utils.js'
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -114,6 +114,31 @@ class AutoHandler {
 
         this.input.addEventListener("input", show)
         this.input.addEventListener("focus", show)
+
+        //arrow keys move through the options, enter picks one, escape closes the list
+        this.input.addEventListener("keydown", (e) => {
+            const items = [...this.space.querySelectorAll(".auto-item")]
+            if (this.space.style.display == "none" || items.length == 0) return
+
+            let current = items.findIndex(item => item.classList.contains("active"))
+
+            if (e.key == "ArrowDown" || e.key == "ArrowUp") {
+                e.preventDefault()
+                if (e.key == "ArrowDown") current = (current + 1) % items.length
+                else current = current <= 0 ? items.length - 1 : current - 1
+
+                items.forEach(item => item.classList.remove("active"))
+                items[current].classList.add("active")
+                items[current].scrollIntoView({block: "nearest"})
+            }
+            else if (e.key == "Enter" && current >= 0) {
+                e.preventDefault() //picks the option instead of sending the form
+                items[current].click()
+            }
+            else if (e.key == "Escape") {
+                this.hideSpace()
+            }
+        })
         this.input.addEventListener("blur", () => {
             clearTimeout(this.hideTimer)
             this.hideTimer = setTimeout(() => this.hideSpace(), 200) //small delay so a click on an option still counts
@@ -191,12 +216,15 @@ class AutoHandler {
     }
 
     hideSpace () {
-        this.space.innerHTML = ""
-        this.space.style.display = "none"
+        if (getComputedStyle(this.space).display == "none") {
+            this.space.style.display = "none"
+            return
+        }
+        closeAnimated(this.space, () => this.space.innerHTML = "")
     }
 
     showSpace() {
-        this.space.style.display = "flex"
+        openAnimated(this.space, "flex")
     }
 }
 

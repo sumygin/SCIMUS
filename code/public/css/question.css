@@ -646,8 +646,105 @@ input[type="text"] {
     animation: fade-in 0.3s var(--ease);
 }
 
+/* MOVING BETWEEN QUESTIONS: the old one slides away, the new one comes in from the other side */
+
+@keyframes leave-top { to { opacity: 0; translate: 0 -48px; } }
+@keyframes leave-bottom { to { opacity: 0; translate: 0 48px; } }
+@keyframes leave-left { to { opacity: 0; translate: -48px 0; } }
+@keyframes leave-right { to { opacity: 0; translate: 48px 0; } }
+
+@keyframes enter-below { from { opacity: 0; translate: 0 48px; } }
+@keyframes enter-above { from { opacity: 0; translate: 0 -48px; } }
+@keyframes enter-right { from { opacity: 0; translate: 48px 0; } }
+@keyframes enter-left { from { opacity: 0; translate: -48px 0; } }
+
+html.leave-to-top main { animation: leave-top 0.23s ease-in forwards !important; }
+html.leave-to-bottom main { animation: leave-bottom 0.23s ease-in forwards !important; }
+html.leave-to-left main { animation: leave-left 0.23s ease-in forwards !important; }
+html.leave-to-right main { animation: leave-right 0.23s ease-in forwards !important; }
+
+html.shown[data-enter-from="below"] main { animation: enter-below 0.45s var(--ease) backwards; }
+html.shown[data-enter-from="above"] main { animation: enter-above 0.45s var(--ease) backwards; }
+html.shown[data-enter-from="right"] main { animation: enter-right 0.45s var(--ease) backwards; }
+html.shown[data-enter-from="left"] main { animation: enter-left 0.45s var(--ease) backwards; }
+
+/* the bottom arrow bobs gently so it's clear there is more below */
+@keyframes arrow-bob {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 5px; }
+}
+
+.arr3 {
+    animation: arrow-bob 2.4s var(--ease) 1.5s 3; /* a few times after the page opens, then it rests */
+}
+
+.arr3:hover {
+    animation-play-state: paused;
+}
+
+.next-hint {
+    display: none;
+    position: absolute; /* just right of the bottom arrow */
+    left: calc(50% + 2.2em);
+    bottom: 0.25em;
+    font-family: monospace;
+    font-size: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.next-hint.show {
+    display: block;
+    animation: fade-in 0.6s var(--ease) 1.2s forwards;
+}
+
+/* COMMENTS */
+
+@keyframes panel-in {
+    from { opacity: 0; translate: 16px 0; }
+}
+
+@keyframes panel-out {
+    to { opacity: 0; translate: 16px 0; }
+}
+
+@keyframes slide-down {
+    from { opacity: 0; translate: 0 -6px; }
+}
+
+@keyframes posted {
+    0%, 30% { background-color: #e6e6e6; }
+    100% { background-color: transparent; }
+}
+
 #comments-tab {
-    animation: fade-in 0.3s var(--ease);
+    animation: panel-in 0.3s var(--ease);
+}
+
+#comments-tab.closing {
+    animation: panel-out 0.22s ease-in forwards !important;
+}
+
+#replybar {
+    animation: slide-down 0.22s var(--ease);
+    transform-origin: top;
+}
+
+.c-replies > .comment-wrapper {
+    animation: slide-down 0.3s var(--ease) backwards;
+}
+
+.just-posted > .comment {
+    animation: posted 1.8s ease-out;
+}
+
+.like-bar, .rate-bar, .likebar {
+    transform-origin: bottom;
+}
+
+.action-item .val {
+    display: inline-block;
 }
 
 .action-item .icon {
@@ -656,4 +753,21 @@ input[type="text"] {
 
 .action-item button:active .icon {
     scale: 0.85;
+}
+
+@media (max-width: 768px) {
+    .next-hint {
+        position: static;
+        order: 6;
+        align-self: center;
+        margin: -0.4em 0 1em;
+    }
+
+    @keyframes panel-in {
+        from { opacity: 0; translate: 0 12px; }
+    }
+
+    @keyframes panel-out {
+        to { opacity: 0; translate: 0 12px; }
+    }
 }

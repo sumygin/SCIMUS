@@ -186,6 +186,41 @@ export function showPage() {
     }
 }
 
+//opens a popup or panel. stops a closing animation that is still running on it
+export function openAnimated(el, display = "block") {
+    el.closingToken = null
+    el.classList.remove("closing")
+    el.style.display = display
+}
+
+//plays an element's closing animation, then hides it
+export function closeAnimated(el, after) {
+    if (!el || el.style.display == "none" || getComputedStyle(el).display == "none" || el.classList.contains("closing")) return
+
+    const token = {}
+    el.closingToken = token
+    el.classList.add("closing")
+
+    const finish = () => {
+        if (el.closingToken !== token) return //it was opened again in the meantime
+        el.closingToken = null
+        el.classList.remove("closing")
+        el.style.display = "none"
+        if (after) after()
+    }
+
+    el.addEventListener("animationend", finish, {once: true})
+    setTimeout(finish, 400) //in case the animation never runs
+}
+
+//a little pop when a number changes
+export function bump(el) {
+    if (!el) return
+    el.classList.remove("bump")
+    void el.offsetWidth
+    el.classList.add("bump")
+}
+
 //"Loading" with three pulsing dots
 export function loader(text = "Loading") {
     const el = document.createElement("div")

@@ -23,27 +23,50 @@ main {
     
 }
 
+/* the row scrolls for real: swipe, trackpad, shift + wheel or the arrows */
 .car-mask {
-    -webkit-mask-image: linear-gradient(to left, transparent, black 5%) ;
+    -webkit-mask-image: linear-gradient(to left, transparent, black 5%);
     mask-image: linear-gradient(to left, transparent, black 5%);
     padding: 0.3rem;
     position: relative;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0.6rem; /* snaps line the cards up where they sit at rest, so the row doesn't nudge on load */
+    scrollbar-width: none;
     margin-right: 1.5em;
-    transition-duration: 1s;
 }
 
-.car-content::-webkit-scrollbar {
-    display:none;
+.car-mask::-webkit-scrollbar {
+    display: none;
 }
 
+/* the edges fade only on the sides with more to see */
+.car-mask[data-fade="none"] {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+.car-mask[data-fade="left"] {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 5%);
+    mask-image: linear-gradient(to right, transparent, black 5%);
+}
+
+.car-mask[data-fade="both"] {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
 
 .car-content {
     padding: 0.3rem;
     display: flex;
     flex-direction: row;
-    transition: ease-in-out;
-    transition-duration: 0.75s;
+    width: max-content;
+}
+
+.car-question {
+    scroll-snap-align: start;
 }
 
 .carousel {
@@ -90,7 +113,11 @@ a {
 .img1 {
     transform: scaleX(-1);
     left: 0.5em;
+}
+
+.img1.hidden, .img2.hidden {
     opacity: 0;
+    pointer-events: none;
 }
 
 .img2 {

@@ -557,6 +557,51 @@ a:hover .s-q {
     animation: fade-in 0.4s var(--ease);
 }
 
+/* CLOSING POPUPS, COUNTERS */
+
+@keyframes pop-out {
+    to { opacity: 0; scale: 0.94; }
+}
+
+@keyframes bump {
+    0% { scale: 1; }
+    40% { scale: 1.28; }
+    100% { scale: 1; }
+}
+
+/* popups and panels shrink and fade away instead of vanishing */
+.closing {
+    animation: pop-out 0.14s var(--ease) forwards !important;
+    pointer-events: none;
+}
+
+.bump {
+    display: inline-block;
+    animation: bump 0.35s var(--ease);
+}
+
+.auto-item {
+    transition: color 0.15s, background-color 0.15s;
+}
+
+/* picked with the arrow keys */
+.auto-item.active {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* SCROLLING */
+
+body {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(202, 202, 202) transparent;
+}
+
+/* boxes that scroll on their own stop the page behind them scrolling once they reach the end */
+#displaySpace, #QdisplaySpace, #CdisplaySpace, .comments, .question-text, .mark-scheme-text, .col-bar, .space, textarea {
+    overscroll-behavior: contain;
+}
+
 /* LOADING */
 
 @keyframes shimmer {
@@ -681,6 +726,10 @@ html.page-loading main > :not(.page-loader) {
     .loader .dots i {
         animation: none !important;
         opacity: 0.6;
+    }
+
+    body {
+        scroll-behavior: auto;
     }
 }
 
