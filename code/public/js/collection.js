@@ -1,4 +1,4 @@
-import {sendDataRequest, convertCollectionTag, questionTemplate, imagesLoaded} from "./utils.js"
+import {sendDataRequest, convertCollectionTag, questionTemplate, imagesLoaded, emptyState} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 const displaySpace = document.getElementById("displaySpace")
@@ -43,6 +43,10 @@ async function fetchData() {
         })
 
         displaySpace.appendChild(newQuestion)
+    }
+
+    if (result.question_data.length == 0) {
+        displaySpace.appendChild(emptyState("This collection is empty"))
     }
 
     elData.name.innerText = result.name
@@ -118,6 +122,7 @@ async function showPage() {
     }
     finally {
         document.documentElement.style.visibility = "visible"
+        document.documentElement.classList.add("shown")
     }
 }
 

@@ -1,4 +1,4 @@
-import {loadData, reportInvalid, sendFormData} from './utils.js'
+import {loadData, reportInvalid, sendFormData, setBusy} from './utils.js'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const tagRegex = /^[a-zA-Z0-9_.-]+$/
@@ -147,7 +147,10 @@ async function clientValidation() {
 
         if (sending) return
         sending = true
+        const regBtn = regForm.querySelector("button[type=submit]")
+        setBusy(regBtn, true)
         const result = await sendFormData(regForm.action, regForm, errbar, window, "Register successful", true)
+        setBusy(regBtn, false)
         sending = false
 
         if (result && result.success) { //go to log-in with the new tag filled in
@@ -166,8 +169,12 @@ async function clientValidation() {
 
         if (sending) return
         sending = true
+        const logBtn = logForm.querySelector("button[type=submit]")
+        setBusy(logBtn, true)
         const result = await sendFormData(logForm.action, logForm, errbar, window, "Log-in successful", true)
         sending = false
+
+        if (!result) setBusy(logBtn, false) //stays greyed out while it moves to the next page
 
         if (result && result.success) {
             setTimeout(() => {

@@ -254,14 +254,17 @@ a:hover {
 
 .error {
     opacity: 0;
-    transition: 0.5s;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     width: fit-content;
     top: 5.32em;
     font-size: 1rem;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -8px);
     color: red;
-    position: absolute;
+    position: fixed; /* stays on screen when the page is scrolled */
+    z-index: 1001;
+    pointer-events: none;
+    text-align: center;
     font-family: monospace;
     font-weight: bolder;
     padding: 0.3em;
@@ -408,5 +411,161 @@ input[type="number"] {
     .header-item {
         padding-left: 0.15rem;
         padding-right: 0.15rem;
+    }
+}
+
+
+/* MOTION AND FEEDBACK */
+
+:root {
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* uses the separate scale property so it never fights an element's own transform */
+@keyframes pop-in {
+    from { opacity: 0; scale: 0.92; }
+    to { opacity: 1; scale: 1; }
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* pages fade in once they have loaded */
+html.shown main {
+    animation: fade-in 0.35s var(--ease) backwards;
+}
+
+.error.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* buttons and links ease instead of snapping, and give a little when pressed */
+button, a, input[type="submit"], select {
+    transition: opacity 0.18s var(--ease), transform 0.12s var(--ease), background-color 0.18s, border-color 0.18s;
+    touch-action: manipulation;
+}
+
+button, input[type="submit"], select, .auto-item, .publish-btn, .col-check, #addcol,
+.arr1, .arr2, .arr3, .img1, .img2, .like-bar img, .rate-bar img, .likebar img {
+    cursor: pointer;
+}
+
+button:active, input[type="submit"]:active {
+    transform: scale(0.95);
+}
+
+button:disabled, input[type="submit"]:disabled {
+    opacity: 0.35;
+    cursor: progress;
+    transform: none;
+}
+
+input, textarea {
+    transition: border-color 0.2s ease;
+}
+
+/* keyboard users can see where they are */
+:focus-visible {
+    outline: 2px solid black;
+    outline-offset: 2px;
+}
+
+input:focus-visible, textarea:focus-visible, [contenteditable="true"]:focus-visible {
+    outline: none;
+}
+
+/* header menus slide down a touch as they fade in */
+#timer-popup, #profile-popup {
+    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+    transform: translateY(-6px);
+}
+
+.timer-hover.open #timer-popup, .profile-hover.open #profile-popup {
+    transform: none;
+}
+
+@media (hover: hover) {
+    .timer-hover:hover #timer-popup, .profile-hover:hover #profile-popup {
+        transform: none;
+    }
+}
+
+/* dropdowns, menus and option bars pop in when opened */
+.space, .like-bar, .rate-bar, .likebar, .col-bar {
+    animation: pop-in 0.16s var(--ease);
+    transform-origin: top;
+}
+
+.like-bar img, .rate-bar img, .likebar img {
+    transition: transform 0.12s var(--ease);
+}
+
+/* new results slide in as they load */
+.s-q, .msg-item, .lb-item, .comment-wrapper, .car-question, .col-item, .sbj {
+    animation: fade-up 0.35s var(--ease) backwards; /* lets go of transform afterwards so hovers still work */
+}
+
+.s-q {
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+a:hover .s-q {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.car-q-content {
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.car-question:hover {
+    opacity: 1;
+}
+
+.car-question:hover .car-q-content {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* switching between log-in/register and questions/collections */
+.form, #questionSearch, #collectionSearch, #QdisplaySpace, #CdisplaySpace {
+    animation: fade-in 0.3s var(--ease);
+}
+
+#log-switch span, #qc-switch span {
+    transition: opacity 0.25s var(--ease);
+}
+
+.empty-state {
+    padding: 2.5em 1em;
+    opacity: 0.55;
+    font-style: italic;
+    text-align: center;
+    animation: fade-in 0.4s var(--ease);
+}
+
+/* anyone who has asked their device for less motion gets none of the above */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

@@ -1,4 +1,4 @@
-import { submitSearchData, timeConverter, escapeHTML} from "./utils.js"
+import { submitSearchData, timeConverter, escapeHTML, emptyState} from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
 const elList = ["time", "sort", "school", "country", "displaySpace", "page"
@@ -79,6 +79,10 @@ async function sendFilters (deleteOld) { //function to request user data
     let result = await submitSearchData(lForm, errbar, window, "", true, history, "lb", false)
 
     if (!result) return
+
+    if (deleteOld && result.length == 0) {
+        elData.displaySpace.appendChild(emptyState("No one matches these filters yet"))
+    }
 
     for (const user of result) { //append new data
         elData.displaySpace.appendChild(userTemplate(user))

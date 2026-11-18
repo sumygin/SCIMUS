@@ -1,4 +1,4 @@
-import { sendDataRequest, escapeHTML } from "./utils.js"
+import { sendDataRequest, escapeHTML, emptyState } from "./utils.js"
 const errbar = document.getElementsByClassName("error")[0]
 
 const displaySpace = document.getElementById("displaySpace")
@@ -48,6 +48,10 @@ async function loadNotifications() { //function to request notifications
     let result = await sendDataRequest(`/api/inbox/${page}`, errbar, window, "")
 
     if (!result) return
+
+    if (page == 1 && result.length == 0) {
+        displaySpace.appendChild(emptyState("No notifications yet"))
+    }
 
     for (const notif of result) { //append new data
         displaySpace.appendChild(notifTemplate(notif))

@@ -1,4 +1,4 @@
-import { upperCaseify, reportInvalid, sendDataRequest, sendFormData} from "./utils.js"
+import { upperCaseify, reportInvalid, sendDataRequest, sendFormData, setBusy} from "./utils.js"
 
 const qName = document.getElementById("qname")
 
@@ -97,7 +97,15 @@ let saveForm = async (e, publish) => { //validates then sends form values
 
     if (sending) return
     sending = true
-    await sendFormData(`/api/question/save/${qID}/${publish}`, qForm, errbar, window, publish ? "Question published" : "Question saved")
+    setBusy(saveBtn, true)
+    setBusy(publishBtn, true)
+
+    const result = await sendFormData(`/api/question/save/${qID}/${publish}`, qForm, errbar, window, publish ? "Question published" : "Question saved", true)
+
+    if (!result) { //on success the page moves on by itself
+        setBusy(saveBtn, false)
+        setBusy(publishBtn, false)
+    }
     sending = false
 }
 
@@ -140,6 +148,7 @@ async function showPage() {
     }
     finally {
         document.documentElement.style.visibility = "visible"
+        document.documentElement.classList.add("shown")
     }
 }
 

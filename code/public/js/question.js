@@ -1,5 +1,5 @@
 import {generateStarHTML, warn, sendDataRequest, convertTag, convertStudyStage, sendData, reportInvalid,
-    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin} from "./utils.js"
+    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin, setBusy, emptyState} from "./utils.js"
 
 //guests can read questions, mark schemes and comments. anything else takes them to log in
 const user = await getUser()
@@ -269,7 +269,11 @@ elData.cForm.addEventListener("submit", async e => {
         replyID = elData.replybar.data
     }
 
+    const submitBtn = document.getElementById("csubmit")
+    if (submitBtn.disabled) return
+    setBusy(submitBtn, true)
     const result = await sendData(`/api/comments/create/${qID}/${replyID}`, {com: elData.cinput.value}, errbar, window, "Comment submitted", true)
+    setBusy(submitBtn, false)
 
     if (result) {
         markers.commentVal += 1 //update marker
@@ -404,6 +408,10 @@ async function getComments (deleteOld) { //function to request comment data
     let result = await sendDataRequest(`/api/comments/get/${qID}/${elData.page.value}`, errbar, window, "")
 
     if (!result) return
+
+    if (deleteOld && result.length == 0) {
+        elData.commentSpace.appendChild(emptyState("No comments yet"))
+    }
 
     //append new data
     elData.commentSpace.appendChild(generateFullCommentHTML(result))
@@ -703,6 +711,7 @@ async function showPage() {
     }
     finally {
         document.documentElement.style.visibility = "visible"
+        document.documentElement.classList.add("shown")
     }
 }
 

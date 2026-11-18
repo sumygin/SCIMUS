@@ -106,10 +106,17 @@ class AutoHandler {
             if (this.space.children.length == 0) this.hideSpace()
         }
 
-        this.input.addEventListener("input", showMatches)
-        this.input.addEventListener("focus", showMatches)
+        //a close that is still waiting from the last blur mustn't shut the list that is opening now
+        const show = () => {
+            clearTimeout(this.hideTimer)
+            showMatches()
+        }
+
+        this.input.addEventListener("input", show)
+        this.input.addEventListener("focus", show)
         this.input.addEventListener("blur", () => {
-            setTimeout(() => this.hideSpace(), 200) //small delay so a click on an option still counts
+            clearTimeout(this.hideTimer)
+            this.hideTimer = setTimeout(() => this.hideSpace(), 200) //small delay so a click on an option still counts
         })
 
         document.addEventListener("click", (e) => { //close when clicked off of

@@ -635,3 +635,23 @@ input[type="text"] {
         margin: 0 0.5em;
     }
 }
+
+
+/* MOTION */
+
+/* flipping between question and mark scheme fades instead of jumping */
+.question-text, .mark-scheme-text {
+    animation: fade-in 0.3s var(--ease);
+}
+
+#comments-tab {
+    animation: fade-in 0.3s var(--ease);
+}
+
+.action-item .icon {
+    transition: scale 0.15s var(--ease);
+}
+
+.action-item button:active .icon {
+    scale: 0.85;
+}

@@ -1,4 +1,4 @@
-import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate} from "./utils.js"
+import { convertStudyStage, convertCollectionTag, submitSearchData, updatePaperNum, escapeHTML, questionTemplate, emptyState} from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -202,6 +202,10 @@ async function sendFilters (deleteOld, form, formdata, displayspace) {
     }
     else if (form == cForm) {
         cIDList.push(...result.map(c => Number(c.collection_id))) //generate list of col ids
+    }
+
+    if (deleteOld && result.length == 0) {
+        displayspace.appendChild(emptyState(form == qForm ? "No questions found" : "No collections found"))
     }
 
     for (const item of result) { //append new data

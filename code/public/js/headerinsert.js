@@ -48,6 +48,7 @@ document.getElementById("header").innerHTML = headerHTML
 function showPage() {
     if (document.documentElement.hasAttribute("data-hold")) return //these pages show themselves once their data is in
     document.documentElement.style.visibility = "visible"
+    document.documentElement.classList.add("shown")
 }
 
 const pending = [...document.images].filter(img => !img.complete).map(img => new Promise(r => {

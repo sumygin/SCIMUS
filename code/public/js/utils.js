@@ -142,12 +142,37 @@ function showMessage(errbar, message, colour) {
 
     errbar.innerText = message
     errbar.style.color = colour
-    errbar.style.opacity = "1"
+
+    //restart the slide-in if a message is already showing
+    errbar.classList.remove("show")
+    void errbar.offsetWidth
+    errbar.classList.add("show")
 
     clearTimeout(errbarTimeout)
     errbarTimeout = setTimeout(() => {
-        errbar.style.opacity = "0"
+        errbar.classList.remove("show")
     }, 3000)
+}
+
+//greys out a button while its request is being sent, so it can't be pressed twice
+export function setBusy(button, busy) {
+    if (!button) return
+    button.disabled = busy
+    button.setAttribute("aria-busy", busy)
+}
+
+//message shown in a list that has nothing in it
+export function emptyState(text) {
+    const el = document.createElement("div")
+    el.classList.add("empty-state")
+    el.innerText = text
+    return el
+}
+
+//shows the page once it's ready, with a short fade in
+export function showPage() {
+    document.documentElement.style.visibility = "visible"
+    document.documentElement.classList.add("shown")
 }
 
 export function success(errbar, message) {
