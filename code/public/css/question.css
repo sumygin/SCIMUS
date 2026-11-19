@@ -427,8 +427,9 @@ button.reply, button.c-like {
     display: flex;
     flex-direction: column;
     width: 25vw;
-    right: 15px;
-    top: 285px;
+    right: 0;
+    top: calc(100% + 8px); /* just under the + button */
+    transform-origin: top right;
     padding: 0.5em;
     background: white;
     z-index: 5;
@@ -597,15 +598,15 @@ input[type="text"] {
         transform: none;
     }
 
+    /* opens upwards from the + button, which sits near the bottom of the screen */
     .col-bar {
-        position: fixed;
         top: auto;
-        bottom: 5.5rem;
-        left: 5vw;
-        right: 5vw;
-        width: auto;
+        bottom: calc(100% + 8px);
+        right: 0;
+        width: min(calc(100vw - 2rem), 22rem);
         box-sizing: border-box;
         height: 12em;
+        transform-origin: bottom right;
     }
 
     .arr1, .arr2 {
