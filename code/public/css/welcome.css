@@ -385,6 +385,42 @@
     transform: none;
 }
 
+/* top of the page arrives piece by piece */
+html.shown .hero > * {
+    animation: fade-up 0.55s var(--ease) var(--d, 0s) backwards;
+}
+
+.hero > :nth-child(2) { --d: 0.08s; }
+.hero > :nth-child(3) { --d: 0.16s; }
+.hero > :nth-child(4) { --d: 0.24s; }
+.hero > :nth-child(5) { --d: 0.3s; }
+.hero > :nth-child(6) { --d: 0.36s; }
+.hero > :nth-child(7) { --d: 0.6s; }
+
+/* the scroll hint has its own nudge animation, so it just fades in */
+html.shown .hero > .scroll-hint {
+    animation: fade-in 0.6s var(--ease) 0.6s backwards, nudge 2s var(--ease) 1.2s infinite;
+}
+
+/* inside a section, its cards follow the section in */
+.js-reveal .reveal :is(.feature, .steps > li, .review-item, .chip) {
+    opacity: 0;
+    translate: 0 8px;
+    transition: opacity 0.5s var(--ease) calc(0.15s + var(--d, 0s)), translate 0.5s var(--ease) calc(0.15s + var(--d, 0s));
+}
+
+.js-reveal .reveal.in :is(.feature, .steps > li, .review-item, .chip) {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* sections waiting to fade up mustn't make the page longer and then shorter again */
+.welcome {
+    height: auto; /* grows with the page, so clipping only trims the sliding, never the content */
+    overflow: clip;
+    overflow-clip-margin: 1em;
+}
+
 /* PHONES AND TABLETS */
 
 @media (max-width: 900px) {
@@ -442,6 +478,11 @@
 }
 
 @media print, (prefers-reduced-motion: reduce) {
+    .js-reveal .reveal :is(.feature, .steps > li, .review-item, .chip) {
+        opacity: 1;
+        translate: 0 0;
+    }
+
     .js-reveal .reveal {
         opacity: 1;
         transform: none;

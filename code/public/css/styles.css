@@ -513,9 +513,14 @@ input:focus-visible, textarea:focus-visible, [contenteditable="true"]:focus-visi
     transition: transform 0.12s var(--ease);
 }
 
-/* new results slide in as they load */
+/* new results settle in as they load, one just after another. they come from slightly above: coming
+   from below would stretch the box they're in for a moment and make its scrollbar flicker */
+@keyframes settle-in {
+    from { opacity: 0; translate: 0 -6px; }
+}
+
 .s-q, .msg-item, .lb-item, .comment-wrapper, .car-question, .col-item, .sbj {
-    animation: fade-up 0.35s var(--ease) backwards; /* lets go of transform afterwards so hovers still work */
+    animation: settle-in 0.35s var(--ease) var(--d, 0s) backwards;
 }
 
 .s-q {
@@ -555,6 +560,93 @@ a:hover .s-q {
     font-style: italic;
     text-align: center;
     animation: fade-in 0.4s var(--ease);
+}
+
+/* SMALL TOUCHES */
+
+/* things in a list come in one just after another. --d is picked up by each item's animation */
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(2) { --d: 35ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(3) { --d: 70ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(4) { --d: 105ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(5) { --d: 140ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(6) { --d: 175ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(7) { --d: 210ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(8) { --d: 245ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(9) { --d: 280ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(10) { --d: 315ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(11) { --d: 350ms; }
+:is(#QdisplaySpace, #CdisplaySpace, #displaySpace, #commentSpace, .car-content, .collection-wrapper, .stats, .links, .searchbar, .log-forms-container, .metadata, .actions, .features, .steps, .review-container, .chips, .preview, #profile-popup) > :nth-child(12) { --d: 385ms; }
+
+@keyframes drift-down {
+    from { opacity: 0; translate: 0 -6px; }
+}
+
+/* page titles */
+.titlecontainer h3 {
+    animation: drift-down 0.45s var(--ease) 0.05s backwards;
+}
+
+/* profile and preferences pages: name, then the details one after another */
+.usernames, .stats > *, .links > *, .actions > * {
+    animation: settle-in 0.4s var(--ease) var(--d, 0s) backwards;
+}
+
+/* form fields on the log-in, register, create and search pages */
+.log-item, .log-forms-container > .login, .metadata > .meta-item, .searchbar > :not([type="hidden"]) {
+    animation: settle-in 0.35s var(--ease) var(--d, 0s) backwards;
+}
+
+/* logo tilts a touch when pointed at */
+#headerIMG {
+    transition: rotate 0.3s var(--ease);
+}
+
+@media (hover: hover) {
+    a:hover #headerIMG {
+        rotate: -6deg;
+    }
+
+    .action-item button:hover .icon {
+        scale: 1.08;
+    }
+
+    /* arrows in "browse →" links nudge forwards */
+    .cta-plain:hover, .see-all:hover {
+        translate: 3px 0;
+    }
+}
+
+.cta-plain, .see-all {
+    display: inline-block;
+    transition: translate 0.2s var(--ease), opacity 0.2s;
+}
+
+/* fields darken their border while being typed in */
+.searchbar input:focus, .searchbar select:focus, .meta-item select:focus, .log-item select:focus {
+    border-color: black;
+}
+
+/* header menu items follow each other in when the menu opens */
+.profile-hover-item {
+    transition: opacity 0.25s var(--ease) var(--d, 0s), translate 0.25s var(--ease) var(--d, 0s);
+    opacity: 0;
+    translate: 0 -4px;
+}
+
+.profile-hover.open .profile-hover-item {
+    opacity: 1;
+    translate: 0 0;
+}
+
+@media (hover: hover) {
+    .profile-hover:hover .profile-hover-item {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+.empty-state {
+    animation: fade-in 0.4s var(--ease) 0.1s backwards;
 }
 
 /* CLOSING POPUPS, COUNTERS */

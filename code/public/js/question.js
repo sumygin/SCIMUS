@@ -205,6 +205,7 @@ commentsBtn.addEventListener("click", () => { //comment show/hide
     if (!cOpen) {
         sessionStorage.setItem("commentsOpen", "true")
         openAnimated(commentsTab, "block") //show comments
+        requestAnimationFrame(() => fitToWindow())
     }
     else {
         sessionStorage.setItem("commentsOpen", "false")
@@ -788,8 +789,34 @@ async function showPage() {
     finally {
         revealPage()
         wheelReadyAt = Date.now() + 700 //ignore the end of the scroll that brought the user here
+        setTimeout(() => document.documentElement.classList.add("settled"), 500) //slide-in finished, page can scroll again
+        fitToWindow()
     }
 }
+
+//on shorter laptop screens the question and comment boxes are made a little shorter so the whole question
+//fits in the window, instead of the page scrolling by a few pixels. on taller screens nothing changes
+const fitBoxes = [document.querySelector("#question-card .question"), commentsTab]
+const wideScreen = window.matchMedia("(min-width: 769px)")
+
+function fitToWindow() {
+    for (const box of fitBoxes) box.style.maxHeight = ""
+    if (!wideScreen.matches) return
+
+    const overflow = document.body.scrollHeight - document.body.clientHeight
+    if (overflow <= 0) return
+
+    for (const box of fitBoxes) {
+        //max-height counts the inside of the box, without its padding and border
+        if (box.offsetHeight) box.style.maxHeight = `${parseFloat(getComputedStyle(box).height) - overflow - 2}px`
+    }
+}
+
+let fitTimer
+window.addEventListener("resize", () => {
+    clearTimeout(fitTimer)
+    fitTimer = setTimeout(fitToWindow, 100)
+})
 
 //open comments if it was previously open
 if (openC == "true") {

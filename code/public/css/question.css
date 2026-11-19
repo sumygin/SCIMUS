@@ -643,7 +643,7 @@ input[type="text"] {
 
 /* flipping between question and mark scheme fades instead of jumping */
 .question-text, .mark-scheme-text {
-    animation: fade-in 0.3s var(--ease);
+    animation: settle-in 0.3s var(--ease);
 }
 
 /* MOVING BETWEEN QUESTIONS: the old one slides away, the new one comes in from the other side */
@@ -684,7 +684,7 @@ html.shown[data-enter-from="left"] main { animation: enter-left 0.45s var(--ease
 
 .next-hint {
     display: none;
-    position: absolute; /* just right of the bottom arrow */
+    position: fixed; /* just right of the bottom arrow */
     left: calc(50% + 2.2em);
     bottom: 0.25em;
     font-family: monospace;
@@ -770,4 +770,18 @@ html.shown[data-enter-from="left"] main { animation: enter-left 0.45s var(--ease
     @keyframes panel-out {
         to { opacity: 0; translate: 0 12px; }
     }
+}
+
+/* on computers the bottom arrow is pinned to the window. pinned things never make the page taller,
+   so its bobbing can't make a scrollbar flicker in and out */
+@media (min-width: 769px) {
+    .arr3 {
+        position: fixed;
+    }
+}
+
+/* no page scrollbar while a question slides in or out */
+html.leave-to-top body, html.leave-to-bottom body, html.leave-to-left body, html.leave-to-right body,
+html[data-enter-from]:not(.settled) body {
+    overflow: hidden;
 }
