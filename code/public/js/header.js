@@ -1,3 +1,4 @@
+import "./tooltips.js"
 import { sendDataRequest, getUser } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
@@ -244,12 +245,14 @@ function setTimerText(bool) { //toggle whether time inputs are editable
 
 function updateModeButton() {
     modeBtn.innerHTML = `<img src="/resources/${timer.mode == "rest" ? "rest" : "work"}.PNG" alt="" class="icon">`
+    modeBtn.dataset.tip = timer.mode == "rest" ? "On a break. Switch back to studying" : "Studying. Switch to a break"
 }
 
 function updatePlayButton(update) { 
     if (!["play", "pause", "replay"].includes(update)) return
 
     playBtn.innerHTML = `<img src='/resources/${update}.PNG' alt='' class='icon' id='${update}'>`
+    playBtn.dataset.tip = {play: "Start", pause: "Pause", replay: "Start the next session"}[update]
     playBtn.style.fontSize = "1rem"
 }
 

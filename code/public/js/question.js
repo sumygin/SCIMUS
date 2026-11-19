@@ -92,6 +92,19 @@ async function buttonToggle(btn, cID) {
 function setPublishButton(btn, published) {
     btn.innerText = published ? "Public" : "Private"
     btn.style.color = published ? "darkgreen" : "darkred"
+    btn.dataset.tip = published ? "Everyone can see this collection. Click to make it private" : "Only you can see this collection. Click to make it public"
+}
+
+function setCheckTip(btn) { //tick next to each collection in the menu
+    btn.dataset.tip = btn.classList.contains("checked") ? "In this collection. Click to remove it" : "Add to this collection"
+}
+
+//labels on the side buttons say what pressing them will do now
+function updateActionTips() {
+    document.querySelector(".watch-ic").dataset.tip = BtnValues.watch
+        ? "Watching: you'll be told about new comments. Click to stop" : "Watch: get notified about new comments"
+    document.querySelector(".solved-ic").dataset.tip = BtnValues.solve ? "Solved. Click to unmark" : "Mark as solved"
+    document.querySelector(".comment-ic").dataset.tip = cOpen ? "Hide comments" : "Show comments"
 }
 
 //checked/unchecked collection button toggle
@@ -111,6 +124,7 @@ async function checkedToggle(btn, cID) {
         btn.src = "/resources/check_full.PNG"
     }
     btn.classList.toggle("checked")
+    setCheckTip(btn)
 }
 
 async function collectionNameEdit(inp, cID) { //send name change to server
@@ -145,8 +159,10 @@ function collectionTemplate(c) { //one row of the collection menu
     const cBtn = newCol.querySelector(".col-check") //whether the question is in the collection
     if (c.includesQuestion) {
         cBtn.classList.add("checked")
+        setCheckTip(cBtn)
         cBtn.src = "/resources/check_full.PNG"
     }
+    setCheckTip(cBtn)
     cBtn.addEventListener("click", () => checkedToggle(cBtn, c.collection_id))
 
     return newCol
@@ -212,6 +228,7 @@ commentsBtn.addEventListener("click", () => { //comment show/hide
         closeAnimated(commentsTab) //hide comments
     }
     cOpen = !cOpen
+    updateActionTips()
 })
 
 //  ===================
@@ -360,7 +377,7 @@ function commentTemplate(c){
                                         </div>
                                         <div class="icons">
                                             <span class="val">${Number(c.like_rating)}</span>
-                                            <button type="button" class="like-ic" aria-label="Like">
+                                            <button type="button" class="like-ic" aria-label="Like or dislike" data-tip="Like or dislike">
                                                 <span class="facewrap"><img src="${faceImage(c.userLikeVal)}" alt="" class="icon face"></span>
                                             </button>
                                             <span class="like-bar likebar">
@@ -368,7 +385,7 @@ function commentTemplate(c){
                                                 <img src="/resources/neutral.PNG" alt="Neutral" class="icon" data-value="0">
                                                 <img src="/resources/frown.PNG" alt="Dislike" class="icon" data-value="-1">
                                             </span>
-                                            <button type="button" class="reply" aria-label="Reply">
+                                            <button type="button" class="reply" aria-label="Reply" data-tip="Reply">
                                                 <img src="/resources/comments.PNG" alt="" class="icon comment-icon">
                                             </button>
                                         </div>
@@ -572,6 +589,7 @@ async function setWatched(watched) {
     if (!(await sendDataRequest(`/api/watch/${watched ? "add" : "remove"}/${qID}`, errbar, window, "", "POST"))) return
 
     BtnValues.watch = watched
+    updateActionTips()
     elData.watch.src = `/resources/watch_${watched ? "full" : "empty"}.PNG`
     elData.watches.innerText = Math.max(0, Number(elData.watches.innerText) + (watched ? 1 : -1))
     bump(elData.watches)
@@ -582,6 +600,7 @@ async function setSolved(solved) {
     if (!(await sendDataRequest(`/api/solve/${solved ? "add" : "remove"}/${qID}`, errbar, window, "", "POST"))) return
 
     BtnValues.solve = solved
+    updateActionTips()
     elData.check.src = `/resources/check_${solved ? "full" : "empty"}.PNG`
     elData.solves.innerText = Math.max(0, Number(elData.solves.innerText) + (solved ? 1 : -1))
     bump(elData.solves)
@@ -647,6 +666,7 @@ async function fetchData() {
     }
 
     BtnValues = result.extra
+    updateActionTips()
 
     elData.user_tag.href = `/profile/${encodeURIComponent(result.user_tag.substring(1))}`
 

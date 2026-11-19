@@ -8,7 +8,7 @@ const headerHTML = `<a href="/"><button><img id="headerIMG" src="/resources/HEAD
       <a class="header-item" href="/leaderboards"><button>LEADERBOARDS</button></a>
       <span class="header-item timer-hover"> <span id="timer-text-wrap"><span id="header-timer-text">30:00</span></span>
         <div id="timer-popup" class="timer-hover">
-          <a href="/preferences" id="timer-settings"><button class="btns" ><img src="/resources/options.PNG" alt="" class="icon"></button></a>
+          <a href="/preferences" id="timer-settings" data-tip="Timer settings"><button class="btns" aria-label="Timer settings"><img src="/resources/options.PNG" alt="" class="icon"></button></a>
           
           <canvas id="timer-arc"></canvas>
           <span id="time-text">
@@ -17,11 +17,11 @@ const headerHTML = `<a href="/"><button><img id="headerIMG" src="/resources/HEAD
           
           <div id="control-btns">
             <div class="playback">
-              <button class="btns" id="b1"><img src="/resources/backward.PNG" alt="" class="icon"></button>
-              <button class="btns" id="b2"><img src='/resources/play.PNG' alt='' class='icon' id='play'></button>
-              <button class="btns" id="b3"><img src="/resources/forward.PNG" alt="" class="icon" ></button>
+              <button class="btns" id="b1" data-tip="Restart this session" aria-label="Restart this session"><img src="/resources/backward.PNG" alt="" class="icon"></button>
+              <button class="btns" id="b2" data-tip="Start or pause" aria-label="Start or pause"><img src='/resources/play.PNG' alt='' class='icon' id='play'></button>
+              <button class="btns" id="b3" data-tip="Finish this session now" aria-label="Finish this session now"><img src="/resources/forward.PNG" alt="" class="icon" ></button>
             </div>
-            <button class="btns" id="mode-btn"><img src="/resources/work.PNG" alt="" class="icon"></button>
+            <button class="btns" id="mode-btn" data-tip="Studying. Switch to a break" aria-label="Switch between study and break"><img src="/resources/work.PNG" alt="" class="icon"></button>
           </div>
         </div>
         
@@ -30,7 +30,7 @@ const headerHTML = `<a href="/"><button><img id="headerIMG" src="/resources/HEAD
         <div class="profile-hover" id="profile-popup">
           <span class="profile-hover-item">
             <a href="/profile"><button>Profile</button></a>
-            <a href="/inbox"><button style="text-align: right;"><img src="/resources/inbox.PNG" alt="" class="icon" id="inbox"></button></a>
+            <a href="/inbox" data-tip="Inbox"><button style="text-align: right;" aria-label="Inbox"><img src="/resources/inbox.PNG" alt="" class="icon" id="inbox"></button></a>
           </span>
           <span class="profile-hover-item">
             <a href="/preferences"><button>Preferences</button></a>

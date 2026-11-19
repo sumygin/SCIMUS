@@ -649,6 +649,59 @@ a:hover .s-q {
     animation: fade-in 0.4s var(--ease) 0.1s backwards;
 }
 
+/* TOOLTIPS: small labels on icon-only buttons */
+
+.tooltip {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    max-width: min(16rem, calc(100vw - 16px));
+    padding: 0.4em 0.65em;
+    background: black;
+    color: white;
+    font-family: monospace;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    text-align: center;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    translate: 0 4px;
+    transition: opacity 0.15s var(--ease), translate 0.15s var(--ease);
+}
+
+.tooltip.below {
+    translate: 0 -4px;
+}
+
+.tooltip.show {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* little pointer towards the button */
+.tooltip::after {
+    content: "";
+    position: absolute;
+    left: var(--pointer, 50%);
+    top: 100%;
+    translate: -50% 0;
+    border: 5px solid transparent;
+    border-top-color: black;
+}
+
+.tooltip.below::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: black;
+}
+
+/* holding a labelled icon on an iphone shows the label, not the "save image" menu */
+[data-tip], [data-tip] img {
+    -webkit-touch-callout: none;
+}
+
 /* CLOSING POPUPS, COUNTERS */
 
 @keyframes pop-out {

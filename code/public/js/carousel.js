@@ -55,7 +55,7 @@ function carTemplate(car) {
     newCar.innerHTML = `
             <div class="car-title">${name}</div>
             <div class="car-container">
-                <img class="img1" src="/resources/arrow.png" alt=""><img class="img2" src="/resources/arrow.png" alt="">
+                <img class="img1" src="/resources/arrow.png" alt="Scroll back" data-tip="Scroll back"><img class="img2" src="/resources/arrow.png" alt="See more" data-tip="See more">
                 <div class="car-mask">
                     <div class="car-content">
                         

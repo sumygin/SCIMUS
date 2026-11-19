@@ -541,14 +541,14 @@ export function questionTemplate(question) {
                 </div>
 
                 <div class="row">
-                    <div class="s-q-views s-q-item"><img src="/resources/view.PNG" alt="" class="icon"> ${Number(question.views)}</div>
+                    <div class="s-q-views s-q-item" data-tip="Views"><img src="/resources/view.PNG" alt="" class="icon"> ${Number(question.views)}</div>
 
 
-                    <div class="s-q-comments s-q-item"><img src="/resources/comments.PNG" alt="" class="icon"> ${Number(question.num_comments)}</div>
+                    <div class="s-q-comments s-q-item" data-tip="Comments"><img src="/resources/comments.PNG" alt="" class="icon"> ${Number(question.num_comments)}</div>
 
-                    <div class="s-q-likes s-q-item">${likeConverter(question.like_rating)} ${Number(question.like_rating)}</div>
+                    <div class="s-q-likes s-q-item" data-tip="Like rating">${likeConverter(question.like_rating)} ${Number(question.like_rating)}</div>
 
-                    <div class="s-q-rating s-q-item">${generateStarHTML(Number(question.total_diff_rating)/Number(question.num_diff_ratings))} ${Number(question.num_diff_ratings)}</div>
+                    <div class="s-q-rating s-q-item" data-tip="How hard people found it, and how many rated it">${generateStarHTML(Number(question.total_diff_rating)/Number(question.num_diff_ratings))} ${Number(question.num_diff_ratings)}</div>
 
                     ${insertData}
 
