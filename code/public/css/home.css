@@ -124,14 +124,20 @@ a {
     right: 0.5em;
 }
 
-.img1:hover {
-    transform: scaleX(-1) scale(1.1);
-    opacity: 1;
+/* grows only under a mouse: on touch screens a tapped arrow would otherwise stay enlarged */
+@media (hover: hover) {
+    .img1:hover {
+        transform: scaleX(-1) scale(1.1);
+        opacity: 1;
+    }
 }
 
-.img2:hover {
-    transform: scale(1.1);
-    opacity:1;
+/* grows only under a mouse: on touch screens a tapped arrow would otherwise stay enlarged */
+@media (hover: hover) {
+    .img2:hover {
+        transform: scale(1.1);
+        opacity:1;
+    }
 }
 
 main {

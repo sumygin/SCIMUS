@@ -9,14 +9,20 @@
 }
 
 
-.arr1:hover {
-    transform: scaleX(-1) scale(1.1);
-    opacity: 1;
+/* grows only under a mouse: on touch screens a tapped arrow would otherwise stay enlarged */
+@media (hover: hover) {
+    .arr1:hover {
+        transform: scaleX(-1) scale(1.1);
+        opacity: 1;
+    }
 }
 
-.arr2:hover {
-    transform: scale(1.1);
-    opacity: 1;
+/* grows only under a mouse: on touch screens a tapped arrow would otherwise stay enlarged */
+@media (hover: hover) {
+    .arr2:hover {
+        transform: scale(1.1);
+        opacity: 1;
+    }
 }
 
 .arr1 {
@@ -38,9 +44,12 @@
     opacity: 0.5;
 }
 
-.arr3:hover {
-    transform: rotate(90deg) scale(1.1);
-    opacity: 1;
+/* grows only under a mouse: on touch screens a tapped arrow would otherwise stay enlarged */
+@media (hover: hover) {
+    .arr3:hover {
+        transform: rotate(90deg) scale(1.1);
+        opacity: 1;
+    }
 }
 
 main {
@@ -659,15 +668,17 @@ input[type="text"] {
 @keyframes enter-right { from { opacity: 0; translate: 48px 0; } }
 @keyframes enter-left { from { opacity: 0; translate: -48px 0; } }
 
-html.leave-to-top main { animation: leave-top 0.23s ease-in forwards !important; }
-html.leave-to-bottom main { animation: leave-bottom 0.23s ease-in forwards !important; }
-html.leave-to-left main { animation: leave-left 0.23s ease-in forwards !important; }
-html.leave-to-right main { animation: leave-right 0.23s ease-in forwards !important; }
+/* only the question itself moves. the side arrows are left out: anything that moves becomes the frame its
+   positioned children are measured from, so moving the whole page made the arrows jump up and down */
+html.leave-to-top #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: leave-top 0.23s ease-in forwards !important; }
+html.leave-to-bottom #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: leave-bottom 0.23s ease-in forwards !important; }
+html.leave-to-left #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: leave-left 0.23s ease-in forwards !important; }
+html.leave-to-right #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: leave-right 0.23s ease-in forwards !important; }
 
-html.shown[data-enter-from="below"] main { animation: enter-below 0.45s var(--ease) backwards; }
-html.shown[data-enter-from="above"] main { animation: enter-above 0.45s var(--ease) backwards; }
-html.shown[data-enter-from="right"] main { animation: enter-right 0.45s var(--ease) backwards; }
-html.shown[data-enter-from="left"] main { animation: enter-left 0.45s var(--ease) backwards; }
+html.shown:not(.page-loading)[data-enter-from="below"] #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: enter-below 0.45s var(--ease) backwards; }
+html.shown:not(.page-loading)[data-enter-from="above"] #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: enter-above 0.45s var(--ease) backwards; }
+html.shown:not(.page-loading)[data-enter-from="right"] #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: enter-right 0.45s var(--ease) backwards; }
+html.shown:not(.page-loading)[data-enter-from="left"] #question-card .pagecontainer > :is(.metadata, .content, .actions) { animation: enter-left 0.45s var(--ease) backwards; }
 
 /* the bottom arrow bobs gently so it's clear there is more below */
 @keyframes arrow-bob {

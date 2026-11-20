@@ -1015,7 +1015,15 @@ document.addEventListener("wheel", (e) => {
 //SWIPING ON TOUCH SCREENS: swipe up anywhere for the next question, down to go back.
 //the question's own text, the comments and anything you type in or that has its own scrolling are left alone
 const swipeIgnore = "#question-card .question, #comments-tab, .col-bar, .like-bar, .rate-bar, .likebar, input, textarea, select, #header"
-const mainEl = document.querySelector("main")
+//the question's parts follow the finger. the side arrows stay still (see the note in question.css)
+const slideParts = document.querySelectorAll("#question-card .pagecontainer > :is(.metadata, .content, .actions)")
+
+function setSlide(translate, transition) {
+    for (const part of slideParts) {
+        if (transition != undefined) part.style.transition = transition
+        part.style.translate = translate
+    }
+}
 let swipe
 
 function canSwipe(direction) { //1 = next question, -1 = back
@@ -1023,8 +1031,7 @@ function canSwipe(direction) { //1 = next question, -1 = back
 }
 
 function settleBack() { //springs back into place when a swipe doesn't go anywhere
-    mainEl.style.transition = "translate 0.3s var(--ease)"
-    mainEl.style.translate = ""
+    setSlide("", "translate 0.3s var(--ease)")
 }
 
 document.addEventListener("touchstart", (e) => {
@@ -1044,7 +1051,7 @@ document.addEventListener("touchmove", (e) => {
         if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return
         swipe.decided = true
         swipe.active = Math.abs(dy) > Math.abs(dx) && !somethingOpen()
-        if (swipe.active) mainEl.style.transition = "none"
+        if (swipe.active) setSlide("", "none")
     }
 
     if (!swipe.active) return
@@ -1053,7 +1060,7 @@ document.addEventListener("touchmove", (e) => {
     //the page follows the finger, and holds back when there's nowhere to go
     swipe.dy = dy
     const pull = canSwipe(dy < 0 ? 1 : -1) ? 0.45 : 0.12
-    mainEl.style.translate = `0 ${dy * pull}px`
+    setSlide(`0 ${dy * pull}px`)
 }, {passive: false})
 
 document.addEventListener("touchend", () => {
@@ -1075,7 +1082,7 @@ document.addEventListener("touchend", () => {
     }
 
     //carries on from where the finger left it into the slide out
-    mainEl.style.transition = ""
+    setSlide(slideParts[0]?.style.translate || "", "")
     const go = direction > 0 ? nextQuestion() : previousQuestion()
 
     go.then(() => {
