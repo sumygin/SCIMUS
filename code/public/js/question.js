@@ -973,24 +973,87 @@ document.addEventListener("wheel", (e) => {
     }
 }, {passive: true})
 
-//SWIPING ON PHONES: swipe up once the bottom of the page is reached
-let touchStart
+//SWIPING ON TOUCH SCREENS: swipe up anywhere for the next question, down to go back.
+//the question's own text, the comments and anything you type in or that has its own scrolling are left alone
+const swipeIgnore = "#question-card .question, #comments-tab, .col-bar, .like-bar, .rate-bar, .likebar, input, textarea, select, #header"
+const mainEl = document.querySelector("main")
+let swipe
+
+function canSwipe(direction) { //1 = next question, -1 = back
+    return direction > 0 ? true : trail.pos > 0 //guests swiping up get sent to log in, recommendations need an account
+}
+
+function settleBack() { //springs back into place when a swipe doesn't go anywhere
+    mainEl.style.transition = "translate 0.3s var(--ease)"
+    mainEl.style.translate = ""
+}
 
 document.addEventListener("touchstart", (e) => {
-    if (e.touches.length != 1) return
-    touchStart = {y: e.touches[0].clientY, time: Date.now(), atEnd: !scrollsSomething(e.target, 1)}
+    swipe = undefined
+    if (e.touches.length != 1 || moving || e.target.closest(swipeIgnore)) return
+
+    swipe = {x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now(), dy: 0, decided: false, active: false}
 }, {passive: true})
 
-document.addEventListener("touchend", (e) => {
-    if (!touchStart || !user || moving || somethingOpen()) return
+document.addEventListener("touchmove", (e) => {
+    if (!swipe) return
 
-    const distance = touchStart.y - e.changedTouches[0].clientY
-    const quick = Date.now() - touchStart.time < 700
+    const dx = e.touches[0].clientX - swipe.x
+    const dy = e.touches[0].clientY - swipe.y
 
-    if (touchStart.atEnd && quick && distance > 70 && !scrollsSomething(e.target, 1)) {
-        nextQuestion()
+    if (!swipe.decided) { //wait until it's clear whether this is an up/down swipe or a tap / sideways drag
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return
+        swipe.decided = true
+        swipe.active = Math.abs(dy) > Math.abs(dx) && !somethingOpen()
+        if (swipe.active) mainEl.style.transition = "none"
     }
-    touchStart = undefined
+
+    if (!swipe.active) return
+    e.preventDefault()
+
+    //the page follows the finger, and holds back when there's nowhere to go
+    swipe.dy = dy
+    const pull = canSwipe(dy < 0 ? 1 : -1) ? 0.45 : 0.12
+    mainEl.style.translate = `0 ${dy * pull}px`
+}, {passive: false})
+
+document.addEventListener("touchend", () => {
+    if (!swipe || !swipe.active) {
+        swipe = undefined
+        return
+    }
+
+    const {dy, time} = swipe
+    swipe = undefined
+
+    const direction = dy < 0 ? 1 : -1
+    const flicked = Math.abs(dy) > 25 && Date.now() - time < 250
+    const pulledFar = Math.abs(dy) > 70
+
+    if (!(flicked || pulledFar) || !canSwipe(direction) || moving) {
+        settleBack()
+        return
+    }
+
+    if (direction > 0 && !user) {
+        settleBack()
+        needsAccount()
+        return
+    }
+
+    //carries on from where the finger left it into the slide out
+    mainEl.style.transition = ""
+    const go = direction > 0 ? nextQuestion() : previousQuestion()
+
+    go.then(() => {
+        const leaving = [...document.documentElement.classList].some(c => c.startsWith("leave-to-"))
+        if (!leaving) settleBack() //e.g. no more recommendations right now
+    })
+}, {passive: true})
+
+document.addEventListener("touchcancel", () => {
+    if (swipe?.active) settleBack()
+    swipe = undefined
 }, {passive: true})
 
 //KEYBOARD: up/down for scrolling questions, left/right for the list arrows
@@ -1025,6 +1088,7 @@ try {
 
 if (user && hintUses < 3) {
     nextHint.innerText = window.matchMedia("(hover: none)").matches ? "swipe up for the next question" : "scroll for the next question"
+    if (trail.pos > 0 && window.matchMedia("(hover: none)").matches) nextHint.innerText = "swipe up for more, down to go back"
     nextHint.classList.add("show")
 }
 

@@ -781,6 +781,85 @@ html.shown[data-enter-from="left"] main { animation: enter-left 0.45s var(--ease
     }
 }
 
+/* PHONES: the question fills exactly one screen and you swipe between questions, like flicking through a feed.
+   the page itself never scrolls, only the question text, comments and menus do */
+@media (max-width: 768px) {
+    html.question-page, html.question-page body {
+        overflow: hidden;
+        overscroll-behavior: none; /* no pull-to-refresh fighting the swipe */
+    }
+
+    /* the page only moves when it's dragged by the swipe, inner boxes still scroll as normal */
+    html.question-page main {
+        touch-action: pan-x pinch-zoom;
+    }
+
+    html.question-page :is(.question, #comments-tab, .col-bar, textarea) {
+        touch-action: auto;
+    }
+
+    #question-card .pagecontainer {
+        height: calc(100vh - 3.6rem);
+        height: calc(100dvh - 3.6rem);
+        min-height: 0;
+    }
+
+    #question-card .content {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #question-card .middle-container {
+        flex: 1;
+        min-height: 0;
+    }
+
+    /* the question box takes whatever room is left */
+    #question-card .question {
+        flex: 1;
+        height: auto;
+        min-height: 6em;
+    }
+
+    #question-card .maincwrapper {
+        flex: 0 0 48%;
+        height: auto;
+        min-height: 0;
+        box-sizing: border-box;
+    }
+
+    #question-card .arr3 {
+        display: none;
+    }
+
+    /* "swipe up" floats over the bottom of the question for a few seconds instead of taking up room */
+    #question-card .next-hint {
+        position: fixed;
+        left: 50%;
+        bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+        translate: -50% 0;
+        margin: 0;
+        padding: 0.4em 0.9em;
+        background: white;
+        color: rgba(0, 0, 0, 0.65);
+        border-radius: 2em;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+        z-index: 20;
+    }
+
+    #question-card .next-hint.show {
+        animation: hint-flash 4.5s var(--ease) 1s forwards;
+    }
+
+    @keyframes hint-flash {
+        0% { opacity: 0; }
+        12%, 80% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+}
+
 /* no page scrollbar while a question slides in or out */
 html.leave-to-top body, html.leave-to-bottom body, html.leave-to-left body, html.leave-to-right body,
 html[data-enter-from]:not(.settled) body {
