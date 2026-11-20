@@ -702,6 +702,118 @@ a:hover .s-q {
     -webkit-touch-callout: none;
 }
 
+/* "LOG IN TO..." POPUP for guests trying something that needs an account */
+
+.login-prompt {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: rgba(0, 0, 0, 0.25);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fade-in 0.2s var(--ease);
+}
+
+.login-prompt.closing {
+    animation: fade-out 0.18s var(--ease) forwards !important;
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+.login-prompt-box {
+    position: relative;
+    width: min(26rem, 100%);
+    box-sizing: border-box;
+    background: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    padding: 1.8rem 1.6rem 1.2rem;
+    text-align: center;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    animation: pop-in 0.22s var(--ease);
+}
+
+.login-prompt-title {
+    font-weight: bold;
+    font-size: 1.15rem;
+    margin-bottom: 0.6rem;
+}
+
+.login-prompt-text {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+.login-prompt-free {
+    margin: 0 0 1.3rem;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+.login-prompt-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: stretch;
+}
+
+.login-prompt-actions a {
+    font-family: monospace;
+    font-size: 0.95rem;
+    padding: 0.75em 1em;
+    border-radius: 5px;
+    transition: background-color 0.2s, color 0.2s, transform 0.12s;
+}
+
+.login-prompt-register {
+    border: 2px solid black;
+}
+
+.login-prompt-register:hover {
+    opacity: 1;
+    background: black;
+    color: white;
+}
+
+.login-prompt-actions a:active {
+    transform: scale(0.97);
+}
+
+.login-prompt-later {
+    scale: 1;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    background: none;
+    opacity: 0.55;
+}
+
+.login-prompt-close {
+    scale: 1;
+    position: absolute;
+    top: 0.4rem;
+    right: 0.6rem;
+    font-size: 1.3rem;
+    background: none;
+    opacity: 0.5;
+}
+
+/* login page: why you were sent there */
+.login-reason {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 0.9rem;
+    margin: 0 auto 1.4rem;
+    max-width: 30em;
+    opacity: 0.75;
+    animation: drift-down 0.45s var(--ease) backwards;
+}
+
 /* CLOSING POPUPS, COUNTERS */
 
 @keyframes pop-out {

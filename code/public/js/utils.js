@@ -98,6 +98,69 @@ export async function imagesLoaded() {
     await Promise.race([images, timeout])
 }
 
+//a small popup for guests who try something that needs an account. says what logging in unlocks,
+//that it's free, and takes them to log in or register (and back to this page afterwards)
+let promptEl
+let promptReturnFocus
+
+export function showLoginPrompt(title = "Log in to continue", text = "") {
+    const here = encodeURIComponent(window.location.pathname + window.location.search)
+
+    if (!promptEl) {
+        promptEl = document.createElement("div")
+        promptEl.className = "login-prompt"
+        promptEl.innerHTML = `
+            <div class="login-prompt-box" role="dialog" aria-modal="true" aria-labelledby="login-prompt-title">
+                <button type="button" class="login-prompt-close" aria-label="Close">×</button>
+                <div class="login-prompt-title" id="login-prompt-title"></div>
+                <p class="login-prompt-text"></p>
+                <p class="login-prompt-free">It's free, and takes about a minute.</p>
+                <div class="login-prompt-actions">
+                    <a class="login-prompt-register">CREATE A FREE ACCOUNT</a>
+                    <a class="login-prompt-login">LOG IN</a>
+                </div>
+                <button type="button" class="login-prompt-later">Not now</button>
+            </div>`
+        document.body.appendChild(promptEl)
+
+        const close = () => hideLoginPrompt()
+        promptEl.querySelector(".login-prompt-close").addEventListener("click", close)
+        promptEl.querySelector(".login-prompt-later").addEventListener("click", close)
+        //clicking the dimmed background closes it, but only a click that started there: on phones the finger
+        //that opened it (like and rate open as soon as they're touched) lifts off over the background
+        let startedOnBackground = false
+        promptEl.addEventListener("pointerdown", (e) => {
+            startedOnBackground = e.target == promptEl
+        })
+        promptEl.addEventListener("click", (e) => {
+            if (e.target == promptEl && startedOnBackground) close()
+            startedOnBackground = false
+        })
+        document.addEventListener("keydown", (e) => {
+            if (e.key == "Escape" && promptEl.classList.contains("open")) close()
+        })
+    }
+
+    promptEl.querySelector(".login-prompt-title").innerText = title
+    const textEl = promptEl.querySelector(".login-prompt-text")
+    textEl.innerText = text
+    textEl.style.display = text ? "" : "none"
+    promptEl.querySelector(".login-prompt-register").href = `/login?register&next=${here}`
+    promptEl.querySelector(".login-prompt-login").href = `/login?next=${here}`
+
+    promptReturnFocus = document.activeElement
+    openAnimated(promptEl, "flex")
+    promptEl.classList.add("open")
+    promptEl.querySelector(".login-prompt-register").focus({preventScroll: true})
+}
+
+export function hideLoginPrompt() {
+    if (!promptEl || !promptEl.classList.contains("open")) return
+    promptEl.classList.remove("open")
+    closeAnimated(promptEl)
+    if (promptReturnFocus && promptReturnFocus.focus) promptReturnFocus.focus({preventScroll: true})
+}
+
 //sends guests to the login page, which brings them back here afterwards
 export function goToLogin() {
     const here = window.location.pathname + window.location.search
@@ -307,7 +370,7 @@ export async function sendDataRequest(route, errbar, window, successMsg, method=
     if (!res) return
 
     if (res.status == 401) { //needs an account
-        goToLogin()
+        showLoginPrompt()
         return
     }
 
@@ -332,7 +395,7 @@ export async function sendData(route, data, errbar, window, successMsg, send_res
     if (!res) return
 
     if (res.status == 401) { //needs an account
-        goToLogin()
+        showLoginPrompt()
         return
     }
 

@@ -69,6 +69,32 @@ function nextPage() {
     return "/home"
 }
 
+//when sent here from a page that needs an account, say so
+const reasons = {
+    "/create": "Log in to write your own questions.",
+    "/inbox": "Log in to see your notifications.",
+    "/preferences": "Log in to change your study timer.",
+    "/profile": "Log in to see your profile.",
+}
+
+function showReason() {
+    const next = new URLSearchParams(window.location.search).get("next")
+    if (!next) return
+
+    let path = ""
+    try {
+        path = new URL(next, window.location.origin).pathname
+    } catch (err) {}
+
+    const key = Object.keys(reasons).find(r => path == r || path.startsWith(r + "/"))
+    const note = document.createElement("p")
+    note.className = "login-reason"
+    note.innerText = `${key ? reasons[key] : "Log in or create an account to carry on."} It's free, and takes about a minute.`
+    logbtn.insertAdjacentElement("beforebegin", note)
+}
+
+showReason()
+
 let countriesList
 let sending = false //stops forms being sent twice
 

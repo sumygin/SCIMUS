@@ -1,5 +1,5 @@
 import "./tooltips.js"
-import { sendDataRequest, getUser } from "./utils.js"
+import { sendDataRequest, getUser, showLoginPrompt } from "./utils.js"
 
 const errbar = document.getElementsByClassName("error")[0]
 
@@ -66,6 +66,13 @@ function timerOpen() { //whether the timer popup is on screen
 const user = await getUser()
 
 if (!user) { //guests only get the option to log in
+    for (const link of document.querySelectorAll('#header a[href="/create"]')) {
+        link.addEventListener("click", (e) => {
+            e.preventDefault()
+            showLoginPrompt("Log in to write questions", "Post your own questions, or ask for help with one you're stuck on.")
+        })
+    }
+
     const next = encodeURIComponent(window.location.pathname + window.location.search)
     document.getElementById("profile-popup").innerHTML = `
           <span class="profile-hover-item">

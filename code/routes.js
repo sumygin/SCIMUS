@@ -54,7 +54,7 @@ const tagPattern = /^[a-z0-9_.-]{2,20}$/
 const reservedTags = ["admin", "self", "scimus"]
 
 //data anyone can read without an account. everything else, and anything that changes data, needs a login
-const publicApi = ["/subjects/names/", "/schools/names", "/topics/names/", "/subject/papers/", "/preferences/get", "/me", "/stats",
+const publicApi = ["/subjects/names/", "/schools/names", "/topics/names/", "/subject/papers/", "/preferences/get", "/me", "/stats", "/scroll/guest",
     "/homepage", "/search/", "/question/get/", "/collection/get/", "/comments/get/", "/replies/get/", "/lb/", "/user/data/"]
 
 //an error that is safe to show to the user
@@ -1785,6 +1785,17 @@ module.exports = function(app) {
 
         return shuffle(result.slice(0, pageSize))
     }
+
+    //questions for guests to scroll through: a random mix of published ones, nothing personal
+    app.get("/api/scroll/guest", async (req, res) => {
+        const questions = await Question.aggregate([
+            {$match: {published: true}},
+            {$sample: {size: pageSize}},
+            {$project: {_id: 0, question_id: 1}}
+        ])
+
+        res.json(questions)
+    })
 
     app.post("/api/scroll/recommendation", async (req, res) => {
         try {

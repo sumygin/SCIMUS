@@ -1,13 +1,41 @@
 import {generateStarHTML, warn, sendDataRequest, convertTag, convertStudyStage, sendData, reportInvalid,
-    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, goToLogin, setBusy, emptyState, loader, clearLoading, showPage as revealPage, openAnimated, closeAnimated, bump} from "./utils.js"
+    escapeHTML, sanitizeHTML, renderMath, imagesLoaded, getUser, showLoginPrompt, setBusy, emptyState, loader, clearLoading, showPage as revealPage, openAnimated, closeAnimated, bump} from "./utils.js"
 
-//guests can read questions, mark schemes and comments. anything else takes them to log in
+//guests can read questions, mark schemes and comments, and scroll through a few sample questions.
+//anything else shows them what logging in would unlock
 const user = await getUser()
 
-function needsAccount() {
+const accountPrompts = {
+    like: ["Log in to like questions", "Your likes help the best questions rise to the top."],
+    rate: ["Log in to rate questions", "Rating how hard a question was helps SCIMUS pick the right ones for you."],
+    watch: ["Log in to watch questions", "You'll get a notification whenever someone comments."],
+    solve: ["Log in to track what you've solved", "See your progress and never lose track of what you've done."],
+    comment: ["Log in to join the discussion", "Ask about a step, help someone else, or reply to a comment."],
+    collections: ["Log in to save questions", "Keep questions in collections like Solve Later, and share them."],
+    scroll: ["Log in to keep scrolling", "You've seen the 5 sample questions guests get. With an account, every next question is picked to match your level."],
+}
+
+function needsAccount(feature) {
     if (user) return false
-    goToLogin()
+    showLoginPrompt(...(accountPrompts[feature] || []))
     return true
+}
+
+//guests scroll through a random sample, a few times
+const guestScrollLimit = 5
+
+function guestScrollsUsed() {
+    try {
+        return Number(localStorage.getItem("guestScrolls")) || 0
+    } catch (err) {
+        return 0
+    }
+}
+
+function useGuestScroll() {
+    try {
+        localStorage.setItem("guestScrolls", guestScrollsUsed() + 1)
+    } catch (err) {}
 }
 
 let BtnValues = { //values of the sidebar (for animation purposes)
@@ -171,7 +199,7 @@ function collectionTemplate(c) { //one row of the collection menu
 //COLLECTION MENU TOGGLE
 
 elData.plus.addEventListener("click", () =>{
-    if (needsAccount()) return
+    if (needsAccount("collections")) return
     if (collectionMenu.style.display == "block" && !collectionMenu.classList.contains("closing")) {
         closeAnimated(collectionMenu)
     }
@@ -239,9 +267,9 @@ commentsBtn.addEventListener("click", () => { //comment show/hide
 //letting go, or by tapping it afterwards (the only way that works on touch screens)
 let openBar
 
-function optionBar(trigger, bar, onPick) {
+function optionBar(trigger, bar, onPick, feature = "like") {
     trigger.addEventListener("pointerdown", () => {
-        if (needsAccount()) return
+        if (needsAccount(feature)) return
 
         if (openBar && openBar.bar != bar) closeAnimated(openBar.bar)
 
@@ -279,7 +307,7 @@ function faceImage(value) {
 
 elData.cForm.addEventListener("submit", async e => {
     e.preventDefault() //prevent form being sent
-    if (needsAccount()) return
+    if (needsAccount("comment")) return
 
     elData.cinput.setCustomValidity("")
 
@@ -334,7 +362,9 @@ async function showPosted(commentID, parentID) {
 }
 
 elData.cinput.addEventListener("focus", () => { //starting to write a comment
-    needsAccount()
+    if (user) return
+    elData.cinput.blur() //otherwise closing the popup would focus it again and reopen it
+    needsAccount("comment")
 })
 
 elData.cinput.addEventListener("input", () => {
@@ -421,7 +451,7 @@ function commentTemplate(c){
     })
 
     newComment.querySelector(".reply").addEventListener("click", () => {
-        if (needsAccount()) return
+        if (needsAccount("comment")) return
         showReplyBar(`@${c.user_tag}`, c.comment_id)
     })
 
@@ -577,7 +607,7 @@ optionBar(elData.star, elData.ratebar, async (img) => { //handle ratings
     bump(elData.ratings)
     bump(elData.star)
     elData.rating.innerHTML = generateStarHTML(Number(result.newAvg))
-})
+}, "rate")
 
 //preview the rating while moving over the stars
 for (const img of rateBarImgs) {
@@ -608,11 +638,11 @@ async function setSolved(solved) {
 }
 
 elData.watch.addEventListener("click", () => {
-    if (!needsAccount()) setWatched(!BtnValues.watch)
+    if (!needsAccount("watch")) setWatched(!BtnValues.watch)
 })
 
 elData.check.addEventListener("click", () => {
-    if (!needsAccount()) setSolved(!BtnValues.solve)
+    if (!needsAccount("solve")) setSolved(!BtnValues.solve)
 })
 
 //  =================
@@ -869,7 +899,14 @@ function saveTrail() {
 }
 
 async function nextQuestion() { //scroll down
-    if (moving || !user) return
+    if (moving) return
+
+    const newQuestion = trail.ids[trail.pos+1] == undefined //going forward again after scrolling back doesn't count
+    if (!user && newQuestion && guestScrollsUsed() >= guestScrollLimit) {
+        needsAccount("scroll")
+        return
+    }
+
     moving = true
     hideNextHint()
 
@@ -878,9 +915,11 @@ async function nextQuestion() { //scroll down
     let nextID = trail.ids[trail.pos+1] //scrolled back up earlier, so the next one is already known
 
     if (nextID == undefined) {
-        //if end of queue, get more questions
+        //if end of queue, get more questions. guests get a random sample, everyone else gets recommendations
         if (rcQueue.length == 0) {
-            const recommended = await sendData("/api/scroll/recommendation", {}, errbar, window, "", true)
+            const recommended = user
+                ? await sendData("/api/scroll/recommendation", {}, errbar, window, "", true)
+                : await sendDataRequest("/api/scroll/guest", errbar, window, "")
             rcQueue = (recommended || []).map(q => q.question_id).filter(id => id != qID && !trail.ids.includes(id)) //get list of ids
         }
 
@@ -893,6 +932,7 @@ async function nextQuestion() { //scroll down
         nextID = rcQueue.shift() //get next page
         trail.ids = trail.ids.slice(0, trail.pos+1)
         trail.ids.push(nextID)
+        if (!user) useGuestScroll()
     }
 
     trail.pos++
@@ -912,7 +952,6 @@ async function previousQuestion() { //scroll up
 }
 
 elData.arr3.addEventListener("click", function(){ //event listener for bottom arrow
-    if (needsAccount()) return //recommendations are made for the user
     nextQuestion()
 })
 
@@ -940,7 +979,7 @@ let wheelReset
 let lastInnerScroll = 0
 
 document.addEventListener("wheel", (e) => {
-    if (!user || moving || e.ctrlKey || somethingOpen()) return
+    if (moving || e.ctrlKey || somethingOpen()) return
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return //sideways scrolling
 
     const now = Date.now()
@@ -980,7 +1019,7 @@ const mainEl = document.querySelector("main")
 let swipe
 
 function canSwipe(direction) { //1 = next question, -1 = back
-    return direction > 0 ? true : trail.pos > 0 //guests swiping up get sent to log in, recommendations need an account
+    return direction > 0 ? true : trail.pos > 0
 }
 
 function settleBack() { //springs back into place when a swipe doesn't go anywhere
@@ -1035,12 +1074,6 @@ document.addEventListener("touchend", () => {
         return
     }
 
-    if (direction > 0 && !user) {
-        settleBack()
-        needsAccount()
-        return
-    }
-
     //carries on from where the finger left it into the slide out
     mainEl.style.transition = ""
     const go = direction > 0 ? nextQuestion() : previousQuestion()
@@ -1062,10 +1095,8 @@ document.addEventListener("keydown", (e) => {
     if (e.target.closest("input, textarea, select, [contenteditable='true']")) return
 
     if (e.key == "ArrowDown" && !scrollsSomething(document.activeElement || document.body, 1)) {
-        if (user) {
-            e.preventDefault()
-            nextQuestion()
-        }
+        e.preventDefault()
+        nextQuestion()
     }
     else if (e.key == "ArrowUp" && trail.pos > 0 && !scrollsSomething(document.activeElement || document.body, -1)) {
         e.preventDefault()
@@ -1086,7 +1117,7 @@ try {
     hintUses = Number(localStorage.getItem("nextHintUses")) || 0
 } catch (err) {}
 
-if (user && hintUses < 3) {
+if (hintUses < 3) {
     nextHint.innerText = window.matchMedia("(hover: none)").matches ? "swipe up for the next question" : "scroll for the next question"
     if (trail.pos > 0 && window.matchMedia("(hover: none)").matches) nextHint.innerText = "swipe up for more, down to go back"
     nextHint.classList.add("show")
